@@ -2,7 +2,130 @@
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
 
-* Filter characteristics
+* The [N II] temperature map
+
+The main issue here is the correction for the underlying continuum. 
+
++ In the Ring Nebula EW(Hb) = 800 Angstrom and is roughly constant in the inner region (drops at the outside, where dust scattering becomes important)
++ In Orion, the EW is smaller: roughly 400 Angstrom in the inner regions, but varying strongly with position
++ From O'Dell & Harris we have spectrophotometry
+  + The relevant regions ase the  portions of slits 11 and 12
+    + 
+
+
+
+** Factors affecting the 5755/6584 determination
+
+*** Spatial variations in the continuum color
+
++ Bob's =k= term
+  + Defined as 
+: flux ratio of the continuum (in wavelength intervals) at the line filter wavelength and at 547 nm
+
+
+**** Fig 2 of O'Dell & Harris
++ The spectrum rises towards the blue, even though it is not de-reddened
++ The E sample (EW=190) is bluer than the 12-mid sample (EW=430)
++ Between 547 and 575 there is only a small difference
+  + I measure about 0.06 dex for 12-mid
+    + Corresponds to a ratio of k = 10**-0.06 = 0.87
+    + So even this is significantly different from unity
+  + This will have a potentially large effect since EW(5755) is small
++ Between 547 and 658 the difference is a bit larger
+
+
+
+**** Evidence from the 469/547 ratio
++ The 469 filter is potentially contaminated by [Fe III] 4701.53 and He I 4713.139, so we have to be careful
+  + Baldwin has fluxes as follows
+    | lambda(obs) | lambda_0 | Ion      | delta V | FWHM |  I/6678 | Icorr/6678 |     S/N | Notes   |
+    |-------------+----------+----------+---------+------+---------+------------+---------+---------|
+    |    4701.603 |  4701.53 | [Fe III] |     4.6 |   14 |  0.0390 |     0.0559 |   188.8 |         |
+    |    4713.164 | 4713.139 | He I     |     1.5 |   19 |  0.1340 |     0.1916 |   354.3 | average |
+    |    4861.334 |  4861.33 | H\beta   |     0.2 |   26 | 17.4964 |    24.2016 | 62680.0 |         |
+  + So, assuming H beta EW is 400 Angstrom, we get EWs for the two lines of 400 [0.0559, 0.1916]/24.2016 = [0.924, 3.167] Angstroms
+  + The filter width is 53.1 Angstrom according to Bob
+    + In addition, the He I line falls on the red flank of the filter, where the transmission is about 0.12, which is 0.6 times the peak
+    + Although it will be very sensitive to the heliocentric correction since we are on a very steep part of the transmission curve.
+  + So the fractional contribution of the He I line should be 0.6 3.167 / 53.1 = 0.0358 => only about 3.5%
+  + The [Fe III] line has a transmission of 0.19 = 0.95 times peak, giving a fractional contribution of 0.95 0.924 / 53.1 = 0.016, which is 1.6%
+  + So, in *normal* circumstances the line contamination of F469N should be about 5% when EW(Hb) = 400 Angstrom
+    + And would be even less when the EW(Hb) is lower
+  + An exception will be from shocked regions that have much enhanced [Fe III] emission
+    + For example HH202 from Mesa Delgado et al (2012)
+      + The nebular component has flux 0.237 on scale Hb=100 (similar to Baldwin)
+      + The shock component has flux 3.915 on scale Hb=100
+	+ For Hb:
+	  + shock = (6.00±0.20) ×10−12 erg cm−2 s−1
+	  + nebula = (3.80±0.20)×10−12 erg cm−2 s−1
+	+ So, if we did not resolve the 2 components we would get
+	  + 100 I([Fe III]) / I(Hb) =  (6.00 3.915 + 3.80 0.237)/(6.00 + 3.80) = 2.49
+	  + So if EW(Hb) = 400, we would have EW([Fe III]) = 400 2.49 / 100 = 9.96
+      + So fractional contribution of shocked [Fe III] to F469N is 0.95 9.96 / 53.1 = 0.178
+	+ => nearly 20%
+    + We can compare this with the excess in 569/547 seen at the position of the HH529 counterflow, which is about 10%
+      + So this is not quite as extreme as in HH202, possible because the shock component is not as strong relative to the nebular component
+
+
+
+    
+  + Bob estimates (in Ring paper, penultimate para of appendix) that up to 10% of the 469 signal may be from lines (principally He I).
+    + I get only half this value. 
+  + In principle, this could be corrected for if we had observations of another He line.... we don't
+  + On the other hand, to zeroth order the He I will follow H I, which in turn follows the Paschen continuum
+  + This means that /variations/ in 469/$OTHER_FILTER are unlikely to be due to the He I line
+  + The [Fe III] 
+  + But apart from that, it should be telling us the continuum color
+  + It shows peak-to-peak variations of about 20% in the "interesting" (NW) zone, and about 10% in the more boring (SE) zone
+  + It seems to be correlated with the 469/487 ratio, which is the reciprocal of the EW of Hb (modulo contamination of FQ469N)
+    + This is what we expect, since the continuum color should be bluer in regions where the scattered continuum is higher
+    + 469/487 shows peak-to-peak variations of order 50% in the NW zone, and 20% in the SE zone
+  + We should check this against the EW determined from the 487/547 ratio too. 
+
+
+* Useful data
+** WFC3 filters
+*** Just the filters we use
+
+Bob says in the Ring paper...
+
+: We adopted the pre-launch determined values of W from Table 6.2 of the WFC3 Instrument Handbook, except increasing the values slightly because of the broadening due to short wavelength shift of the filter profile. The amount of the shift was guided by the determination from emission-lines falling on the short wavelength portion of the filter profile described below. The adopted values of W were FQ436N (4.5 nm), FQ437N (3.3 nm), F469N (5.31 nm), F487N (6.2 nm), FQ575N (2.06 nm), FQ672N (2.21 nm), F673N (12.31 nm), and FQ674N (2.11 nm). It was not necessary to adopt a value of W for F502N, F656N, and F658N because the observed continuum was so weak that the continuum correction was less than 0.01).
+
+Which gives ...
+
+| Name   | Description      | Pivot λp (nm) | Width (nm) | Peak System Throughput | EW (Ang) | EW/EW547 | W/W547 |
+| 1      | 2                |             3 |          4 |                      5 |        6 |        7 |      8 |
+|--------+------------------+---------------+------------+------------------------+----------+----------+--------|
+| FQ437N | [O III] 4363     |         437.1 |       3.30 |                   0.20 |      6.6 |   0.0391 | 0.0508 |
+| F469N  | He II 4686       |         468.8 |       5.31 |                   0.20 |     10.6 |   0.0627 | 0.0817 |
+| F487N  | Hβ 4861          |         487.1 |       6.20 |                   0.25 |     15.5 |   0.0917 | 0.0954 |
+| F502N  | [O III] 5007     |         501.0 |       6.50 |                   0.26 |     16.9 |   0.1000 | 0.1000 |
+| F547M  | Strömgren y      |         544.7 |      65.00 |                   0.26 |    169.0 |   1.0000 | 1.0000 |
+| FQ575N | [N II] 5754      |         575.8 |       2.06 |                   0.23 |      4.7 |   0.0278 | 0.0317 |
+| F656N  | Hα 6562          |         656.1 |       1.80 |                   0.24 |      4.3 |   0.0254 | 0.0277 |
+| F658N  | [N II] 6583      |         658.4 |       2.80 |                   0.26 |      7.3 |   0.0432 | 0.0431 |
+| FQ672N | [S II] 6717      |         671.6 |       2.21 |                   0.25 |      5.5 |   0.0325 | 0.0340 |
+| F673N  | [S II] 6717/6731 |         676.6 |      12.31 |                   0.25 |     30.8 |   0.1822 | 0.1894 |
+| FQ674N | [S II] 6731      |         673.1 |       2.11 |                   0.19 |      4.0 |   0.0237 | 0.0325 |
+#+TBLFM: $6=10 $-1 $-2; f1::$7=$-1/@7$-1; f4::$8=$4/@7$4;f4
+
++ For the most part, the transmission profiles are very square, but F547M has a significant slope: from 0.26 at 525 nm to 0.19 at 580 nm.
+  + This does not affect the nominal width, which is EW/peak
+  + But it means that there will be a color term in the filter sensitivity
+  + Variation is about 20%
+
+
+**** Notes to the table columns
+
+Columns 1-4 are described below. 
+
+6 - EW is Width times Peak Throughput (in Angstroms for a change).
+
+7 - EW normalised to the F547M filter
+
+8 - Same as previous, but for the nominal widths instead
+
+*** All filter characteristics from the WFC3 Instrument Handbook
 
 
 From http://www.stsci.edu/hst/wfc3/documents/handbooks/currentIHB/c06_uvis06.html
@@ -10,7 +133,7 @@ From http://www.stsci.edu/hst/wfc3/documents/handbooks/currentIHB/c06_uvis06.htm
 Table 6.2: WFC3/UVIS Filters and Grism
 
 
-** UVIS Long-Pass (LP) and Extremely Wide (X) Filters
+*** UVIS Long-Pass (LP) and Extremely Wide (X) Filters
 
 | Name   | Description                        | Pivot λp (nm) | Width (nm) | Peak System Throughput |
 | 1      | 2                                  |             3 |          4 |                        |
@@ -22,7 +145,7 @@ Table 6.2: WFC3/UVIS Filters and Grism
 | F600LP | Long pass                          |         744.4 |      229.2 |                   0.29 |
 | F850LP | SDSS z′                            |         916.6 |      118.2 |                   0.09 |
 
-** UVIS Wide-Band (W) Filters
+*** UVIS Wide-Band (W) Filters
 
 | Name  | Description    | Pivot λp (nm) | Width (nm) | Peak System Throughput |
 | 1     | 2              |             3 |          4 |                        |
@@ -41,7 +164,7 @@ Table 6.2: WFC3/UVIS Filters and Grism
 | F814W | WFPC2 Wide I   |         802.4 |      153.6 |                   0.23 |
 |       |                |               |            |                        |
 
-** UVIS Medium-Band (M) Filters
+*** UVIS Medium-Band (M) Filters
 
 | Name   | Description     | Pivot λp (nm) | Width (nm) | Peak System Throughput |
 | 1      | 2               |             3 |          4 |                        |
@@ -57,7 +180,7 @@ Table 6.2: WFC3/UVIS Filters and Grism
 | F845M  | 11% passband    |         843.6 |       78.7 |                   0.14 |
 |        |                 |               |            |                        |
 
-** UVIS Narrow-Band (N) Filters
+*** UVIS Narrow-Band (N) Filters
 
 | Name   | Description            | Pivot λp (nm) | Width (nm) | Peak System Throughput |
 | 1      | 2                      |             3 |          4 |                        |
@@ -100,7 +223,7 @@ Table 6.2: WFC3/UVIS Filters and Grism
 |        |                        |               |            |                        |
 
 
-** Column descriptions
+*** Column descriptions
 
 1. The spectral-element naming convention is as follows for both the
    UVIS and IR channels. All filter names begin with F, and grisms
@@ -125,63 +248,6 @@ Table 6.2: WFC3/UVIS Filters and Grism
    equivalent width divided by the maximum throughput within the
    filter bandpass. Equivalent width is the integral with respect to
    wavelength of the throughput across the filter passband.
-
-
-* The [N II] temperature map
-
-The main issue here is the correction for the underlying continuum. 
-
-+ In the Ring Nebula EW(Hb) = 800 Angstrom and is roughly constant in the inner region (drops at the outside, where dust scattering becomes important)
-+ In Orion, the EW is smaller: roughly 400 Angstrom in the inner regions, but varying strongly with position
-+ From O'Dell & Harris we have spectrophotometry
-  + The relevant regions ase the  portions of slits 11 and 12
-    + 
-
-
-
-** Factors affecting the 5755/6584 determination
-
-*** Spatial variations in the continuum color
-
-+ Bob's =k= term
-  + Defined as 
-: flux ratio of the continuum (in wavelength intervals) at the line filter wavelength and at 547 nm
-
-
-**** Fig 2 of O'Dell & Harris
-+ The spectrum rises towards the blue, even though it is not de-reddened
-+ The E sample (EW=190) is bluer than the 12-mid sample (EW=430)
-+ Between 547 and 575 there is not much difference
-+ I measure at most 0.06 dex for 12-mid
-  + Corresponds to a ratio of k = 10**-0.06 = 0.87
-  + So even this is significantly different from unity
-
-
-
-**** Evidence from the 469/547 ratio
-+ The 469 filter is potentially contaminated by [Fe III] 4701.53 and He I 4713.139, so we have to be careful
-  + Baldwin has fluxes as follows
-    | lambda(obs) | lambda_0 | Ion      | delta V | FWHM |  I/6678 | Icorr/6678 |     S/N | Notes   |
-    |-------------+----------+----------+---------+------+---------+------------+---------+---------|
-    |    4701.603 |  4701.53 | [Fe III] |     4.6 |   14 |  0.0390 |     0.0559 |   188.8 |         |
-    |    4713.164 | 4713.139 | He I     |     1.5 |   19 |  0.1340 |     0.1916 |   354.3 | average |
-    |    4861.334 |  4861.33 | H\beta   |     0.2 |   26 | 17.4964 |    24.2016 | 62680.0 |         | 
-    So, assuming HB EW is 400, we get EWs for the two lines of 400 [0.0559, 0.1916]/24.2016 = [0.924, 3.167] Angstroms
-  + The filter width is 
-
-
-    
-  + Bob estimates (in Ring paper, penultimate para of appendix) that up to 10% of the 469 signal may be from lines (principally He I).
-  + In principle, this could be corrected for if we had observations of another He line.... we don't
-  + On the other hand, to zeroth order the He I will follow H I, which in turn follows the Paschen continuum
-  + This means that /variations/ in 469/$OTHER_FILTER are unlikely to be due to the He I line
-  + The [Fe III] 
-+ But apart from that, it should be telling us the continuum color
-+ It shows peak-to-peak variations of about 20% in the "interesting" (NW) zone, and about 10% in the more boring (SE) zone
-+ It seems to be correlated with the 469/487 ratio, which is the reciprocal of the EW of Hb (modulo contamination of FQ469N)
-  + This is what we expect, since the continuum color should be bluer in regions where the scattered continuum is higher
-  + 469/487 shows peak-to-peak variations of order 50% in the NW zone, and 20% in the SE zone
-+ We should check this against the EW determined from the 487/547 ratio too. 
 
 
 
