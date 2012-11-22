@@ -1,0 +1,195 @@
+
+Orion t^2 project based on Rubin's 2012 WFC3 data
+
+
+* Filter characteristics
+
+
+From http://www.stsci.edu/hst/wfc3/documents/handbooks/currentIHB/c06_uvis06.html
+
+Table 6.2: WFC3/UVIS Filters and Grism
+
+
+** UVIS Long-Pass (LP) and Extremely Wide (X) Filters
+
+| Name   | Description                        | Pivot λp (nm) | Width (nm) | Peak System Throughput |
+| 1      | 2                                  |             3 |          4 |                        |
+|--------+------------------------------------+---------------+------------+------------------------|
+| F200LP | Clear                              |         488.3 |      502.2 |                   0.33 |
+| F300X  | Extremely wide UV; grism reference |         280.7 |       66.3 |                   0.17 |
+| F350LP | Long pass                          |         584.6 |      475.8 |                   0.29 |
+| F475X  | Extremely wide blue                |         493.9 |      205.6 |                   0.28 |
+| F600LP | Long pass                          |         744.4 |      229.2 |                   0.29 |
+| F850LP | SDSS z′                            |         916.6 |      118.2 |                   0.09 |
+
+** UVIS Wide-Band (W) Filters
+
+| Name  | Description    | Pivot λp (nm) | Width (nm) | Peak System Throughput |
+| 1     | 2              |             3 |          4 |                        |
+|-------+----------------+---------------+------------+------------------------|
+| F218W | ISM feature    |         222.4 |       32.2 |                   0.05 |
+| F225W | UV wide        |         235.9 |       46.7 |                   0.10 |
+| F275W | UV wide        |         270.4 |       39.8 |                   0.13 |
+| F336W | U, Strömgren u |         335.5 |       51.1 |                   0.20 |
+| F390W | Washington C   |         392.1 |       89.6 |                   0.25 |
+| F438W | WFPC2 B        |         432.5 |       61.8 |                   0.24 |
+| F475W | SDSS g′        |         477.3 |      134.4 |                   0.27 |
+| F555W | WFPC2 V        |         530.8 |      156.2 |                   0.28 |
+| F606W | WFPC2 Wide V   |         588.7 |      218.2 |                   0.29 |
+| F625W | SDSS r′        |         624.2 |      146.3 |                   0.28 |
+| F775W | SDSS i′        |         764.7 |      117.1 |                   0.23 |
+| F814W | WFPC2 Wide I   |         802.4 |      153.6 |                   0.23 |
+|       |                |               |            |                        |
+
+** UVIS Medium-Band (M) Filters
+
+| Name   | Description     | Pivot λp (nm) | Width (nm) | Peak System Throughput |
+| 1      | 2               |             3 |          4 |                        |
+|--------+-----------------+---------------+------------+------------------------|
+| F390M  | Ca II continuum |         389.7 |       20.4 |                   0.22 |
+| F410M  | Strömgren v     |         410.9 |       17.2 |                   0.27 |
+| FQ422M | Blue continuum  |         421.9 |       11.2 |                   0.19 |
+| F467M  | Strömgren b     |         468.3 |       20.1 |                   0.28 |
+| F547M  | Strömgren y     |         544.7 |       65.0 |                   0.26 |
+| F621M  | 11% passband    |         621.9 |       60.9 |                   0.28 |
+| F689M  | 11% passband    |         687.6 |       68.3 |                   0.25 |
+| F763M  | 11% passband    |         761.2 |       70.4 |                   0.21 |
+| F845M  | 11% passband    |         843.6 |       78.7 |                   0.14 |
+|        |                 |               |            |                        |
+
+** UVIS Narrow-Band (N) Filters
+
+| Name   | Description            | Pivot λp (nm) | Width (nm) | Peak System Throughput |
+| 1      | 2                      |             3 |          4 |                        |
+|--------+------------------------+---------------+------------+------------------------|
+| FQ232N | C II] 2326             |         241.3 |        3.4 |                   0.04 |
+| FQ243N | [Ne IV] 2425           |         246.8 |        3.6 |                   0.05 |
+| F280N  | Mg II 2795/2802        |         283.1 |        4.3 |                   0.06 |
+| F343N  | [Ne V] 3426            |         343.5 |       25.0 |                   0.21 |
+| F373N  | [O II] 3726/3728       |         373.0 |        5.0 |                   0.18 |
+| FQ378N | z ([O II] 3726)        |         379.2 |        9.9 |                   0.20 |
+| FQ387N | [Ne III] 3868          |         387.4 |        3.4 |                   0.18 |
+| F395N  | Ca II 3933/3968        |         395.5 |        8.5 |                   0.22 |
+| FQ436N | Hγ 4340 + [O III] 4363 |         436.7 |        4.3 |                   0.19 |
+| FQ437N | [O III] 4363           |         437.1 |        3.0 |                   0.20 |
+| F469N  | He II 4686             |         468.8 |        5.0 |                   0.20 |
+| F487N  | Hβ 4861                |         487.1 |        6.0 |                   0.25 |
+| FQ492N | z (Hβ)                 |         493.3 |       11.4 |                   0.25 |
+| F502N  | [O III] 5007           |         501.0 |        6.5 |                   0.26 |
+| FQ508N | z ([O III] 5007)       |         509.1 |       13.1 |                   0.26 |
+| FQ575N | [N II] 5754            |         575.8 |        1.8 |                   0.23 |
+| FQ619N | CH4 6194               |         619.9 |        6.1 |                   0.26 |
+| F631N  | [O I] 6300             |         630.4 |        5.8 |                   0.25 |
+| FQ634N | 6194 continuum         |         634.9 |        6.4 |                   0.26 |
+| F645N  | Continuum              |         645.4 |        8.4 |                   0.25 |
+| F656N  | Hα 6562                |         656.1 |        1.8 |                   0.24 |
+| F657N  | Wide Hα + [N II]       |         656.7 |       12.1 |                   0.26 |
+| F658N  | [N II] 6583            |         658.4 |        2.8 |                   0.26 |
+| F665N  | z (Hα + [N II])        |         665.6 |       13.1 |                   0.26 |
+| FQ672N | [S II] 6717            |         671.6 |        1.9 |                   0.25 |
+| F673N  | [S II] 6717/6731       |         676.6 |       11.8 |                   0.25 |
+| FQ674N | [S II] 6731            |         673.1 |        1.8 |                   0.19 |
+| F680N  | z (Hα + [N II])        |         687.7 |       37.1 |                   0.25 |
+| FQ727N | CH4 7270               |         727.5 |        6.4 |                   0.21 |
+| FQ750N | 7270 continuum         |         750.3 |        7.0 |                   0.18 |
+| FQ889N | CH4 25 km-agt5         |         889.2 |        9.8 |                   0.10 |
+| FQ906N | CH4 2.5 km-agt         |         905.8 |        9.9 |                   0.08 |
+| FQ924N | CH4 0.25 km-agt        |         924.8 |        9.2 |                   0.08 |
+| FQ937N | CH4 0.025 km-agt       |         937.2 |        9.3 |                   0.07 |
+| F953N  | [S III] 9532           |         953.0 |        9.7 |                   0.05 |
+|        |                        |               |            |                        |
+
+
+** Column descriptions
+
+1. The spectral-element naming convention is as follows for both the
+   UVIS and IR channels. All filter names begin with F, and grisms
+   with G; if the filter is part of a four-element quad mosaic, a Q
+   follows F. Then there is a three-digit number giving the nominal
+   effective wavelength of the bandpass, in nm (UVIS channel) or nm/10
+   (IR channel). (For long-pass filters, the number is instead the
+   nominal blue cut-off wavelength in nm.) Finally, for the filters,
+   one or two letters indicate the bandpass width: X (extremely wide),
+   LP (long pass), W (wide), M (medium), or N (narrow).
+
+2. Filters intended for imaging in a red-shifted bandpass are given
+   descriptions similar to the following: “z (Hα + [N II])”.
+
+3. “Pivot wavelength” is a measure of the effective wavelength of a
+   filter (see Section 9.3 and Tokunaga & Vacca 2005, PASP, 117,
+   421). It is calculated here based on the integrated system
+   throughput. Filter transmissions were measured in air, but the
+   equivalent vacuum wavelengths are reported in this table.
+
+4. Widths listed are passband rectangular width, defined as the
+   equivalent width divided by the maximum throughput within the
+   filter bandpass. Equivalent width is the integral with respect to
+   wavelength of the throughput across the filter passband.
+
+
+* The [N II] temperature map
+
+The main issue here is the correction for the underlying continuum. 
+
++ In the Ring Nebula EW(Hb) = 800 Angstrom and is roughly constant in the inner region (drops at the outside, where dust scattering becomes important)
++ In Orion, the EW is smaller: roughly 400 Angstrom in the inner regions, but varying strongly with position
++ From O'Dell & Harris we have spectrophotometry
+  + The relevant regions ase the  portions of slits 11 and 12
+    + 
+
+
+
+** Factors affecting the 5755/6584 determination
+
+*** Spatial variations in the continuum color
+
++ Bob's =k= term
+  + Defined as 
+: flux ratio of the continuum (in wavelength intervals) at the line filter wavelength and at 547 nm
+
+
+**** Fig 2 of O'Dell & Harris
++ The spectrum rises towards the blue, even though it is not de-reddened
++ The E sample (EW=190) is bluer than the 12-mid sample (EW=430)
++ Between 547 and 575 there is not much difference
++ I measure at most 0.06 dex for 12-mid
+  + Corresponds to a ratio of k = 10**-0.06 = 0.87
+  + So even this is significantly different from unity
+
+
+
+**** Evidence from the 469/547 ratio
++ The 469 filter is potentially contaminated by [Fe III] 4701.53 and He I 4713.139, so we have to be careful
+  + Baldwin has fluxes as follows
+    | lambda(obs) | lambda_0 | Ion      | delta V | FWHM |  I/6678 | Icorr/6678 |     S/N | Notes   |
+    |-------------+----------+----------+---------+------+---------+------------+---------+---------|
+    |    4701.603 |  4701.53 | [Fe III] |     4.6 |   14 |  0.0390 |     0.0559 |   188.8 |         |
+    |    4713.164 | 4713.139 | He I     |     1.5 |   19 |  0.1340 |     0.1916 |   354.3 | average |
+    |    4861.334 |  4861.33 | H\beta   |     0.2 |   26 | 17.4964 |    24.2016 | 62680.0 |         | 
+    So, assuming HB EW is 400, we get EWs for the two lines of 400 [0.0559, 0.1916]/24.2016 = [0.924, 3.167] Angstroms
+  + The filter width is 
+
+
+    
+  + Bob estimates (in Ring paper, penultimate para of appendix) that up to 10% of the 469 signal may be from lines (principally He I).
+  + In principle, this could be corrected for if we had observations of another He line.... we don't
+  + On the other hand, to zeroth order the He I will follow H I, which in turn follows the Paschen continuum
+  + This means that /variations/ in 469/$OTHER_FILTER are unlikely to be due to the He I line
+  + The [Fe III] 
++ But apart from that, it should be telling us the continuum color
++ It shows peak-to-peak variations of about 20% in the "interesting" (NW) zone, and about 10% in the more boring (SE) zone
++ It seems to be correlated with the 469/487 ratio, which is the reciprocal of the EW of Hb (modulo contamination of FQ469N)
+  + This is what we expect, since the continuum color should be bluer in regions where the scattered continuum is higher
+  + 469/487 shows peak-to-peak variations of order 50% in the NW zone, and 20% in the SE zone
++ We should check this against the EW determined from the 487/547 ratio too. 
+
+
+
+* Bob's formulae for the filter calibrations
+
+** FQ575N
+
+\[
+r_{\mathrm{pred}} = 1 + \left[50.44 k^{-1} \frac{R_{\mathrm{F575N}}}{R_{\mathrm{F547M}}} - 1\right]^{-1}
+\]
+
