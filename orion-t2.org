@@ -2,6 +2,11 @@
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
 
+
+* The C(Hb) map
+
++ Strangely, this is consistently higher by about 0.3 with respect to the previous maps, such as O'Dell & Yusef-Zadeh (2000)
+
 * The [N II] temperature map
 
 The main issue here is the correction for the underlying continuum. 
@@ -9,9 +14,19 @@ The main issue here is the correction for the underlying continuum.
 + In the Ring Nebula EW(Hb) = 800 Angstrom and is roughly constant in the inner region (drops at the outside, where dust scattering becomes important)
 + In Orion, the EW is smaller: roughly 400 Angstrom in the inner regions, but varying strongly with position
 + From O'Dell & Harris we have spectrophotometry
-  + The relevant regions ase the  portions of slits 11 and 12
-    + 
+  + The relevant regions are the western portions of slits 11 and 12
+  + 
 
+|          |  11-west |  12-west |
+|----------+----------+----------|
+| c(Hb)    |     0.26 |     0.37 |
+| S(Hb)    | 3.25E−13 | 3.93E−13 |
+| EW(Hb)   |      380 |      400 |
+| NII 5755 |   0.0039 |   0.0032 |
+| NII 6584 |   0.3792 |   0.2964 |
+| EW(5755) |    1.482 |     1.28 |
+| EW(6584) |  144.096 |   118.56 |
+#+TBLFM: @7$2..@8$3=@-2 @4
 
 
 ** Factors affecting the 5755/6584 determination
@@ -20,7 +35,8 @@ The main issue here is the correction for the underlying continuum.
 
 + Bob's =k= term
   + Defined as 
-: flux ratio of the continuum (in wavelength intervals) at the line filter wavelength and at 547 nm
+: flux ratio of the continuum (in wavelength intervals) at the line
+: filter wavelength and at 547 nm
 
 
 **** Fig 2 of O'Dell & Harris
@@ -65,31 +81,238 @@ The main issue here is the correction for the underlying continuum.
 	+ => nearly 20%
     + We can compare this with the excess in 569/547 seen at the position of the HH529 counterflow, which is about 10%
       + So this is not quite as extreme as in HH202, possible because the shock component is not as strong relative to the nebular component
-
-
-
-    
   + Bob estimates (in Ring paper, penultimate para of appendix) that up to 10% of the 469 signal may be from lines (principally He I).
-    + I get only half this value. 
+    + I get only half this value (/see above/) 
   + In principle, this could be corrected for if we had observations of another He line.... we don't
   + On the other hand, to zeroth order the He I will follow H I, which in turn follows the Paschen continuum
-  + This means that /variations/ in 469/$OTHER_FILTER are unlikely to be due to the He I line
-  + The [Fe III] 
+  + This means that /variations/ in 469/547 are unlikely to be due to the He I line
+    + Except for enhanced [Fe III] emission from shocks, which is seen in two or three very localised regions
   + But apart from that, it should be telling us the continuum color
   + It shows peak-to-peak variations of about 20% in the "interesting" (NW) zone, and about 10% in the more boring (SE) zone
-  + It seems to be correlated with the 469/487 ratio, which is the reciprocal of the EW of Hb (modulo contamination of FQ469N)
+  + The ratio 469/547 is /negatively/ correlated with 487/547, which is to first order the EW of Hb
+    + That is, the continuum is bluer when EW(Hb) is lower
     + This is what we expect, since the continuum color should be bluer in regions where the scattered continuum is higher
-    + 469/487 shows peak-to-peak variations of order 50% in the NW zone, and 20% in the SE zone
-  + We should check this against the EW determined from the 487/547 ratio too. 
+    + It is the /opposite/ of what one would expect if line contamination of 469 were a serious issue
+      + Since in that case, the line contamination should be relatively higher when there is less continuum to dilute it
+      + Which implies 469/547 should go up when 487/547 goes up, which is not observed.
+    + 487/547 shows peak-to-peak variations of order 50% in the NW zone, and 20% in the SE zone
 
 
 * Useful data
 ** WFC3 filters
+
+*** Useful continuum filters
+
+Which lines are in which filters?
+
+| Name   | Description    | Pivot λp (nm) | Width (nm) | Peak System Throughput |  lam_1 |  lam_2 |
+| 1      | 2              |             3 |          4 |                        |        |        |
+|--------+----------------+---------------+------------+------------------------+--------+--------|
+| F467M  | Strömgren b    |         468.3 |       20.1 |                   0.28 | 4582.5 | 4783.5 |
+| F547M  | Strömgren y    |         544.7 |       65.0 |                   0.26 | 5122.0 | 5772.0 |
+| FQ634N | 6194 continuum |         634.9 |        6.4 |                   0.26 | 6317.0 | 6381.0 |
+| F645N  | Continuum      |         645.4 |        8.4 |                   0.25 | 6412.0 | 6496.0 |
+#+TBLFM: $6=10 ($3 - 0.5 $4) ; f1::$7=10 ($3 + 0.5 $4) ; f1
+
+**** F467M Strömgren b 4582-4783 (W=201 A)
+
++ This is 4 times broader than F469N, which helps to dilute the lines.
++ But, the sum of the lines are 3 times higher flux!
+  + So we don't gain much
+  + The majority are He I and [Fe III]
+
+|----------+----------+----------+---+------+----+--------+--------+-------+---------------------------------------------------------------------|
+| 4571.200 | 4571.096 | Mg I     |   |  6.9 | 19 | 0.0014 | 0.0021 |   7.4 | the strongest semiforbidden optical line                            |
+| 4590.972 | 4590.974 | O II     |   | -0.2 | 13 | 0.0040 | 0.0059 |  27.2 |                                                                     |
+| 4596.175 | 4596.177 | O II     |   | -0.1 | 14 | 0.0032 | 0.0047 |  21.3 |                                                                     |
+| 4597.048 |  4596.84 | [Ni III] |   | 13.6 | 18 | 0.0019 | 0.0028 |  10.5 |                                                                     |
+| 4601.472 | 4601.478 | N II     |   | -0.4 | 15 | 0.0025 | 0.0037 |  15.9 |                                                                     |
+| 4602.080 | 4602.129 | O II     |   | -3.2 | 20 | 0.0015 | 0.0022 |   7.5 |                                                                     |
+| 4607.114 |  4607.03 | [Fe III] |   |      | 14 | 0.0094 | 0.0138 |  57.1 |                                                                     |
+|          | 4607.153 | N II     |   |      |    |        |        |       |                                                                     |
+| 4609.440 | 4609.436 | O II     |   |  0.3 | 19 | 0.0023 | 0.0034 |   9.9 |                                                                     |
+| 4613.848 | 4613.868 | N II     | ? | -1.3 |  9 | 0.0015 | 0.0022 |   8.2 | average; anomalously low FWHM                                       |
+| 4621.355 | 4621.418 | Si II    |   |      | 21 | 0.0030 | 0.0044 |   7.3 | average                                                             |
+|          | 4621.696 | Si II    |   |      |    |        |        |       | observed line might include Si II triplet                           |
+|          | 4621.722 | Si II    |   |      |    |        |        |       |                                                                     |
+|          | 4621.570 | [C I]    |   |      |    |        |        |       |                                                                     |
+|          | 4621.393 | N II     |   |      |    |        |        |       | main contributor                                                    |
+| 4628.294 | 4628.046 | [Ni II]  | ? | 16.1 |  9 | 0.0008 | 0.0012 |   4.7 | anomalously low FWHM                                                |
+| 4630.536 | 4630.539 | N II     |   |      | 14 | 0.0076 | 0.0111 |  37.2 |                                                                     |
+|          |  4630.61 | N III    |   |      |    |        |        |       |                                                                     |
+| 4634.072 |  4634.13 | N III    | ? | -3.8 | 13 | 0.0008 | 0.0012 |   5.2 | from multiplet with strongest line at 4640.64                       |
+| 4638.841 | 4638.856 | O II     |   | -0.9 | 14 | 0.0083 | 0.0121 |  53.9 |                                                                     |
+| 4640.569 |  4640.64 | N III    |   | -4.6 | 13 | 0.0013 | 0.0019 |   9.0 | from multiplet with strongest line at 4640.64                       |
+| 4641.806 | 4641.810 | O II     |   | -0.3 | 14 | 0.0166 | 0.0241 | 109.0 |                                                                     |
+| 4643.086 | 4643.086 | N II     |   |  0.0 | 15 | 0.0037 | 0.0054 |  22.5 |                                                                     |
+| 4649.133 | 4649.135 | O II     |   | -0.1 | 14 | 0.0266 | 0.0386 | 171.5 | this is the strongest line of the multiplet; all lines are observed |
+| 4650.827 | 4650.838 | O II     |   | -0.7 | 13 | 0.0081 | 0.0117 |  54.9 |                                                                     |
+| 4658.149 |  4658.05 | [Fe III] |   |  6.4 | 15 | 0.1246 | 0.1804 | 844.6 |                                                                     |
+| 4661.621 | 4661.632 | O II     |   | -0.7 | 14 | 0.0091 | 0.0132 |  67.4 |                                                                     |
+| 4667.047 |  4667.01 | [Fe III] |   |  2.4 | 16 | 0.0050 | 0.0072 |  35.9 |                                                                     |
+| 4673.720 | 4673.733 | O II     |   | -0.8 | 13 | 0.0014 | 0.0020 |  11.5 |                                                                     |
+| 4676.224 | 4676.235 | O II     |   | -0.7 | 16 | 0.0060 | 0.0087 |  43.5 | cosmic ray hit on wing                                              |
+| 4696.317 | 4696.353 | O II     | ? | -2.3 | 15 | 0.0011 | 0.0016 |   5.9 | weakest line from multiplet 4649.135                                |
+| 4699.167 | 4699.011 | O II     |   |      | 23 | 0.0022 | 0.0032 |   7.5 |                                                                     |
+|          | 4699.218 | O II     |   |      |    |        |        |       |                                                                     |
+| 4701.603 |  4701.53 | [Fe III] |   |  4.6 | 14 | 0.0390 | 0.0559 | 188.8 |                                                                     |
+| 4705.358 | 4705.346 | O II     |   |  0.8 | 13 | 0.0030 | 0.0043 |  14.2 |                                                                     |
+| 4711.331 |  4711.37 | [Ar IV]  |   | -2.5 | 13 | 0.0109 | 0.0156 |  38.9 | average                                                             |
+| 4713.164 | 4713.139 | He I     |   |  1.5 | 19 | 0.1340 | 0.1916 | 354.3 | average                                                             |
+| 4728.294 | 4728.068 | [Fe II]  | ? | 14.3 | 14 | 0.0011 | 0.0016 |   7.0 | possible line from multiplet with 4889.617                          |
+| 4733.937 |  4733.91 | [Fe III] |   |  1.7 | 15 | 0.0166 | 0.0236 | 100.8 |                                                                     |
+| 4740.188 |  4740.17 | [Ar IV]  |   |  1.1 | 13 | 0.0125 | 0.0178 |  92.5 |                                                                     |
+| 4752.953 | 4752.691 | O II     | ? | 16.5 | 22 | 0.0016 | 0.0023 |   8.1 |                                                                     |
+| 4754.776 |  4754.69 | [Fe III] |   |  5.4 | 15 | 0.0232 | 0.0329 | 161.6 |                                                                     |
+| 4756.469 |          |          | ? |      | 21 | 0.0021 | 0.0030 |  11.1 |                                                                     |
+| 4762.400 |          |          | ? |      | 21 | 0.0010 | 0.0014 |   5.6 |                                                                     |
+| 4769.496 |  4769.43 | [Fe III] |   |  4.2 | 15 | 0.0136 | 0.0192 |  88.4 |                                                                     |
+| 4774.942 | 4774.718 | [Fe II]  |   | 14.1 | 13 | 0.0012 | 0.0017 |   8.3 | from multiplet with strongest line at 4814.534                      |
+| 4777.734 |  4777.68 | [Fe III] |   |  3.4 | 14 | 0.0080 | 0.0113 |  53.4 |                                                                     |
+| 4779.715 | 4779.722 | N II     |   | -0.4 | 14 | 0.0014 | 0.0020 |   9.6 |                                                                     |
+| 4788.139 | 4788.138 | N II     |   |  0.0 | 17 | 0.0020 | 0.0028 |  12.1 |                                                                     |
+| 4789.611 |  4789.45 | [F II]   | ? | 10.1 | 16 | 0.0009 | 0.0013 |   5.3 |                                                                     |
+| 4792.073 | 4792.007 | S II     | ? |  4.2 | 23 | 0.0010 | 0.0014 |   4.3 |                                                                     |
+| 4793.839 | 4793.648 | N II     | ? | 12.0 | 25 | 0.0019 | 0.0027 |   7.7 | several lines of this multiplet are observed                        |
+| 4802.489 |          |          | ? |      | 15 | 0.0017 | 0.0024 |   8.6 |                                                                     |
+| 4803.267 | 4803.287 | N II     |   | -1.2 | 12 | 0.0023 | 0.0032 |  13.2 | the same multiplet as 4774, 4779, 4781, 4788, 4793, 4810            |
+| 4814.741 | 4814.534 | [Fe II]  |   | 12.9 | 18 | 0.0086 | 0.0120 |  28.5 | average; from multiplet with strongest line at 4814.534             |
+| 4815.563 | 4815.617 | N II     |   |      | 17 | 0.0030 | 0.0042 |  10.3 | average                                                             |
+|          | 4815.552 | S II     |   |      |    | 0.0024 |        |       |                                                                     |
+|----------+----------+----------+---+------+----+--------+--------+-------+---------------------------------------------------------------------|
+|          |          |          |   |      |    |        |  0.783 |       |                                                                     |
+     #+TBLFM: @58$8=vsum(@I..@II)
+
+**** F547M Strömgren y 5122-5772
+|    5121.856 | 5121.828 | C II     |   |     1.7 |   17 |  0.0018 |     0.0024 |     11.3 | B                    |
+|    5131.924 |          |          | ? |         |   19 |  0.0013 |     0.0017 |      6.0 | B                    |
+|    5146.890 | 5146.749 | Co I     | ? |     8.2 |   17 |  0.0049 |     0.0064 |      8.9 | R                    |
+|    5146.917 | 5146.749 | Co I     | ? |     9.8 |   18 |  0.0064 |     0.0083 |     25.5 | B                    |
+|    5158.951 | 5158.777 | [Fe II]  |   |    10.1 |   21 |  0.0140 |     0.0182 |     56.7 | B                    |
+|    5158.956 | 5158.777 | [Fe II]  |   |    10.4 |   21 |  0.0113 |     0.0147 |     56.6 | R                    |
+|    5169.274 | 5169.033 | Fe II    |   |    14.0 |   13 |  0.0014 |     0.0018 |     10.8 | R possibly pumped; strongest line in multiplet; other possible 5018.440 |
+|    5169.288 | 5169.033 | Fe II    |   |    14.8 |   10 |  0.0011 |     0.0014 |      8.8 | B                    |
+|    5191.700 | 5191.816 | [Ar III] |   |    -6.7 |   14 |  0.0127 |     0.0164 |     63.7 | R average            |
+|    5198.159 | 5197.902 | [N I]    |   |    14.8 |   11 |  0.0203 |     0.0262 |    291.8 | R                    |
+|    5198.169 | 5197.902 | [N I]    |   |    15.4 |   11 |  0.0253 |     0.0327 |    287.0 | B                    |
+|    5200.516 | 5200.257 | [N I]    |   |    14.9 |   12 |  0.0119 |     0.0154 |    168.5 | R                    |
+|    5200.526 | 5200.257 | [N I]    |   |    15.5 |   11 |  0.0155 |     0.0200 |    175.3 | B                    |
+|    5219.353 | 5219.307 | S III    | ? |     2.6 |   18 |  0.0007 |     0.0009 |      3.9 | R                    |
+|    5219.359 | 5219.307 | S III    |   |     3.0 |   14 |  0.0009 |     0.0012 |      9.8 | B                    |
+|    5220.275 | 5220.059 | [Fe II]  | ? |    12.4 |   19 |  0.0011 |     0.0014 |      5.5 | R average            |
+|    5220.297 | 5220.059 | [Fe II]  |   |    13.7 |   20 |  0.0012 |     0.0015 |      9.9 | B                    |
+|    5261.854 | 5261.621 | [Fe II]  |   |    13.3 |   15 |  0.0107 |     0.0136 |     38.2 | B possible contribution from Ca I 5261.704 ^{3}D-^{3 }P |
+|    5261.856 | 5261.621 | [Fe II]  |   |    13.4 |   13 |  0.0088 |     0.0112 |     71.3 | R possible contribution from Ca I 5261.704 ^{3}D-^{3 }P |
+|    5269.228 | 5268.874 | [Fe II]  | ? |    20.2 |   20 |  0.0007 |     0.0009 |      4.1 | R                    |
+|    5270.530 |  5270.40 | [Fe III] |   |     7.4 |   15 |  0.0638 |     0.0812 |    335.1 | R average; possible contribution from Ca I 5270.270 ^{3}D-^{ 3}P |
+|    5270.543 |  5270.40 | [Fe III] |   |     8.1 |   15 |  0.0649 |     0.0826 |    252.8 | B average; possible contribution from Ca I 5270.270 ^{3}D-^{ 3}P |
+|    5273.577 | 5273.346 | [Fe II]  |   |    13.2 |   16 |  0.0057 |     0.0073 |     35.3 | R average            |
+|    5273.598 | 5273.346 | [Fe II]  |   |    14.3 |   16 |  0.0053 |     0.0067 |     26.4 | B                    |
+|    5275.306 | 5275.123 | O I      |   |         |   19 |  0.0018 |     0.0023 |      8.5 | R average            |
+|             | 5275.166 | O I      |   |         |      |         |            |          | R                    |
+|    5275.339 | 5275.123 | O I      | ? |         |   20 |  0.0015 |     0.0019 |      6.3 | B cannot see on two-dimensional image |
+|             | 5275.166 | O i      | ? |         |      |         |            |          | B                    |
+|    5297.037 | 5296.829 | [Fe II]  | ? |    11.8 |   15 |  0.0006 |     0.0008 |      4.7 | R                    |
+|    5299.245 | 5299.044 | O I      |   |         |   16 |  0.0046 |     0.0058 |     36.1 | R                    |
+|             | 5299.088 | O I      |   |         |      |         |            |          | R                    |
+|    5299.252 | 5299.044 | O I      |   |         |   18 |  0.0055 |     0.0070 |     37.2 | B                    |
+|             | 5299.088 | O I      |   |         |      |         |            |          | B                    |
+|    5333.862 | 5333.646 | [Fe II]  |   |    12.2 |   17 |  0.0028 |     0.0035 |     20.9 | B                    |
+|    5333.866 | 5333.646 | [Fe II]  |   |    12.4 |   18 |  0.0025 |     0.0031 |     16.5 | R                    |
+|    5342.392 |          |          | ? |         |   14 |  0.0028 |     0.0035 |     26.5 | B                    |
+|    5342.395 |          |          | ? |         |   15 |  0.0026 |     0.0033 |     26.2 | R                    |
+|    5363.659 |  5363.34 | [Ni IV]  | ? |    17.9 |   15 |  0.0014 |     0.0017 |     10.4 | B                    |
+|    5363.665 |  5363.34 | [Ni IV]  | ? |    17.9 |   11 |  0.0008 |     0.0010 |      8.4 | R                    |
+|    5376.606 | 5376.452 | [Fe II]  |   |     8.6 |   40 |  0.0037 |     0.0046 |      8.4 | B same multiplet as 5159, 5262 |
+|    5376.646 | 5376.452 | [Fe II]  |   |    10.8 |   23 |  0.0023 |     0.0029 |     12.1 | R average; fuzzy on two-dimensional image |
+|    5412.130 |  5411.98 | [Fe III] |   |     8.3 |   18 |  0.0068 |     0.0084 |     30.3 | B                    |
+|    5412.149 |  5411.98 | [Fe III] |   |     9.4 |   13 |  0.0062 |     0.0077 |     42.9 | R                    |
+|    5432.762 | 5432.797 | S II     | ? |    -1.9 |   14 |  0.0009 |     0.0011 |      6.9 | B                    |
+|    5432.824 | 5432.797 | S II     | ? |     1.5 |   15 |  0.0012 |     0.0015 |      6.2 | R same multiplet as 5453.855 |
+|    5433.365 | 5433.129 | [Fe II]  |   |    13.0 |   15 |  0.0018 |     0.0022 |      7.6 | R average; same multiplet as 5273 |
+|    5433.369 | 5433.129 | [Fe II]  |   |    13.3 |   20 |  0.0017 |     0.0021 |     10.1 | B                    |
+|    5453.843 | 5453.855 | S II     |   |    -0.7 |   13 |  0.0013 |     0.0016 |      9.1 | R same multiplet as 5432.797 |
+|    5453.853 | 5453.855 | S II     |   |    -0.1 |   11 |  0.0012 |     0.0015 |     11.4 | B                    |
+|    5495.626 | 5495.655 | N II     |   |    -1.6 |   24 |  0.0019 |     0.0023 |      9.2 | B, gh                |
+|    5495.640 | 5495.655 | N II     |   |    -0.8 |   15 |  0.0013 |     0.0016 |     14.9 | R several weak lines of this multiplet possibly observed |
+|    5506.859 | 5506.778 | Fe I     | ? |         |   10 |  0.0005 |     0.0006 |      5.3 | R                    |
+|             |  5507.00 | S I      | ? |         |      |         |            |          | R                    |
+|    5512.978 | 5512.772 | O I      |   |         |   16 |  0.0035 |     0.0043 |     40.2 | R average; ID lambda is average of sextet with all lines within 0.2A |
+|             | 5512.820 | O I      |   |         |      |         |            |          | R                    |
+|             | 5512.980 | Ca I     |   |         |      |         |            |          | R                    |
+|    5512.994 | 5512.772 | O I      |   |         |   16 |  0.0038 |     0.0046 |     14.3 | B wavelength is approximate, averaged for several lines in the multiplet |
+|             | 5512.820 | O I      |   |         |      |         |            |          | B                    |
+|             | 5512.980 | Ca I     |   |         |      |         |            |          | B                    |
+|    5517.675 |  5517.66 | [Cl III] |   |         |   14 |  0.0810 |     0.0984 |    456.3 | R average, blended with weak line |
+|             |  5517.66 | [Ni IV]  |   |         |      |         |            |          | R                    |
+|    5517.680 |  5517.66 | [Cl III] |   |         |   14 |  0.0832 |     0.1011 |    258.4 | B blended with weak line |
+|             |  5517.66 | [Ni IV]  |   |         |      |         |            |          | B                    |
+|    5518.354 | 5518.102 | N I      | ? |         |   14 |  0.0047 |     0.0057 |      8.9 | B average, blend with strong line |
+|             | 5518.576 | N I      | ? |         |      |         |            |          | B average            |
+|    5518.342 | 5518.102 | N I      | ? |         |   14 |  0.0050 |     0.0061 |     26.9 | R                    |
+|             | 5518.576 | N I      | ? |         |   14 |         |            |          | R average, blend with strong line |
+|    5527.508 |          |          |   |         |   21 |  0.0027 |     0.0033 |     16.7 | R not seen in blue spectrum |
+|    5535.357 | 5535.347 | N II     | ? |         |   24 |  0.0012 |     0.0015 |      5.3 | R                    |
+|             | 5535.353 | C II     | ? |         |      |         |            |          | R                    |
+|             | 5535.383 | N II     | ? |         |      |         |            |          | R several weak lines of this multiplet are possibly observed |
+|    5537.829 |   5537.7 | [Cl III] |   |         |   17 |  0.1257 |     0.1522 |    701.9 | B                    |
+|    5537.830 |   5537.7 | [Cl III] |   |         |   14 |  0.1220 |     0.1477 |    856.1 | R average            |
+|    5551.843 | 5551.922 | N II     |   |    -4.3 |   20 |  0.0014 |     0.0017 |      8.6 | R several weak lines of this multiplet are possibly observed |
+|    5551.901 | 5551.922 | N II     |   |    -1.1 |   19 |  0.0014 |     0.0017 |      8.1 | B                    |
+|    5555.209 | 5555.004 | O I      |   |         |   19 |  0.0055 |     0.0066 |     32.2 | B                    |
+|             | 5555.053 | O I      |   |         |      |         |            |          | B                    |
+|    5555.224 | 5555.004 | O I      |   |         |   17 |  0.0050 |     0.0060 |     24.8 | R average            |
+|             | 5555.053 | O I      |   |         |      |         |            |          | R                    |
+|    5577.523 | 5577.339 | [O I]    |   |     9.9 |   22 |  0.0028 |     0.0034 |     16.4 | B                    |
+|    5577.537 | 5577.339 | [O I]    |   |    10.7 |   20 |  0.0028 |     0.0034 |     15.6 | R                    |
+|    5606.145 | 5606.151 | S II     | ? |    -0.3 |   11 |  0.0005 |     0.0006 |      6.0 | B strongest line in multiplet |
+|    5666.606 |  5666.63 | N II     | ? |    -1.3 |   15 |  0.0045 |     0.0053 |      6.3 | B                    |
+|    5666.619 |  5666.63 | N II     |   |    -0.6 |   15 |  0.0063 |     0.0075 |     55.3 | R                    |
+|    5675.990 |  5676.02 | N II     |   |    -1.6 |   25 |  0.0038 |     0.0045 |      9.5 | B                    |
+|    5676.000 |  5676.02 | N II     |   |    -1.1 |   15 |  0.0024 |     0.0028 |     21.9 | R                    |
+|    5679.542 |  5679.56 | N II     |   |    -1.0 |   18 |  0.0088 |     0.0104 |     30.2 | B                    |
+|    5679.551 |  5679.56 | N II     |   |    -0.5 |   15 |  0.0088 |     0.0104 |     80.1 | R                    |
+|    5686.178 |  5686.21 | N II     | ? |    -1.7 |   17 |  0.0018 |     0.0021 |      7.1 | B                    |
+|    5686.198 |  5686.21 | N II     |   |    -0.6 |   13 |  0.0016 |     0.0019 |     15.0 | R                    |
+|    5710.736 |  5710.77 | N II     |   |    -1.8 |   18 |  0.0020 |     0.0023 |     12.0 | B                    |
+|    5710.757 |  5710.77 | N II     |   |    -0.7 |   13 |  0.0018 |     0.0021 |     14.3 | R                    |
+|    5739.691 |  5739.73 | Si III   |   |    -2.0 |   13 |  0.0047 |     0.0055 |     44.9 | R                    |
+|    5739.699 |  5739.73 | Si III   |   |    -1.6 |   14 |  0.0049 |     0.0057 |     42.3 | B                    |
+|    5747.190 | 5746.966 | [Fe II]  | ? |    11.7 |   17 |  0.0007 |     0.0008 |      5.5 | B                    |
+|    5754.663 |  5754.59 | [N II]   |   |     3.8 |   18 |  0.1727 |     0.2014 |    974.0 | R average            |
+|    5754.664 |  5754.59 | [N II]   |   |     3.9 |   19 |  0.1693 |     0.1974 |   1162.2 | B                    |
+
+**** FQ634N 6317-6381
+Note that [S III] is just outside - need to check transmission there
+
+|    6312.075 |  6312.06 | [S III]  |   |     0.7 |   14 |  0.4755 |     0.5050 |   2908.8 | average              |
+|    6347.147 |  6347.11 | Si II    |   |     1.8 |   20 |  0.0420 |     0.0444 |    227.4 | average              |
+|    6364.011 | 6363.776 | [O I]    |   |    11.1 |   16 |  0.0621 |     0.0654 |    469.5 | average              |
+|    6365.433 |  6365.10 | [Ni II]  |   |         |   10 |  0.0020 |     0.0021 |     20.9 | average              |
+|    6371.396 |  6371.37 | Si II    |   |     1.2 |   19 |  0.0212 |     0.0223 |    153.1 | average; blend       |
+
+
+**** F645N 6412-6496
+|    6402.273 | 6402.246 | Ne I     | ? |     1.3 |   13 |  0.0018 |     0.0019 |     17.7 | identified by Esteban 1998 |
+|    6440.522 | 6440.400 | [Fe II]  | ? |     5.7 |   19 |  0.0005 |     0.0005 |      4.6 |                      |
+|    6461.836 |          |          |   |         |   14 |  0.0060 |     0.0062 |     39.2 | average              |
+
+
 *** Just the filters we use
 
 Bob says in the Ring paper...
 
-: We adopted the pre-launch determined values of W from Table 6.2 of the WFC3 Instrument Handbook, except increasing the values slightly because of the broadening due to short wavelength shift of the filter profile. The amount of the shift was guided by the determination from emission-lines falling on the short wavelength portion of the filter profile described below. The adopted values of W were FQ436N (4.5 nm), FQ437N (3.3 nm), F469N (5.31 nm), F487N (6.2 nm), FQ575N (2.06 nm), FQ672N (2.21 nm), F673N (12.31 nm), and FQ674N (2.11 nm). It was not necessary to adopt a value of W for F502N, F656N, and F658N because the observed continuum was so weak that the continuum correction was less than 0.01).
+: We adopted the pre-launch determined values of W from Table 6.2 of the
+: WFC3 Instrument Handbook, except increasing the values slightly
+: because of the broadening due to short wavelength shift of the filter
+: profile. The amount of the shift was guided by the determination from
+: emission-lines falling on the short wavelength portion of the filter
+: profile described below. The adopted values of W were FQ436N (4.5 nm),
+: FQ437N (3.3 nm), F469N (5.31 nm), F487N (6.2 nm), FQ575N (2.06 nm),
+: FQ672N (2.21 nm), F673N (12.31 nm), and FQ674N (2.11 nm). It was not
+: necessary to adopt a value of W for F502N, F656N, and F658N because
+: the observed continuum was so weak that the continuum correction was
+: less than 0.01).
 
 Which gives ...
 
@@ -258,4 +481,21 @@ Table 6.2: WFC3/UVIS Filters and Grism
 \[
 r_{\mathrm{pred}} = 1 + \left[50.44 k^{-1} \frac{R_{\mathrm{F575N}}}{R_{\mathrm{F547M}}} - 1\right]^{-1}
 \]
+
+
+* Export options						   :noexport:
+#+TITLE:     Orion t^2 project
+#+AUTHOR:    William Henney
+#+EMAIL:     w.henney@crya.unam.mx
+#+DESCRIPTION:
+#+KEYWORDS:
+#+LANGUAGE:  en
+#+OPTIONS:   H:5 num:nil toc:t \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:   
+#+LINK_HOME: 
+#+XSLT:
 
