@@ -1,6 +1,35 @@
 
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
+* Again revisited [2013-12-19 Thu]
+
+
+** DONE Recheck the EW of Orion and Ring Nebula
+CLOSED: [2013-12-21 Sat 11:26]
++ [[file:EW(%5BN%20II%5D%205755).ipynb][This ipython notebook]] has the calculations
++ Bottom line is 3 \AA EW for [N II] 5755 \AA in Orion
++ And 100 \AA in the Ring Nebula
+** Use of the Rubin STIS slits to estimate color term
++ These overlap with our region
+
+*** Mail that I sent [2013-12-20 Fri]
+#+BEGIN_QUOTE
+A little later than promised due to family commitments, but I have managed to get some work done on this project.  I decided to go back to the beginning and make sure I was getting the fundamentals right.  So I have been checking the value of the Equivalent Width of [N II] 5755 from various datasets that I have lying around (Keck and STIS).  I also have calculated it for the Ring Nebula from the SPM B&Ch spectra. 
+
+The bottom line is that for multiple positions in Orion, EW(5755) = 3 Angstrom.  Whereas in the main ring of the Ring Nebula, EW(5755) = 100 Angstrom.  These should be compared with the nominal width of the FQ575N filter of WFC3, which is 20.6 Angstrom.
+
+What this means is that our Ring Nebula paper is safe because the continuum contamination of the [N II] auroral line filter is small (~ 20%).  In Orion, on the other hand, the FQ575N filter is dominated by continuum, which is 6 times stronger than the emission line that we want to measure.
+
+This means that if we want to know the [N II] line intensity to a precision of (say) 10%, then we need to know the continuum to a precision of better than 2%. 
+
+So, what I plan on doing next is to check how precisely we can estimate the continuum around 5755 Ang using the filters we have: F547M and F469N.  I plan to do this by comparison with STIS spectra that Bob Rubin obtained many years ago (published in 2003MNRAS.340..362R - Gary is a coauthor).  One of his slit positions overlaps our WFC3 Orion S field and includes the ranges 4308-4594, 4818-5104, and 5448-6020.  So the spectra cover half of the F547M bandpass and they straddle the F469N bandpass but unfortunately do not include it.  Therefore, they should be fine for looking at spatial variations in the continuum color, but will not help us in estimating the line contamination of F469N. 
+
+Of course, the same spectra will also allow a direct comparison of the 5755 intensity with our WFC3 measurements where they overlap, and I think this is worth doing too. 
+#+END_QUOTE
+
+** Using the 469 filter to estimate the color term
+** Write up calculation of the filter calibration
+
 * Revisiting this project [2013-08-04 Sun]
 
 + Main aim is to assess whether we can measure t^2([N II]) or not.
@@ -76,7 +105,7 @@ The main issue here is the correction for the underlying continuum.
     |-------------+----------+----------+---------+------+---------+------------+---------+---------|
     |    4701.603 |  4701.53 | [Fe III] |     4.6 |   14 |  0.0390 |     0.0559 |   188.8 |         |
     |    4713.164 | 4713.139 | He I     |     1.5 |   19 |  0.1340 |     0.1916 |   354.3 | average |
-    |    4861.334 |  4861.33 | H\beta       |     0.2 |   26 | 17.4964 |    24.2016 | 62680.0 |         |
+    |    4861.334 |  4861.33 | H\beta   |     0.2 |   26 | 17.4964 |    24.2016 | 62680.0 |         |
   + So, assuming H beta EW is 400 Angstrom, we get EWs for the two lines of 400 [0.0559, 0.1916]/24.2016 = [0.924, 3.167] Angstroms
   + The filter width is 53.1 Angstrom according to Bob
     + In addition, the He I line falls on the red flank of the filter, where the transmission is about 0.12, which is 0.6 times the peak
@@ -202,6 +231,7 @@ Which lines are in which filters?
      #+TBLFM: @58$8=vsum(@I..@II)
 
 **** F547M Strömgren y 5122-5772
+|----------+----------+----------+---+------+----+--------+--------+--------+--------------------------------------------------------------------------|
 | 5121.856 | 5121.828 | C II     |   |  1.7 | 17 | 0.0018 | 0.0024 |   11.3 | B                                                                        |
 | 5131.924 |          |          | ? |      | 19 | 0.0013 | 0.0017 |    6.0 | B                                                                        |
 | 5146.890 | 5146.749 | Co I     | ? |  8.2 | 17 | 0.0049 | 0.0064 |    8.9 | R                                                                        |
@@ -299,6 +329,15 @@ Which lines are in which filters?
 | 5747.190 | 5746.966 | [Fe II]  | ? | 11.7 | 17 | 0.0007 | 0.0008 |    5.5 | B                                                                        |
 | 5754.663 |  5754.59 | [N II]   |   |  3.8 | 18 | 0.1727 | 0.2014 |  974.0 | R average                                                                |
 | 5754.664 |  5754.59 | [N II]   |   |  3.9 | 19 | 0.1693 | 0.1974 | 1162.2 | B                                                                        |
+|----------+----------+----------+---+------+----+--------+--------+--------+--------------------------------------------------------------------------|
+|          |          |          |   |      |    |        | 1.4545 |        |                                                                          |
+#+TBLFM: @98$8=vsum(@I..@II)
++ Total line strength is about 1 x that of the reference line (is that H\beta?)
+  + We need to be careful with double counting, since many lines are observed in both the red and the blue arm
+  + No, it is 6678 and H\beta has 24.2016, so we have a total of about 4% of H\beta
+  + So the total EW(lines) is about 16 \AA for EW(H\beta) = 400 \AA
+  + The filter width is 650 \AA, so line contamination is 2.5%
+
 
 **** FQ634N 6317-6381
 Note that [S III] is just outside - need to check transmission there
