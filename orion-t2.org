@@ -9,8 +9,11 @@ CLOSED: [2013-12-21 Sat 11:26]
 + [[file:EW(%5BN%20II%5D%205755).ipynb][This ipython notebook]] has the calculations
 + Bottom line is 3 \AA EW for [N II] 5755 \AA in Orion
 + And 100 \AA in the Ring Nebula
-** Use of the Rubin STIS slits to estimate color term
+** TODO Use of the Rubin STIS slits to estimate color term
 + These overlap with our region
++ [ ] Work out which slits I need
++ [ ] Combine pairs to remove cosmic rays
++ [ ] Take slice through the WFC3 images to compare with the different filters
 
 *** Mail that I sent [2013-12-20 Fri]
 #+BEGIN_QUOTE
