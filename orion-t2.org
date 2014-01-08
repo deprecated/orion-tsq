@@ -131,6 +131,62 @@ CLOSED: [2013-12-21 Sat 11:26]
 + But that is for far-out regions.  In the Rubin slit we have 5 to 15 \AA
 + And 100 \AA in the Ring Nebula
 ** TODO Use Bally STIS slit for better estimate of color term
++ Pixel scale is 2.746 \AA
++ Each line is about 100 \AA wide due to 2 arcsec slit
+*** Lines that we can see in the G430L spectrum
++ NOT [N II] 5755
+  + Unfortunately, this is just off the red side of the spectrum
++ [Cl III] 5518,38
+  + Both of roughly equal strength
++ [Fe III] 5270
++ [N I] 5198,200
++ Other weak lines blending together
++ Overlap (very strong)
+  + H\beta 4861
+  + [O III] 4959
+  + [O III] 5007
++ Overlap (similar strength)
+  + He I 4713
+  + [Fe III] 4658
+  + The F469N (53.1 \AA) filter is 4662.25 \to 4715.35
+    + So the lines are at the edges of the filters
+    + We need to take into account that the filters are given in vacuum wavelengths
++ Overlap
+  + He I 4471 (roughly 4 x stronger than 4363)
+  + He I 4388 (2 \to 3 times weaker than 4363)
+    + a tiny perturbation to 4471
+  + H\gamma 4340 + [O III] 4363
+    + The 4363 line can be seen as a slight bump on the blue side of the 4471 line
+    + Also as a similar bump on 4340, but harder to see since 4340 is brighter
++ Overlap
+  + H\delta 4101 strong
+  + He I 4026
+  + [S II] 
+*** DONE Remove CRs with spotless.py
+CLOSED: [2014-01-05 Sun 17:04]
+#+BEGIN_SRC sh :results verbatim
+cp /Users/will/Work/HST-STIS/Bally8324/o5gf57010_sx2.fits bally-stis-hst10-g430l.fits
+python ~/Work/HST-STIS/spotless/spotless.py --data-range 0 3e-15 --multi-hdu --allow-shadows --output-id cr --include-regions-from-file bally-stis-hst10-g430l-badpix.reg --verbose --debug bally-stis-hst10-g430l
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Finding bad pixels by the 'edge' method
+Data scaled to range [0.00e+00, 3.00e-15]
+Edge detection with Canny method complete
+Filling of holes complete
+WARNING: FITSFixedWarning: 'unitfix' made the change 'Changed units: 'angstrom' -> 'Angstrom''. [astropy.wcs.wcs]
+Regions from bally-stis-hst10-g430l-badpix.reg added to bad pixels
+Number of bad pixels: 91131 (6.318% of total)
+Number of distinct bad pixel objects found: 245
+Number of objects skipped:  4
+Replacement of bad pixels complete
+WARNING: Overwriting existing file 'bally-stis-hst10-g430l-cr.fits'. [astropy.io.fits.hdu.hdulist]
+#+end_example
+
+This is not perfect, but it will do for now
+
+*** 
 ** DONE Use of the Rubin STIS slits to estimate color term
 CLOSED: [2014-01-04 Sat 00:24]
 + We find a color correction of 0.93 in [[file:Rubin%20STIS%20spectra.ipynb][this ipynb file]]
@@ -199,21 +255,6 @@ python ~/Work/HST-STIS/spotless/spotless.py --data-range 0 5e-13 --multi-hdu --a
 : Replacement of bad pixels complete
 : WARNING: Overwriting existing file 'rubin-stis-slit1-4961-merge-cr.fits'. [astropy.io.fits.hdu.hdulist]
 
-#+BEGIN_SRC sh :results verbatim
-cp /Users/will/Work/HST-STIS/Bally8324/o5gf57010_sx2.fits bally-stis-hst10-g430l.fits
-python ~/Work/HST-STIS/spotless/spotless.py --data-range 0 3e-15 --multi-hdu --allow-shadows --output-id cr --verbose --debug bally-stis-hst10-g430l
-#+END_SRC
-
-#+RESULTS:
-: Finding bad pixels by the 'edge' method
-: Data scaled to range [0.00e+00, 3.00e-15]
-: Edge detection with Canny method complete
-: Filling of holes complete
-: Number of bad pixels: 91063 (6.313% of total)
-: Number of distinct bad pixel objects found: 241
-: Number of objects skipped:  4
-: Replacement of bad pixels complete
-: WARNING: Overwriting existing file 'bally-stis-hst10-g430l-cr.fits'. [astropy.io.fits.hdu.hdulist]
 
 
 **** Help for spotless.py
