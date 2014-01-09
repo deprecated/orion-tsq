@@ -130,9 +130,21 @@ CLOSED: [2013-12-21 Sat 11:26]
 + Bottom line is 3 \AA EW for [N II] 5755 \AA in Orion
 + But that is for far-out regions.  In the Rubin slit we have 5 to 15 \AA
 + And 100 \AA in the Ring Nebula
-** TODO Use Bally STIS slit for better estimate of color term
+** DONE Use Bally STIS slit for better estimate of color term
+CLOSED: [2014-01-09 Thu 10:03]
 + Pixel scale is 2.746 \AA
 + Each line is about 100 \AA wide due to 2 arcsec slit
+*** Conclusions from Bally HST10 slit spectrum
+1. The 575/547 color correction is found to be 0.938, which is consistent within the errors to the value of 0.93 found from the Rubin spectrum
+2. The "true" variation (that is, corrected for noise, see below) in the color correction (for this slit) is about 0.5% RMS and occurs on scales of >= 100 pixels, or 5 arcsec
+   + Since the WFC3 images may sample a wider range of conditions than the STIS slit, there may be larger variation there
+3. The 469/547 color correction is 1.29 +/- 0.03 (pure continuum), or 1.36 +/- 0.03 (full He I + [Fe III] line contribution).  The actual case with the WFC3 F469N filter will lie between these two extremes.  The "true" variation in either case is about 2.7% RMS, but there is only a small correlation between the 469/547 and 575/547 continuum ratios: slope \(-0.09\) with \(R^{2 }< 17\%\).
+   + As a result, it is probably not worth trying use 469/547 to estimate 575/547, since even in the absence of noise, all we could achieve would be to reduce the RMS from 0.5% to 0.45%.  /And/ we would be adding more noise, which is not good.
+4. The "noise" (as measured by the variance between two narrow adjacent continuum bands) does not fall quite as steep as \(N^{{-1}}\).  We need to be aware of this when we try and noise-subtract the variance profiles.  This should not be such an issue with the images, since \(N\) increases quadratically with scale, instead of just linearly as it does with the spectra.
+   + This is not so surprising, since it is only shot noise that falls as \(1/N\).  Read noise, dark current, flat-field variations, interference patterns, etc can all contribute to the noise and will behave differently.
+   + [ ] We do have independent estimates of these for WFC3 from the studies of flats that I did for the Ring project - need to dig those up.  Although that was with white light so it wouldn't catch any interference fringes that appear with certain emission lines.
+   + Cosmic rays also contribute to noise (since the CR removal is never perfect), and in a highly non-gaussian way.  
+
 *** Lines that we can see in the G430L spectrum
 + NOT [N II] 5755
   + Unfortunately, this is just off the red side of the spectrum
