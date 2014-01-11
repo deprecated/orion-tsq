@@ -3,6 +3,20 @@ Orion t^2 project based on Rubin's 2012 WFC3 data
 
 * Again revisited [2013-12-19 Thu]
 
+** Aligning the "north" images
+Choose a faint star
+
+| 658 | 5:35:11.450 | -5:24:40.90 | 549.47682 | 947.40207 |  5.76241 |
+| 575 | 5:35:11.446 | -5:24:41.03 | 549.53663 | 947.39367 |  1.20806 |
+| 547 | 5:35:11.454 | -5:24:40.93 | 547.89619 | 946.71499 |   48.922 |
+| 436 | 5:35:14.933 | -5:24:11.92 | 549.53486 | 947.46514 | 0.613414 |
+| 487 | 5:35:14.933 | -5:24:11.92 | 549.53486 | 947.46514 | 0.613414 |
+| 437 | 5:35:11.426 | -5:24:40.59 | 549.23257 | 947.62798 | 0.410807 |
+| 469 | 5:35:11.454 | -5:24:40.89 |       548 |  947.6977 |  1.22668 |
+| 502 | 5:35:11.448 | -5:24:40.89 | 550.06973 | 947.76743 |  7.39493 |
+| 672 | 5:35:11.406 | -5:24:41.22 | 549.46514 | 947.76743 |  2.53132 |
+| 673 | 5:35:11.453 | -5:24:40.90 | 548.23257 | 947.46514 |  1.15662 |
+
 ** Save the ipython notebook with the Rubin STIS slit calculations
 #+BEGIN_SRC sh :results verbatim
 ipython nbconvert "Rubin STIS Spectra.ipynb"
@@ -124,6 +138,38 @@ Examples
 
 #+end_example
 
+** Interference patterns in the maps
++ The Hb/ha ratio has obvious interference patterns.  These have peak-to--peak amplitudes of about 5% in the worst cases.
+** Modelling the variation in the 575/658 ratio
++ A large part will be caused by continuum, so should be correlated with 547/575
+*** Simple line plus continuum model
++ F547M = Cont W547 T547
++ FQ575N = (Color Cont W575 + Line) T575
++ Where:
+  + F... is the filter signal
+  + W... is the width
+    + W575 = 20.6
+    + W547 = 650.0
+  + T... is the peak throughput
+    + T575 = 0.23
+    + T547 = 0.26
+  + Color is the 575/547 continuum ratio (\approx 0.938)
+  + Cont, Line = continuum and line intensities
++ If we substitute for Cont, then
+  + FQ575N = (Color F547M W575 /  (W547 T547) + Line) T575
+  + FQ575N = (a F547M + Line) T575
+  + Where a = Color W575 / W547 T547 =  0.938 20.6 / 0.26 650.0 = 0.114336094675
+**** This is now done in my shiny notebook
+EW vs 547/575 ratio:
+| 547/575 |    EW |
+|---------+-------|
+|      15 | 31.79 |
+|      20 | 18.73 |
+|      25 | 10.90 |
+|      30 |  5.68 |
+|      35 |  1.95 |
+#+TBLFM: $2=((169 / 0.938 $1 ) - 4.7 ) / 0.23 ;f2
+
 ** DONE Recheck the EW of Orion and Ring Nebula
 CLOSED: [2013-12-21 Sat 11:26]
 + [[file:EW(%5BN%20II%5D%205755).ipynb][This ipython notebook]] has the calculations
@@ -135,8 +181,8 @@ CLOSED: [2014-01-09 Thu 10:03]
 + Pixel scale is 2.746 \AA
 + Each line is about 100 \AA wide due to 2 arcsec slit
 *** Conclusions from Bally HST10 slit spectrum
-1. The 575/547 color correction is found to be 0.938, which is consistent within the errors to the value of 0.93 found from the Rubin spectrum
-2. The "true" variation (that is, corrected for noise, see below) in the color correction (for this slit) is about 0.5% RMS and occurs on scales of >= 100 pixels, or 5 arcsec
+1. The 575/547 color correction is found to be 0.938, which is consistent within the errors with the value of 0.93 found from the Rubin spectrum
+2. The "true" spatial variation (that is, corrected for noise, see below) in the color correction (for this slit) is about 0.5% RMS and occurs on scales of >= 100 pixels, or 5 arcsec
    + Since the WFC3 images may sample a wider range of conditions than the STIS slit, there may be larger variation there
 3. The 469/547 color correction is 1.29 +/- 0.03 (pure continuum), or 1.36 +/- 0.03 (full He I + [Fe III] line contribution).  The actual case with the WFC3 F469N filter will lie between these two extremes.  The "true" variation in either case is about 2.7% RMS, but there is only a small correlation between the 469/547 and 575/547 continuum ratios: slope \(-0.09\) with \(R^{2 }< 17\%\).
    + As a result, it is probably not worth trying use 469/547 to estimate 575/547, since even in the absence of noise, all we could achieve would be to reduce the RMS from 0.5% to 0.45%.  /And/ we would be adding more noise, which is not good.
