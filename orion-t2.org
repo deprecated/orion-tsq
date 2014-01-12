@@ -3,19 +3,69 @@ Orion t^2 project based on Rubin's 2012 WFC3 data
 
 * Again revisited [2013-12-19 Thu]
 
-** Aligning the "north" images
-Choose a faint star
+** Comparison of my method with Bob's method
+Start with the NII line ratio.
 
-| 658 | 5:35:11.450 | -5:24:40.90 | 549.47682 | 947.40207 |  5.76241 |
-| 575 | 5:35:11.446 | -5:24:41.03 | 549.53663 | 947.39367 |  1.20806 |
-| 547 | 5:35:11.454 | -5:24:40.93 | 547.89619 | 946.71499 |   48.922 |
-| 436 | 5:35:14.933 | -5:24:11.92 | 549.53486 | 947.46514 | 0.613414 |
-| 487 | 5:35:14.933 | -5:24:11.92 | 549.53486 | 947.46514 | 0.613414 |
-| 437 | 5:35:11.426 | -5:24:40.59 | 549.23257 | 947.62798 | 0.410807 |
-| 469 | 5:35:11.454 | -5:24:40.89 |       548 |  947.6977 |  1.22668 |
-| 502 | 5:35:11.448 | -5:24:40.89 | 550.06973 | 947.76743 |  7.39493 |
-| 672 | 5:35:11.406 | -5:24:41.22 | 549.46514 | 947.76743 |  2.53132 |
-| 673 | 5:35:11.453 | -5:24:40.90 | 548.23257 | 947.46514 |  1.15662 |
+*** My way
++ EW = [(169/k) (575/547) - 4.7] / 0.26
++ 169/4.7 = 35.96
++ In A6.2 of Ring Paper I, Bob recommends multiplying this by 1.4
+  + This gives 1.4 35.96 = 50.344
+  + Looks like 1.2 might be a better number
+    + This will give us a mean T more similar to Adal's values
+*** Bob's way
++ Correction term
+  + 1 + (50.44 k^{}^{-1} 575/547 - 1)^{-1}
+  + k = 0.9356 according to Bob - compares very well with my 0.938
++ From 575, 658, 547 to observed rnii
+  + term575 = 53.91 575/547
+  + term658 = 26.08 658/547
++ Extinction correction
++ From ratios to T,n
+
+
+** Aligning the "north" images
+Choose a faint star, 83.812024 -5.4032676 on the Bally image
+
+#+name: wcs-info
+| 658 | 549.47682 | 947.40207 |
+| 575 | 549.53663 | 947.39367 |
+| 547 | 547.89619 | 946.71499 |
+| 436 | 549.53486 | 947.46514 |
+| 487 | 549.53486 | 947.46514 |
+| 437 | 549.23257 | 947.62798 |
+| 469 |       548 |  947.6977 |
+| 502 | 550.06973 | 947.76743 |
+| 672 | 549.46514 | 947.76743 |
+| 674 | 549.46514 | 947.76743 |
+| 673 | 548.23257 | 947.46514 |
+
+#+BEGIN_SRC python :var tab=wcs-info :results output
+  from astropy.io import fits
+  for wav, x, y in tab:
+      infile = "north{}.fits".format(wav)
+      outfile = infile.replace(".fits", "-wcs.fits")
+      hdu = fits.open(infile)[0]
+      hdu.header.update(CRPIX1=x, CRPIX2=y, CRVAL1=83.812024, CRVAL2=-5.4032676)
+      hdu.writeto(outfile, clobber=True)
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+WARNING: Overwriting existing file 'north658-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north575-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north547-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north436-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north487-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north437-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north469-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north502-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north672-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north674-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+WARNING: Overwriting existing file 'north673-wcs.fits'. [astropy.io.fits.hdu.hdulist]
+#+end_example
+
 
 ** Save the ipython notebook with the Rubin STIS slit calculations
 #+BEGIN_SRC sh :results verbatim
