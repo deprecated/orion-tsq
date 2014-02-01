@@ -1,7 +1,52 @@
 
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
+* Notes on particular objects
+
+** Shadows 
+There are at least three sorts of shadows: 
+1. Observer shadows, such as foreground disks and clouds
+   + Where we are in the shadow of the object
+2. Shadow rays behind proplyds
+   + These are low ionization: increase in [N II]/H\alpha and decrease in [O III]/H\beta
+   + They are seen in the outer part of the field
+3. Shadow holes
+   + The prototype is the Dark Arc
+   + They are /high/ ionization
+
+
 * Again revisited [2013-12-19 Thu]
+
+** Cleaning up the full-field images
+#+BEGIN_SRC sh :results output
+python ~/Work/HST-STIS/spotless/spotless.py --data-range 0 10.0 --multi-hdu --allow-shadows --output-id cr --verbose --debug ../F547M
+#+END_SRC
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'edge' method
+: Data scaled to range [0.00e+00, 1.00e+01]
+: Edge detection with Canny method complete
+: Filling of holes complete
+: Number of bad pixels: 24579 (0.132% of total)
+: Number of distinct bad pixel objects found: 1311
+: Number of objects skipped:  56
+: Replacement of bad pixels complete
+
+#+BEGIN_SRC sh :results output
+python ~/Work/HST-STIS/spotless/spotless.py --data-range 0 1.0 --multi-hdu --allow-shadows --output-id cr --verbose --debug ../F469N
+#+END_SRC
+
+#+RESULTS:
+: Warning: HDU 'SCI' not found, using the first one instead
+: Finding bad pixels by the 'edge' method
+: Data scaled to range [0.00e+00, 1.00e+00]
+: Edge detection with Canny method complete
+: Filling of holes complete
+: Number of bad pixels: 72709 (0.392% of total)
+: Number of distinct bad pixel objects found: 4665
+: Number of objects skipped:  73
+: Replacement of bad pixels complete
 
 ** Comparison of my method with Bob's method
 Start with the NII line ratio.
@@ -660,7 +705,7 @@ Of course, the same spectra will also allow a direct comparison of the 5755 inte
 
 ** Using the 469 filter to estimate the color term
 ** Write up calculation of the filter calibration
-
+** Remove the radial trend in the temperatures
 * Revisiting this project [2013-08-04 Sun]
 
 + Main aim is to assess whether we can measure t^2([N II]) or not.
