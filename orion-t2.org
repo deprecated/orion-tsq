@@ -1,6 +1,20 @@
 
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
+* Messing around with the graphics
+Abandoned both of these for the time being - more trouble than they were worth. 
+** Fancy javascript effects
+#+BEGIN_SRC python
+import mpld3
+mpld3.enable_notebook()
+mpld3.disable_notebook()
+#+END_SRC
+
+** Better defaults for colors and the like
+#+BEGIN_SRC python
+import seaborn as sn
+#+END_SRC
+
 * Notes on particular objects
 
 ** Shadows 
