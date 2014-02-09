@@ -29,6 +29,244 @@ There are at least three sorts of shadows:
    + They are /high/ ionization
 
 
+* Looking at the full-field images in the quad filters
+
+** Remapping to the same frame using mosaic
+
+*** Create header file from the 575 image
+#+BEGIN_SRC sh :results verbatim
+mGetHdr -h 1 ibrd02020_drz.fits full_FQ575N.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", ncard=84]
+
+Not sure if this is the best approach.
+
+*** Alternatively, create a header file from scratch
+#+BEGIN_SRC sh :results verbatim
+PIXEL_SIZE=0.0396177738844  # in arcsec
+WIDTH=0.033  # in degrees
+RA=83.806997 
+DEC=-5.4029576
+mHdr -p $PIXEL_SIZE "$RA $DEC" $WIDTH  full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", count="16"]
+
+*** Reproject the 6716 and 6731 filters to the common north frame
+First the 6716 line
+#+BEGIN_SRC sh :results verbatim
+mProjectPP -h 1 ibrdb2020_drz.fits full_FQ672N_north.fits full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", time=7]
+
+Then the 6731 line
+#+BEGIN_SRC sh :results verbatim
+mProjectPP -h 1 ibrda2020_drz.fits full_FQ674N_north.fits full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", time=7]
+
+And the 5755 line
+#+BEGIN_SRC sh :results verbatim
+mProjectPP -h 1 ibrd02020_drz.fits full_FQ575N_north.fits full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", time=7]
+
+Now grab the full filter images
+#+BEGIN_SRC sh :results verbatim
+mProjectPP -h 1 ibrd01080_quadalign.fits full_F673N_north.fits full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", time=10]
+
+#+BEGIN_SRC sh :results verbatim
+mProjectPP -h 1 ibrd01070_quadalign.fits full_F658N_north.fits full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", time=10]
+
+#+BEGIN_SRC sh :results verbatim
+mProjectPP -h 1 ibrd010b0_quadalign.fits full_F547M_north.fits full_north.hdr
+#+END_SRC
+
+#+RESULTS:
+: [struct stat="OK", time=9]
+
+
+**** Align with reference star
+
+***** Measurements
++ ibrd01080_drz.fits
+  + 83.812165 -5.4032314 fk5  1295.9822 335.83442  20.3025
++ ibrd01070_drz.fits
+  + 83.812167 -5.4032311 fk5  1295.9427 335.71015  7.96115 
++ ibrd010b0_drz.fits
+  + 83.812185 -5.4032365 fk5  1296.0257 333.98523  54.1418 
++ FQ672N
+  + 83.812093 -5.4032792 fk5  1039.2334 1470.9976  2.73852
+***** Code
+We set the reference pixel at the star to be the coordinates measured from the quad filter image
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+hdu = fits.open("ibrd01080_drz.fits")["SCI"]
+hdu.header["CRPIX1"] = 1295.9822 
+hdu.header["CRPIX2"] = 335.83442
+hdu.header["CRVAL1"] = 83.812093
+hdu.header["CRVAL2"] = -5.4032792
+hdu.writeto("ibrd01080_quadalign.fits")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+hdu = fits.open("ibrd01070_drz.fits")["SCI"]
+hdu.header["CRPIX1"] = 1295.9427
+hdu.header["CRPIX2"] = 335.71015
+hdu.header["CRVAL1"] = 83.812093
+hdu.header["CRVAL2"] = -5.4032792
+hdu.writeto("ibrd01070_quadalign.fits")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+hdu = fits.open("ibrd010b0_drz.fits")["SCI"]
+hdu.header["CRPIX1"] = 1296.0257
+hdu.header["CRPIX2"] = 333.98523
+hdu.header["CRVAL1"] = 83.812093
+hdu.header["CRVAL2"] = -5.4032792
+hdu.writeto("ibrd010b0_quadalign.fits")
+#+END_SRC
+
+#+RESULTS:
+
+*** Fix up the images so they are all the full size
++ Annoyingly, it turns out that =mProjectPP= crops the output images to the maximum extent of the input image, which is different for each filter.
++ So we need to undo that somehow
+
+
+**** Try it by hand
+#+BEGIN_SRC python results: output
+  import numpy as np
+  from astropy.io import fits
+  nxx, nyy = 2999, 2999
+  ii0, jj0 = 1500.0, 1500.0
+  
+  def pad_image_to_header(hdu):
+      """Pad to a common size with alignment of the reference pixel
+      """
+      outimage = np.empty((nyy, nxx), dtype=float)
+      outimage[:,:] = np.nan
+      i0, j0 = hdu.header["CRPIX1"], hdu.header["CRPIX2"]  
+      nx, ny = hdu.header["NAXIS1"], hdu.header["NAXIS2"]  
+      # Corners of output image to fill with input image
+      ii1 = ii0 - i0
+      ii2 = ii1 + nx
+      jj1 = jj0 - j0
+      jj2 = jj1 + ny
+      # Fill it in
+      inshape = hdu.data.shape
+      outshape = outimage[jj1:jj2, ii1:ii2].shape
+      assert outshape == inshape, (ii1, ii2, jj1, jj2, outshape, inshape)
+      outimage[jj1:jj2, ii1:ii2] = hdu.data
+      return outimage
+  
+  for filt in "FQ575N", "FQ672N", "FQ674N", "F658N", "F673N", "F547M":
+      prefix = "full_" + filt
+      hdu = fits.open(prefix + "_north.fits")[0]
+      hdu.data = pad_image_to_header(hdu)
+      hdu.header["NAXIS1"] = nxx
+      hdu.header["NAXIS2"] = nyy
+      hdu.header["CRPIX1"] = ii0
+      hdu.header["CRPIX2"] = jj0
+      hdu.writeto(prefix + "_north_pad.fits", clobber=True)
+  
+#+END_SRC
+
+#+RESULTS:
+: None
+
+*** Now take the ratio of the two [S II] lines
+#+BEGIN_SRC python
+from astropy.io import fits
+hdu6716 = fits.open("full_FQ672N_north_pad.fits")[0]
+hdu5755 = fits.open("full_FQ575N_north_pad.fits")[0]
+
+hdu6716.data /= hdu5755.data
+hdu6716.writeto("full_FQ672N_over_FQ575N.fits", clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: None
+
+*** And the ratio of (672 + 674)/673
+#+BEGIN_SRC python
+from astropy.io import fits
+hdu6716 = fits.open("full_FQ672N_north_pad.fits")[0]
+hdu6731 = fits.open("full_FQ674N_north_pad.fits")[0]
+hdusum = fits.open("full_F673N_north_pad.fits")[0]
+
+hdu6716.data = (hdu6716.data + hdu6731.data)/hdusum.data
+hdu6716.writeto("full_FQ672N_plus_FQ674N_over_F673N.fits", clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: None
+
+This will have a dependence on the continuum 
+*** And the ratio of 673/547
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+hdu673 = fits.open("full_F673N_north_pad.fits")[0]
+hdu547 = fits.open("full_F547M_north_pad.fits")[0]
+
+hdu673.data /= hdu547.data
+hdu673.writeto("full_F673N_over_F547M.fits", clobber=True)
+#+END_SRC
+
+#+RESULTS:
+
+*** And the difference between the two of those
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+hduA = fits.open("full_F673N_over_F547M.fits")[0]
+hduB = fits.open("full_FQ672N_plus_FQ674N_over_F673N.fits")[0]
+
+hduA.data = (hduA.data - 0.2)/(0.46 - 0.2)
+hduB.data = (hduB.data - 0.48)/(0.75 - 0.48)
+hduB.data -= hduA.data
+hduB.writeto("full_FQ672N_FQ674N_combo.fits", clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: WARNING: Overwriting existing file 'full_FQ672N_FQ674N_combo.fits'. [astropy.io.fits.hdu.hdulist]
+
+*** Using the 672, 673, 674 filters to reconstruct the continuum
++ The widths of these filters are very different
+  + 672: 19.4
+  + 673: 117.9
+  + 674: 17.6
+*** And the ratio of [N II] to [S II]
+#+BEGIN_SRC python
+from astropy.io import fits
+hdu6716 = fits.open("full_FQ672N_north_pad.fits")[0]
+hdu6731 = fits.open("full_FQ674N_north_pad.fits")[0]
+
+hdu6716.data /= hdu6731.data
+hdu6716.writeto("full_FQ672N_over_FQ674N.fits", clobber=True)
+#+END_SRC
 * Again revisited [2013-12-19 Thu]
 
 ** Cleaning up the full-field images
