@@ -36,6 +36,10 @@ time python adal-calibration.py
 #+END_SRC
 
 #+RESULTS:
+: WARNING: Overwriting existing file 'Adal_xslit5_north_pad.fits'. [astropy.io.fits.hdu.hdulist]
+: WARNING: Overwriting existing file 'Adal_yslit5_north_pad.fits'. [astropy.io.fits.hdu.hdulist]
+: WARNING: Overwriting existing file 'Adal_xslit6_north_pad.fits'. [astropy.io.fits.hdu.hdulist]
+: WARNING: Overwriting existing file 'Adal_yslit6_north_pad.fits'. [astropy.io.fits.hdu.hdulist]
 
 * Looking at the full-field images in the quad filters
 
