@@ -3,3 +3,4 @@
 !*.org
 !*.ipynb
 !*.pdf
+!*.py
