@@ -57,7 +57,7 @@ def store_all_components(db, params, section):
 
 
 hdu = {
-    # 30: fits.open("ODell-Harris/S30.30ed.fits")[0],
+    30: fits.open("ODell-Harris/S30.30ed.fits")[0],
     60: fits.open("ODell-Harris/S60.30.fits")[0],
     90: fits.open("ODell-Harris/S90.60ed.fits")[0]
 }

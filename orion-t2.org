@@ -220,6 +220,142 @@ mProjectPP -h 1 ibrd010b0_quadalign.fits full_F547M_north.fits full_north.hdr
 : [struct stat="OK", time=9]
 
 
+
+**** [2014-03-20 Thu] New re-projections for the filters that are missing
+***** Check what we have
+#+BEGIN_SRC python :results output verbatim
+from astropy.io import fits
+import glob
+import os
+for fn in glob.glob("ibrd*_drz.fits"):
+    hdu = fits.open(fn)[0]
+    filt = hdu.header.get("FILTER")
+    texp = hdu.header.get("EXPTIME")
+    print(fn, filt, texp)
+    if texp > 600.0:
+        os.symlink(fn, filt + "_drz.fits")
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+ibrd01040_drz.fits F656N 698.0
+ibrd01050_drz.fits F487N 818.0
+ibrd01060_drz.fits F502N 696.0
+ibrd01070_drz.fits F658N 1204.0
+ibrd01080_drz.fits F673N 1400.0
+ibrd01090_drz.fits F953N 826.0
+ibrd010a0_drz.fits F469N 1778.0
+ibrd010b0_drz.fits F547M 696.0
+ibrd010c0_drz.fits FQ436N 1650.0
+ibrd02020_drz.fits FQ575N 2400.0
+ibrd03020_drz.fits FQ437N 2550.0
+ibrda2020_drz.fits FQ674N 1800.0
+ibrda2i4q_drz.fits FQ575N 550.0
+ibrdb2020_drz.fits FQ672N 2550.0
+#+end_example
+
+Full table of files at =/fs/nas11/other0/will/Orion/Rubin= on work machines
+
+| ibrda2i4q_drz.fits | FQ575N |
+| ibrd02020_drz.fits | FQ575N |
+| ibrda2020_drz.fits | FQ674N |
+| ibrdb2020_drz.fits | FQ672N |
+| ibrd010c0_drz.fits | FQ436N |
+| ibrd03020_drz.fits | FQ437N |
+|--------------------+--------|
+| ibrd01080_drz.fits | F673N  |
+| ibrd01070_drz.fits | F658N  |
+| ibrd010b0_drz.fits | F547M  |
+| ibrd01040_drz.fits | F656N  |
+| ibrd01060_drz.fits | F502N  |
+| ibrd01090_drz.fits | F953N  |
+| ibrd01050_drz.fits | F487N  |
+| ibrd010a0_drz.fits | F469N  |
+|--------------------+--------|
+
+***** Reprojection of files that are missing
+New measurements of the star position using ds9
+#+BEGIN_EXAMPLE
+FQ672N  
+ 83.812094 -5.4032798 fk5  697.83528 774.74739  3.2865 
+FQ437N
+ 83.812065 -5.4031598 fk5  1344.0477 742.03222  0.553982 
+FQ436N
+ 83.812202 -5.4032522 fk5  998.00044 620.80422  0.872861 
+F656N
+ 83.812157 -5.4032275 fk5  1295.8463 336.65498  13.0402 
+F502N
+ 83.812161 -5.4032301 fk5  1295.9628 336.21506  7.95772 
+F953N
+ 83.812175 -5.4032327 fk5  1295.918 334.97176  30.477
+F487N 
+ 83.812162 -5.4032299 fk5  1295.9111 336.10249  4.31186 
+F469N
+ 83.812182 -5.4032326 fk5  1295.6935 334.2709  1.33216 
+#+END_EXAMPLE
+
+Extract just the x, y pixel positions from that
+#+name: align-tab
+| FQ437N | 1344.0477 | 742.03222 |
+| FQ436N | 998.00044 | 620.80422 |
+| F656N  | 1295.8463 | 336.65498 |
+| F502N  | 1295.9628 | 336.21506 |
+| F953N  |  1295.918 | 334.97176 |
+| F487N  | 1295.9111 | 336.10249 |
+| F469N  | 1295.6935 |  334.2709 |
+
+Change the header to align on the reference star by just changing the =CRPIX= values
+#+BEGIN_SRC python :results output :var tab=align-tab
+from astropy.io import fits
+for fn, x, y in tab:
+    hdu = fits.open(fn + "_drz.fits")["SCI"]
+    hdu.header["CRPIX1"] = x
+    hdu.header["CRPIX2"] = y
+    hdu.header["CRVAL1"] = 83.812093
+    hdu.header["CRVAL2"] = -5.4032792
+    hdu.writeto(fn + "_quadalign.fits")
+#+END_SRC
+
+#+RESULTS:
+
+And now use montage to resample the images onto a common grid:
+
+#+BEGIN_SRC sh :results verbatim output
+for f in F*_quadalign.fits; do
+    ff=full_$(basename $f _quadalign.fits)_north.fits
+    echo $ff
+    mProjectPP -h 1 $f $ff full_north.hdr
+done
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+full_F469N_north.fits
+[struct stat="OK", time=9]
+full_F487N_north.fits
+[struct stat="OK", time=10]
+full_F502N_north.fits
+[struct stat="OK", time=9]
+full_F656N_north.fits
+[struct stat="OK", time=9]
+full_F953N_north.fits
+[struct stat="OK", time=10]
+full_FQ436N_north.fits
+[struct stat="OK", time=6]
+full_FQ437N_north.fits
+[struct stat="OK", time=6]
+#+end_example
+
+And fix up the padding to be common to all images too.
+#+BEGIN_SRC python :results output
+import pad_utils
+for filt in "FQ436N", "FQ437N", "F469N", "F487N", "F502N", "F656N", "F953N":
+    pad_utils.pad(filt)
+#+END_SRC
+
+#+RESULTS:
+
+
 **** Align with reference star
 
 ***** Measurements
@@ -275,7 +411,7 @@ hdu.writeto("ibrd010b0_quadalign.fits")
 
 
 **** Try it by hand
-#+BEGIN_SRC python results: output
+#+BEGIN_SRC python results: output :tangle pad_utils.py
   import numpy as np
   from astropy.io import fits
   nxx, nyy = 2999, 2999
@@ -300,7 +436,7 @@ hdu.writeto("ibrd010b0_quadalign.fits")
       outimage[jj1:jj2, ii1:ii2] = hdu.data
       return outimage
   
-  for filt in "FQ575N", "FQ672N", "FQ674N", "F658N", "F673N", "F547M":
+  def pad(filt):
       prefix = "full_" + filt
       hdu = fits.open(prefix + "_north.fits")[0]
       hdu.data = pad_image_to_header(hdu)
@@ -312,6 +448,12 @@ hdu.writeto("ibrd010b0_quadalign.fits")
   
 #+END_SRC
 
+
+#+BEGIN_SRC python :results output
+import pad_utils
+for filt in "FQ575N", "FQ672N", "FQ674N", "F658N", "F673N", "F547M":
+    pad_utils.pad(filt)
+#+END_SRC
 #+RESULTS:
 : None
 

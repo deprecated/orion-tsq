@@ -1,6 +1,5 @@
 import numpy as np
 import json
-import sys
 from astropy.table import Table
 import wfc3_utils
 
