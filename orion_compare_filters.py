@@ -8,7 +8,7 @@ from argh.decorators import arg
 sys.path.append("/Users/will/Work/RubinWFC3/Tsquared/")
 import wfc3_utils
 
-wavtargets = {"F469N": "4686",
+wavtargets = {"F469N": "4713",
               "F673N": "6716", 
               "F487N": "4861",
               "F502N": "5007", 
