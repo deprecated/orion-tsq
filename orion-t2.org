@@ -33,16 +33,14 @@ There are at least three sorts of shadows:
 * Final calibration of WFC3 filters
 
 ** Data to use
-#+name: line-wavelengths
+#+name: line-wavelengths-orion
 | [Ne III]     |   3967.79 |
-| He II        |  3968.432 |
 | H I          |   3970.07 |
 | He I         |   4026.21 |
 | [S II]/C III |   4068.60 |
 | [S II]/O II  |   4076.35 |
 | H I          |   4101.74 |
 | He I         |   4143.76 |
-| He II        |   4199.83 |
 | C II         |   4267.15 |
 | H I          |   4340.47 |
 | [O III]      |   4363.21 |
@@ -58,21 +56,30 @@ There are at least three sorts of shadows:
 | O II         |   4649.13 |
 | O II         |   4650.84 |
 | [Fe III]     |   4658.10 |
-| He II        |      4686 |
+| [Fe III]     |   4701.62 |
 | [Ar IV]      |   4711.37 |
 | He I         |   4713.14 |
+| [Fe III]     |   4733.93 |
 | [Ar IV]      |   4740.17 |
+| [Fe III]     |   4754.83 |
 | H I          |   4861.32 |
 | He I         |   4921.93 |
 | [O III]      |   4958.91 |
 | [O III]      |   5006.84 |
-| [Ar III]     |      5192 |
-| [N I]        |      5199 |
+| O I          |   5146.61 |
+| [Fe II]      |   5158.81 |
+| [Ar III]     |   5191.82 |
+| [N I]        |   5197.90 |
+| [N I]        |   5200.26 |
+| [Fe II]      |   5261.61 |
 | [Fe III]     |   5270.40 |
+| [Fe II]      |   5273.38 |
+| O I          |   5298.89 |
 | C II         |   5342.40 |
-| He II        |   5411.52 |
+| O I          |   5512.77 |
 | [Cl III]     |   5517.71 |
 | [Cl III]     |   5537.88 |
+| O I          |   5555.03 |
 | [O I]/Sky    |   5577.34 |
 | O III        |   5592.37 |
 | N II         |   5679.56 |
@@ -82,13 +89,10 @@ There are at least three sorts of shadows:
 | Sky          |      5846 |
 | He I         |   5875.62 |
 | Sky          |      5938 |
-| He II        |   6004.73 |
 | Sky          |      6026 |
-| He II        |   6036.70 |
 | Sky          |      6068 |
 | Sky          |      6090 |
 | Sky          |      6136 |
-| He II        |   6232.88 |
 | Sky          |      6260 |
 | [O I]        |   6300.30 |
 | [S III]      |   6312.06 |
@@ -99,7 +103,6 @@ There are at least three sorts of shadows:
 | C II         |   6454.77 |
 | C II         |   6461.95 |
 | Sky          |      6500 |
-| He II        |   6527.11 |
 | [N II]       |   6548.05 |
 | H I          |   6562.79 |
 | [N II]       |   6583.45 |
@@ -107,7 +110,6 @@ There are at least three sorts of shadows:
 | [S II]       |   6716.44 |
 | [S II]       |  6730.816 |
 | Sky          |      6864 |
-| He II        |   6890.88 |
 | Sky          |      6924 |
 | Sky          |      6959 |
 
@@ -132,7 +134,20 @@ There are at least three sorts of shadows:
 
 
 ** Manu spectra
++ [ ] manu-photom.py - we will fit only those fibers that are within the box of the WFC3 data
+  + 60 x 60 arcsec box centered on 5:35:13.592, -5:24:11.04
+  + th1C has coords of 5:35:16.452 -5:23:22.97 
+    | 5@35'13.592" | 5@35'16.452" | 0@ 0' 42.736752" |
+    | -5@24'11.04" | -5@23'22.97" | 0@ 0' 48.07"     |
+    #+TBLFM: @1$3=15 cos(5) ($2 - $1)::@2$3=$2 - $1
+  + So this puts the box center at (-43, -48) in arcsec
+
+
 ** ODH spectra
++ [X] odh-photom.py - this fits Gaussians to all the spectra in the three slit
++ [X] odh-calibration.py - this extracts the slit apertures from the WFC3 images 
++ [X] process-odh-spectra-by-filter.py - this reorganizes the spectra data to write a table for each filter, with all the necessary information.
++ [X] orion_compare_filters.py
 
 ** Adal spectra
 
