@@ -55,11 +55,29 @@ def store_all_components(db, params, section):
     store_poly_component(db, params, section)
         
 
+def fit_continuum(wavs, spec, cmask, npoly=4):
+    cont_coeffs = np.polyfit(wavs[cmask], spec[cmask], npoly)
+    return np.poly1d(cont_coeffs)(wavs)
+
+
+# Read in the emission line rest wavelengths
+line_table = Table.read("orion-line-wavelengths.tab", 
+    format="ascii.no_header", delimiter="\t",
+    names=('lineid', 'linewav')
+    )
+
+# Read in list of line-free wav ranges for the continuum fitting
+cont_table = Table.read("clean-continuum-ranges.tab", 
+    format="ascii.no_header", delimiter="\t",
+    names=('wav1', 'wav2')
+    )
+
 # Box that comfortably covers the sweet spot
 box_x, box_y = -43.0, -48.0     # Center of box in arcsec: dRA, dDEC
 box_w, box_h = 60.0, 60.0       # Box width and height, in arcsec
 THRESH = 1.e-13                 # Threshold for possible saturation of long exposures
 
+sections = {}
 # This is different from the slit observations, since each band is done separately
 for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
     thdu = {
@@ -87,70 +105,32 @@ for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
     nx, wav0, i0, dwav = [hdu["long"].header[k] for k in 
                           ("NAXIS1", "CRVAL1", "CRPIX1", "CDELT1")]
     wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+
+    # Create a wavelength mask containing clean continuum regions
+    cmask = np.zeros_like(wavs, dtype=bool)
+    for wav1, wav2 in cont_table:
+        cmask = cmask | ((wavs > wav1) & (wavs < wav2))
+
+    # Create one section for each fiber position in each of the three bands
     for spectrum, metadata in zip(specdata, tabdata):
-        
+        # Key is formed from the band and the position, in 1/10 of
+        # arcsec: e.g., green-0013-0104 for (dRA, dDEC) = (-1.3,
+        # -10.4)
+        key = "{:s}{:+05d}{:+05d}".format(longband, int(10*metadata.dRA), int(10*metadata.dDEC))
+        section = {}
+        sections[key] = section
+        section["x"] = metadata.dRA
+        section["y"] = metadata.dDEC
+        section["aperture"] = int(metadata.id_ap)
+        section["band"] = band
+        # Multiply by 1e15 as with the Helix to make the spectra of order unity for weak lines
+        section["mean"] = 1.e15*spectrum/metadata.factor2
+        # We don't have a good estimate of the std of the data - so make something up!
+        section["std"] = 0.01*np.ones_like(spectrum)
+        # Fit continuum to the clean wav ranges
+        section["cont"] = fit_continuum(wavs, section["mean"], cmask)
+        section["mean"] -= section["cont"]
 
-hdu = {
-    30: fits.open("ODell-Harris/S30.30ed.fits")[0],
-    60: fits.open("ODell-Harris/S60.30.fits")[0],
-    90: fits.open("ODell-Harris/S90.60ed.fits")[0]
-}
-Offsets = list(hdu.keys())
-
-# Multiply by 1e15 as with the Helix to make the spectra of order unity for weak lines
-for offset in Offsets:
-    hdu[offset].data *= 1.e15
-
-
-# Set up position coordinates - pixels from the central star
-ny, x0, j0, dx = [hdu[60].header[k] for k in 
-                  ("NAXIS2", "CRVAL2", "CRPIX2", "CD2_2")]
-xpos = x0 + (np.arange(ny) - (j0 - 1))*dx 
-
-# Read in the emission line rest wavelengths
-line_table = Table.read("orion-line-wavelengths.tab", 
-    format="ascii.no_header", delimiter="\t",
-    names=('lineid', 'linewav')
-    )
-
-# Read in list of line-free wav ranges for the continuum fitting
-cont_table = Table.read("clean-continuum-ranges.tab", 
-    format="ascii.no_header", delimiter="\t",
-    names=('wav1', 'wav2')
-    )
-
-
-# Create a wavelength mask based on the above list
-cmask = np.zeros_like(wavs, dtype=bool)
-for wav1, wav2 in cont_table:
-    cmask = cmask | ((wavs > wav1) & (wavs < wav2))
-
-
-# Set up slit sections
-# Much simpler than the for the Ring Nebula - just use integer blocks
-seclength = 10 # in pixels
-sections = {}
-nsections = ny//seclength
-for offset in Offsets:
-    for n in range(nsections):
-        key = "S{}-{:02d}".format(offset, n)
-        sections[key] = {"Offset": offset, "j1": n*seclength, "j2": (n+1)*seclength}
-
-
-def fit_continuum(wavs, spec, cmask, npoly=4):
-    cont_coeffs = np.polyfit(wavs[cmask], spec[cmask], npoly)
-    return np.poly1d(cont_coeffs)(wavs)
-
-
-
-for label, section in sections.items():
-    offset = section["Offset"]
-    j1 = section["j1"]
-    j2 = section["j2"]
-    section["mean"] = hdu[offset].data[j1:j2, :].mean(axis=0)
-    section["std"] = hdu[offset].data[j1:j2, :].std(axis=0)
-    section["cont"] = fit_continuum(wavs, section["mean"], cmask)
-    section["mean"] -= section["cont"]
 
 
 species_dict = {}
