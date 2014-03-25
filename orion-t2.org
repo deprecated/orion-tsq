@@ -34,84 +34,94 @@ There are at least three sorts of shadows:
 
 ** Data to use
 #+name: line-wavelengths-orion
-| [Ne III]     |   3967.79 |
-| H I          |   3970.07 |
-| He I         |   4026.21 |
-| [S II]/C III |   4068.60 |
-| [S II]/O II  |   4076.35 |
-| H I          |   4101.74 |
-| He I         |   4143.76 |
-| C II         |   4267.15 |
-| H I          |   4340.47 |
-| [O III]      |   4363.21 |
-| He I         |   4387.93 |
-| He I         |   4471.09 |
-| N III        |   4510.91 |
-| He II        |   4541.59 |
-| [Mg I]       | 4562.6017 |
-| Mg I]        | 4571.0956 |
-| O II         |   4590.97 |
-| O II         |    4610.2 |
-| O II         |   4641.81 |
-| O II         |   4649.13 |
-| O II         |   4650.84 |
-| [Fe III]     |   4658.10 |
-| [Fe III]     |   4701.62 |
-| [Ar IV]      |   4711.37 |
-| He I         |   4713.14 |
-| [Fe III]     |   4733.93 |
-| [Ar IV]      |   4740.17 |
-| [Fe III]     |   4754.83 |
-| H I          |   4861.32 |
-| He I         |   4921.93 |
-| [O III]      |   4958.91 |
-| [O III]      |   5006.84 |
-| O I          |   5146.61 |
-| [Fe II]      |   5158.81 |
-| [Ar III]     |   5191.82 |
-| [N I]        |   5197.90 |
-| [N I]        |   5200.26 |
-| [Fe II]      |   5261.61 |
-| [Fe III]     |   5270.40 |
-| [Fe II]      |   5273.38 |
-| O I          |   5298.89 |
-| C II         |   5342.40 |
-| O I          |   5512.77 |
-| [Cl III]     |   5517.71 |
-| [Cl III]     |   5537.88 |
-| O I          |   5555.03 |
-| [O I]/Sky    |   5577.34 |
-| O III        |   5592.37 |
-| N II         |   5679.56 |
-| [N II]       |   5755.08 |
-| C IV         |   5801.33 |
-| C IV         |   5811.98 |
-| Sky          |      5846 |
-| He I         |   5875.62 |
-| Sky          |      5938 |
-| Sky          |      6026 |
-| Sky          |      6068 |
-| Sky          |      6090 |
-| Sky          |      6136 |
-| Sky          |      6260 |
-| [O I]        |   6300.30 |
-| [S III]      |   6312.06 |
-| Sky          |      6328 |
-| [O I]        |   6363.78 |
-| Sky          |      6398 |
-| [Ar V]       |   6435.09 |
-| C II         |   6454.77 |
-| C II         |   6461.95 |
-| Sky          |      6500 |
-| [N II]       |   6548.05 |
-| H I          |   6562.79 |
-| [N II]       |   6583.45 |
-| He I         |   6678.15 |
-| [S II]       |   6716.44 |
-| [S II]       |  6730.816 |
-| Sky          |      6864 |
-| Sky          |      6924 |
-| Sky          |      6959 |
+| [Ne III]      |   3967.79 |
+| H I           |   3970.07 |
+| He I          |   4026.21 |
+| [S II]/C III  |   4068.60 |
+| [S II]/O II   |   4076.35 |
+| H I           |   4101.74 |
+| He I          |   4143.76 |
+| C II          |   4267.15 |
+| O II/[Fe II]  |   4276.83 |
+| [Fe II]       |   4287.39 |
+| H I           |   4340.47 |
+| [O III]       |   4363.21 |
+| He I          |   4387.93 |
+| [Fe II]/O II  |   4413.78 |
+| [Fe II]/O II  |   4416.27 |
+| He I          |   4437.55 |
+| He I          |   4471.09 |
+| He II         |   4541.59 |
+| [Mg I]        | 4562.6017 |
+| Mg I]         | 4571.0956 |
+| O II          |   4590.97 |
+| N II/[Fe III] |   4607.16 |
+| O II          |    4610.2 |
+| N II/C II?    |   4621.39 |
+| N II          |   4630.54 |
+| O II          |   4638.86 |
+| O II          |   4641.81 |
+| O II          |   4649.13 |
+| O II          |   4650.84 |
+| [Fe III]      |   4658.10 |
+| O II          |   4661.63 |
+| O II          |   4676.24 |
+| [Fe III]      |   4701.62 |
+| [Ar IV]       |   4711.37 |
+| He I          |   4713.14 |
+| [Fe III]      |   4733.93 |
+| [Ar IV]       |   4740.17 |
+| [Fe III]      |   4754.83 |
+| [Fe III]      |    4769.6 |
+| [Fe III]      |   4777.88 |
+| H I           |   4861.32 |
+| He I          |   4921.93 |
+| [O III]       |   4958.91 |
+| [O III]       |   5006.84 |
+| He I          |   5015.68 |
+| O I           |   5146.61 |
+| [Fe II]       |   5158.81 |
+| [Ar III]      |   5191.82 |
+| [N I]         |   5197.90 |
+| [N I]         |   5200.26 |
+| [Fe II]       |   5261.61 |
+| [Fe III]      |   5270.40 |
+| [Fe II]       |   5273.38 |
+| O I           |   5298.89 |
+| C II          |   5342.40 |
+| [Fe III]      |   5412.00 |
+| O II          |   5433.49 |
+| S II          |   5453.81 |
+| ???           |    5462.0 |
+| O I           |   5512.77 |
+| [Cl III]      |   5517.71 |
+| [Cl III]      |   5537.88 |
+| O I           |   5555.03 |
+| [O I]/Sky     |   5577.34 |
+| O III         |   5592.37 |
+| N II          |   5679.56 |
+| [N II]        |   5755.08 |
+| He I          |   5875.62 |
+| ??            |    5890.0 |
+| O I           |   6046.23 |
+| Sky           |      6136 |
+| [O I]         |   6300.30 |
+| [S III]       |   6312.06 |
+| Si II         |   6347.11 |
+| [O I]         |   6363.78 |
+| Si II         |   6371.36 |
+| Sky           |      6398 |
+| C II          |   6454.77 |
+| C II          |   6461.95 |
+| [N II]        |   6548.05 |
+| H I           |   6562.79 |
+| [N II]        |   6583.45 |
+| He I          |   6678.15 |
+| [S II]        |   6716.44 |
+| [S II]        |  6730.816 |
+| Sky           |      6864 |
+| Sky           |      6924 |
+| Sky           |      6959 |
 
 #+tblname: clean-continuum-ranges
 | 3920 | 3940 |
@@ -134,14 +144,22 @@ There are at least three sorts of shadows:
 
 
 ** Manu spectra
-+ [ ] manu-photom.py - we will fit only those fibers that are within the box of the WFC3 data
++ [X] manu-photom.py - we will fit only those fibers that are within the box of the WFC3 data
   + 60 x 60 arcsec box centered on 5:35:13.592, -5:24:11.04
   + th1C has coords of 5:35:16.452 -5:23:22.97 
     | 5@35'13.592" | 5@35'16.452" | 0@ 0' 42.736752" |
     | -5@24'11.04" | -5@23'22.97" | 0@ 0' 48.07"     |
     #+TBLFM: @1$3=15 cos(5) ($2 - $1)::@2$3=$2 - $1
   + So this puts the box center at (-43, -48) in arcsec
-
+  + This is running, but is going to take all day
++ [ ] Need to refactor
+  + Split into three parts:
+    1. Extract the spectra I need 
+       - save a seperate JSON db for each section
+    2. Perform the Gaussian fits 
+       - save fit parameters separately for each section, and in different files from the actual spectra
+       - have flexible mechanism for doing/redoing particular sections and particular wavranges
+    3. Produce the figures
 
 ** ODH spectra
 + [X] odh-photom.py - this fits Gaussians to all the spectra in the three slit
