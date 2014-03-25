@@ -61,7 +61,7 @@ def fit_continuum(wavs, spec, cmask, npoly=4):
 
 
 # Read in the emission line rest wavelengths
-line_table = Table.read("orion-line-wavelengths.tab", 
+line_table = Table.read("line-wavelengths-orion.tab", 
     format="ascii.no_header", delimiter="\t",
     names=('lineid', 'linewav')
     )
@@ -75,9 +75,13 @@ cont_table = Table.read("clean-continuum-ranges.tab",
 # Box that comfortably covers the sweet spot
 box_x, box_y = -43.0, -48.0     # Center of box in arcsec: dRA, dDEC
 box_w, box_h = 60.0, 60.0       # Box width and height, in arcsec
+# box_w, box_h = 3.0, 3.0       # Box width and height, in arcsec
 THRESH = 1.e-13                 # Threshold for possible saturation of long exposures
+brightlines = [6562.79, 4861.32, 4958.91, 5006.84]
 
 sections = {}
+wavs = {}
+cmask = {}
 # This is different from the slit observations, since each band is done separately
 for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
     thdu = {
@@ -98,37 +102,42 @@ for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
     tabdata_s = thdu["short"].data[mask]
     specdata = hdu["long"].data[mask]
     specdata_s = hdu["short"].data[mask]
-    # Use short exposure for the brightest pixels
-    specdata[specdata > THRESH] = specdata_s[specdata > THRESH]
 
     # Set up wavelength coordinates - Angstrom
     nx, wav0, i0, dwav = [hdu["long"].header[k] for k in 
                           ("NAXIS1", "CRVAL1", "CRPIX1", "CDELT1")]
-    wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+    wavs[band] = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+
+    # Use short exposure for the brightest lines
+    brightmask = np.zeros_like(wavs[band]).astype(bool)
+    for wav0 in brightlines:
+        brightmask[np.abs(wavs[band] - wav0) <= 5.0] = True
 
     # Create a wavelength mask containing clean continuum regions
-    cmask = np.zeros_like(wavs, dtype=bool)
+    cmask[band] = np.zeros_like(wavs[band], dtype=bool)
     for wav1, wav2 in cont_table:
-        cmask = cmask | ((wavs > wav1) & (wavs < wav2))
+        cmask[band] = cmask[band] | ((wavs[band] > wav1) & (wavs[band] < wav2))
 
     # Create one section for each fiber position in each of the three bands
-    for spectrum, metadata in zip(specdata, tabdata):
+    for spectrum, spectrum_s, metadata in zip(specdata, specdata_s, tabdata):
         # Key is formed from the band and the position, in 1/10 of
         # arcsec: e.g., green-0013-0104 for (dRA, dDEC) = (-1.3,
         # -10.4)
-        key = "{:s}{:+05d}{:+05d}".format(longband, int(10*metadata.dRA), int(10*metadata.dDEC))
+        key = "{:s}{:+05d}{:+05d}".format(longband,
+                                          int(10*metadata["dRA"]),
+                                          int(10*metadata["dDEC"]))
         section = {}
         sections[key] = section
-        section["x"] = metadata.dRA
-        section["y"] = metadata.dDEC
-        section["aperture"] = int(metadata.id_ap)
+        section["x"] = float(metadata["dRA"])
+        section["y"] = float(metadata["dDEC"])
+        section["aperture"] = int(metadata["id_ap"])
         section["band"] = band
         # Multiply by 1e15 as with the Helix to make the spectra of order unity for weak lines
-        section["mean"] = 1.e15*spectrum/metadata.factor2
+        section["mean"] = 1.e15*np.where(brightmask, spectrum_s, spectrum)/metadata["factor2"]
         # We don't have a good estimate of the std of the data - so make something up!
         section["std"] = 0.01*np.ones_like(spectrum)
         # Fit continuum to the clean wav ranges
-        section["cont"] = fit_continuum(wavs, section["mean"], cmask)
+        section["cont"] = fit_continuum(wavs[band], section["mean"], cmask[band], npoly=2)
         section["mean"] -= section["cont"]
 
 
@@ -139,47 +148,57 @@ for c in line_table:
     species_dict[id_] = c['lineid']
 
 wavranges = [
-    ["FQ436N, FQ437N", 4250.0, 4500.0, "b"],
-    ["F469N", 4500.0, 4800.0, "bg"],
+    ["Far Blue", 3960.0, 4200.0, "b"],
+    ["FQ436N, FQ437N A", 4240.0, 4320.0, "b"],
+    ["FQ436N, FQ437N B", 4320.0, 4400.0, "b"],
+    ["FQ436N, FQ437N C", 4400.0, 4500.0, "b"],
+    ["F469N A", 4560.0, 4680.0, "bg"],
+    ["F469N B", 4680.0, 4800.0, "bg"],
     ["F487N", 4800.0, 4900.0, "g"],
     ["F502N", 4900.0, 5100.0, "g"], 
     ["F547M short", 5150.0, 5400.0, "g"],
     ["F547M mid", 5350.0, 5650.0, "g"],
-    ["FQ575N, F547M long", 5650.0, 6000.0, "r"],
-    ["F656N, F658N", 6400.0, 6650.0, "r"],
+    ["FQ575N, F547M long A", 5650.0, 5830.0, "r"],
+    ["FQ575N, F547M long B", 5830.0, 6000.0, "r"],
+    ["[O I] Red", 6000.0, 6330.0, "r"],
+    ["F656N, F658N A", 6330.0, 6480.0, "r"],
+    ["F656N, F658N B", 6530.0, 6650.0, "r"],
     ["F673N", 6640.0, 6760.0, "r"],
     ]
 
-# drop_these = ["3968", "4686", "4922", "5192", "5412", "5846", "6312", "6398", "6500"]
-drop_these = ["4649", "4511", "4591", "4610", "6398"]
-# For Orion, we also drop He II and Mg I and weaker O II
-drop_these += ["4542", "4686", "4563", "4571", "4610", "4590"]
-# [Ar IV]
-drop_these += ["4711", "4740"] 
-# More weak lines to drop - C II, He I, etc
-drop_these += ["4267", "4388", "5342", "5412", "6435", "6527", "5680"]
+# Sky
+drop_these = ["6398"]
+# For Orion, we also drop He II and Mg I
+drop_these += ["4542", "4563", "4571"]
 saturation_level = 25.0
 # possibly_saturated = ["4959", "5007", "6563", "6583"]
 possibly_saturated = []
 
 # Set up containers for the figures
-nplots, nfigs = len(wavranges), len(sections)
+nplots = {"b": 6, "g": 6, "r": 6}
 nx = 3
-ny = 1 + (nplots - 1)//nx
 figures = {}
 axes = {}
+ny = {}
 for section in sections:
-    figures[section], axes[section] = plt.subplots(ny, nx)
+    band = sections[section]["band"]
+    ny[band] = 1 + (nplots[band] - 1)//nx
+    figures[section], axes[section] = plt.subplots(ny[band], nx)
     axes[section] = np.atleast_2d(axes[section])
 
 # Do the fits
-for iax, (wav_id, wavmin, wavmax) in enumerate(wavranges):
-    print(wav_id, wavmin, wavmax)
-    wav0s = np.array(line_table["linewav"])
-    wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
-    m = (wavs > wavmin) & (wavs < wavmax)
-    for section in sections:
-        print(section)
+for section in sections:
+    band = sections[section]["band"]
+    print(section)
+    iax = 0
+    for wav_id, wavmin, wavmax, bands_covered in wavranges:
+        print(wav_id, wavmin, wavmax)
+        wav0s = np.array(line_table["linewav"])
+        wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
+        if not band in bands_covered:
+            # skip over wav ranges that are not in the current band
+            continue
+        m = (wavs[band] > wavmin) & (wavs[band] < wavmax)
         flux = sections[section]["mean"]
         cont = sections[section]["cont"]
         sigma = sections[section]["std"]
@@ -196,13 +215,13 @@ for iax, (wav_id, wavmin, wavmax) in enumerate(wavranges):
             else:
                 saturation = LARGE_VALUE
             gauss_components.append(
-                init_gauss_component(params, 1.0, wav0, 4.0, clabel, 
+                init_gauss_component(params, 1.0, wav0, 1.0, clabel, 
                                      ubounds=(wav0-3.0, wav0+3.0),
-                                     wbounds=(2.0, 8.0), saturation=saturation)
+                                     wbounds=(0.5, 4.0), saturation=saturation)
             )
 
         result = lmfit.minimize(model_minus_data, params, 
-                                args=(wavs[m], flux[m], gauss_components),
+                                args=(wavs[band][m], flux[m], gauss_components),
                                 xtol=1e-4, ftol=1e-4,
         )
         print(result.message)
@@ -210,15 +229,15 @@ for iax, (wav_id, wavmin, wavmax) in enumerate(wavranges):
         store_all_components(sections, params, section)
         
         # Need to address a 1D version of the axes array
-        ax = axes[section].reshape((nx*ny))[iax]
+        ax = axes[section].reshape((nx*ny[band]))[iax]
 #        lmfit.report_errors(params)
-        ax.plot(wavs[m], cont[m]+ flux[m], label="data", lw=1.5, alpha=0.6)
-        ax.plot(wavs[m], cont[m] + model(wavs[m], params, gauss_components),
+        ax.plot(wavs[band][m], cont[m]+ flux[m], label="data", lw=1.5, alpha=0.6)
+        ax.plot(wavs[band][m], cont[m] + model(wavs[band][m], params, gauss_components),
                  "r", label="fit", lw=1.5, alpha=0.6)
         # plot the global continuum fit
-        ax.plot(wavs[m], cont[m], ":k", label="global cont", lw=2, alpha=0.3)
+        ax.plot(wavs[band][m], cont[m], ":k", label="global cont", lw=2, alpha=0.3)
         # and the continuum with local excess included
-        ax.plot(wavs[m], cont[m] + model(wavs[m], params, []),
+        ax.plot(wavs[band][m], cont[m] + model(wavs[band][m], params, []),
                 "--k", label="local cont", lw=2, alpha=0.3)
         for i, c in enumerate(gauss_components):
             ax.annotate("{} {}".format(species_dict[c], c), 
@@ -238,32 +257,34 @@ for iax, (wav_id, wavmin, wavmax) in enumerate(wavranges):
         ax.set_ylim(-0.5*ymax, 1.5*ymax)
         # ax.set_ylim(ymin/1.1, 1.1*ymax)
         # ax.set_yscale('log')
-        slit, pos = section.split('-')
-        legtitle = "{} :: Slit = {} :: Section {}".format(wav_id, slit, pos)
+        legtitle = "{} :: Fiber = {}".format(wav_id, section)
 
         legend = ax.legend(title=legtitle,
                            fontsize="small", ncol=4, loc="upper left")
-        legend.get_title().set_fontsize("small")        
+        legend.get_title().set_fontsize("small")     
+        iax += 1
         
 
-# Put all the plots in just one multi-page PDF file
-with PdfPages('manu-fits.pdf') as pdf:
-    for section in sorted(sections):
-        fig = figures[section]
-        # Set axis labels along left and bottom edges only
-        for ax in axes[section][-1,:]:
-            ax.set_xlabel("Wavelength")
-        for ax in axes[section][:,0]:
-            ax.set_ylabel("Flux")
+# Put all the plots in one multi-page PDF file PER band
+for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
+    with PdfPages('manu-fits-{}.pdf'.format(longband)) as pdf:
+        for section in sorted(sections):
+            if sections[section]["band"] == band:
+                fig = figures[section]
+                # Set axis labels along left and bottom edges only
+                for ax in axes[section][-1,:]:
+                    ax.set_xlabel("Wavelength")
+                for ax in axes[section][:,0]:
+                    ax.set_ylabel("Flux")
 
-        fig.subplots_adjust(left=0.05, right=0.98, bottom=0.05, top=0.98)
-        fig.set_size_inches(5*nx, 4*ny)
-        pdf.savefig(fig)
-        # fig.savefig("ring-focus-fits-{}.pdf".format(section))
+                fig.subplots_adjust(left=0.05, right=0.98, bottom=0.05, top=0.98)
+                fig.set_size_inches(5*nx, 4*ny[band])
+                pdf.savefig(fig)
 
 for secdata in sections.values():
-    m = (wavs > 5100.0) & (wavs < 5850.0)
-    cont_F547M = np.mean(wavs[m]*secdata["cont"][m])
+    band = secdata["band"]
+    m = (wavs[band] > 5100.0) & (wavs[band] < 5850.0)
+    cont_F547M = np.mean(wavs[band][m]*secdata["cont"][m])
     secdata["F547M continuum lam Flam"] = cont_F547M
     for key, linedata in secdata.items():
         if not key in species_dict:
@@ -272,7 +293,7 @@ for secdata in sections.values():
         # Select a small window around the line for measuring the continuum
         wav_min = linedata["Wav"] - linedata["Sigma"]
         wav_max = linedata["Wav"] + linedata["Sigma"]
-        m = (wavs > wav_min) & (wavs < wav_max)
+        m = (wavs[band] > wav_min) & (wavs[band] < wav_max)
         # This is the mean continuum from the whole-spectrum fit
         cont_mean = secdata["cont"][m].mean()
         linedata["global continuum"] = cont_mean
