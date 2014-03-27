@@ -1,0 +1,74 @@
+# label	mx	my	TooBig	Compact	Shadow	fillfac	aspect	contrast	skip?
+1	11	283	True	False	False	0.905	25.727	5.484	*
+2	11	282	True	False	False	0.892	25.636	6.724	*
+3	12	281	True	False	False	0.948	23.417	15.438	*
+4	4	3	False	False	False	1.000	1.333	16.100	 
+5	4	4	False	True	False	1.000	1.000	13.677	 
+6	4	4	False	True	False	1.000	1.000	5.201	 
+7	4	3	False	False	False	1.000	1.333	12.529	 
+8	4	3	False	False	False	1.000	1.333	166.451	 
+9	4	3	False	False	False	1.000	1.333	306.828	 
+10	3	3	False	True	False	1.000	1.000	7.653	 
+11	4	4	False	True	False	1.000	1.000	1545.327	 
+12	4	3	False	False	False	1.000	1.333	81.631	 
+13	3	3	False	True	False	1.000	1.000	16.211	 
+14	3	4	False	False	False	1.000	1.333	23.549	 
+15	4	3	False	False	False	1.000	1.333	121.085	 
+16	4	4	False	True	False	1.000	1.000	13.445	 
+17	4	3	False	False	False	1.000	1.333	71.019	 
+18	4	3	False	False	False	1.000	1.333	36.917	 
+19	4	4	False	True	False	1.000	1.000	16.607	 
+20	4	4	False	True	False	1.000	1.000	17.594	 
+21	1023	451	True	False	False	0.040	2.268	174.163	*
+22	4	4	False	True	False	1.000	1.000	1.563	 
+23	3	3	False	True	False	1.000	1.000	2.774	 
+24	4	3	False	False	True	1.000	1.333	-1.661	 
+25	4	4	False	True	True	1.000	1.000	0.720	 
+26	3	3	False	True	True	1.000	1.000	0.454	 
+27	4	4	False	True	True	1.000	1.000	0.689	 
+28	4	3	False	False	True	1.000	1.333	0.623	 
+29	3	3	False	True	True	1.000	1.000	-2.489	 
+30	3	4	False	False	False	1.000	1.333	1.669	 
+31	3	4	False	False	False	1.000	1.333	1.293	 
+32	3	4	False	False	False	1.000	1.333	1.342	 
+33	3	4	False	False	False	1.000	1.333	1.193	 
+34	4	4	False	True	False	1.000	1.000	3.085	 
+35	3	4	False	False	False	1.000	1.333	2.760	 
+36	4	4	False	True	True	1.000	1.000	0.705	 
+37	4	4	False	True	True	1.000	1.000	0.828	 
+38	4	3	False	False	True	1.000	1.333	-3.920	 
+39	3	4	False	False	False	1.000	1.333	4.466	 
+40	3	3	False	True	False	1.000	1.000	1.142	 
+41	3	3	False	True	False	1.000	1.000	1.408	 
+42	4	4	False	True	False	1.000	1.000	3.679	 
+43	4	3	False	False	False	1.000	1.333	12.627	 
+44	3	4	False	False	True	1.000	1.333	0.665	 
+45	3	4	False	False	False	1.000	1.333	1.142	 
+46	3	4	False	False	True	1.000	1.333	-1.053	 
+47	4	3	False	False	False	1.000	1.333	296.726	 
+48	3	4	False	False	True	1.000	1.333	-36.930	 
+49	3	4	False	False	False	1.000	1.333	56.266	 
+50	11	262	True	False	False	0.874	23.818	6.429	*
+51	3	4	False	False	False	1.000	1.333	5.024	 
+52	3	3	False	True	False	1.000	1.000	38.099	 
+53	3	3	False	True	True	1.000	1.000	-29.307	 
+54	4	4	False	True	False	1.000	1.000	55.393	 
+55	3	3	False	True	False	1.000	1.000	22.237	 
+56	3	4	False	False	False	1.000	1.333	16.624	 
+57	4	4	False	True	False	1.000	1.000	27.461	 
+58	4	3	False	False	False	1.000	1.333	40.445	 
+59	4	3	False	False	True	1.000	1.333	-314.573	 
+60	3	4	False	False	False	1.000	1.333	29.261	 
+61	4	3	False	False	False	1.000	1.333	219.804	 
+62	4	4	False	True	False	1.000	1.000	2984.138	 
+63	3	4	False	False	False	1.000	1.333	8.809	 
+64	3	4	False	False	True	1.000	1.333	-518.129	 
+65	3	4	False	False	False	1.000	1.333	11.561	 
+66	4	4	False	True	False	1.000	1.000	101.366	 
+67	4	3	False	False	True	1.000	1.333	-7.462	 
+68	3	4	False	False	True	1.000	1.333	-10312.338	 
+69	3	4	False	False	False	1.000	1.333	31.924	 
+70	4	3	False	False	False	1.000	1.333	378.680	 
+71	4	3	False	False	False	1.000	1.333	35.867	 
+72	3	4	False	False	False	1.000	1.333	7.280	 
+73	4	3	False	False	True	1.000	1.333	-61.439	 
