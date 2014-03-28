@@ -1,10 +1,10 @@
 from __future__ import print_function
 import numpy as np
-from astropy.io import fits
 from astropy.table import Table
 import lmfit
 import json
 from pathlib import Path
+import argh
 import sys 
 sys.path.insert(0, '../../RingNebula/WFC3/2013-Geometry')
 from photom_utils import model, \
@@ -48,7 +48,7 @@ def store_poly_component(db, params, clabel="Power Law"):
     )
 
 
-def store_all_components(db, params):
+def store_all_components(db, params, gauss_components):
     for clabel in gauss_components:
         store_component(db, params, clabel)
     store_poly_component(db, params)
@@ -120,84 +120,92 @@ possibly_saturated = []
 
 positions_dir = Path("Manu-Data") / "Positions"
 fit_dir = Path("Manu-Data") / "LineFit"
-positions_paths = positions_dir.glob("*.json")
-for path in positions_paths:
-    data = json.load(path.open())
-    position_id = path.stem
-    band = data["band"]
-    wavs = data["wavs"]
-    flux = data["mean"]
-    cont = data["cont"]
-    sigma = data["std"]
-    fitdata = {}
-    print(position_id)
-    # Find the F547M continuum if we can
-    m = (wavs > 5100.0) & (wavs < 5850.0)
-    cont_F547M = np.mean(wavs[m]*cont[m])
-    data["F547M continuum lam Flam"] = cont_F547M
 
-    # Now loop through the bands, fitting all the lines in each
-    for wav_id, wavmin, wavmax, bands_covered in wavranges:
-        if not band in bands_covered:
-            # skip over wav ranges that are not in the current band
-            continue
-        print(wav_id, wavmin, wavmax)
-        wav0s = np.array(line_table["linewav"])
-        wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
-        m = (wavs > wavmin) & (wavs < wavmax)
 
-        params = lmfit.Parameters()
-        gauss_components = []
-        init_poly_component(params, [0.0, 0.0, 0.0])
-        for wav0 in wav0s:
-            clabel = str(int(wav0+0.5))
-            if clabel in drop_these:
+def main(pattern="*.json", xtol=1.e-3, ftol=1.e-3, maxfev=0):
+    """Fit Gaussians to all the lines in the spectra that match `pattern`"""
+    positions_paths = positions_dir.glob(pattern)
+    for path in positions_paths:
+        data = json.load(path.open())
+        position_id = path.stem
+        band = data["band"]
+        wavs = np.array(data["wavs"])
+        flux = np.array(data["mean"])
+        cont = np.array(data["cont"])
+        fitdata = {}
+        print(position_id)
+        # Find the F547M continuum if we can
+        m = (wavs > 5100.0) & (wavs < 5850.0)
+        cont_F547M = np.mean(wavs[m]*cont[m])
+        data["F547M continuum lam Flam"] = cont_F547M
+
+        # Now loop through the bands, fitting all the lines in each
+        for wav_id, wavmin, wavmax, bands_covered in wavranges:
+            if not band in bands_covered:
+                # skip over wav ranges that are not in the current band
                 continue
-            if clabel in possibly_saturated:
-                saturation = saturation_level
-            else:
-                saturation = LARGE_VALUE
-            gauss_components.append(
-                init_gauss_component(params, 1.0, wav0, 1.0, clabel, 
-                                     ubounds=(wav0-3.0, wav0+3.0),
-                                     wbounds=(0.5, 4.0), saturation=saturation)
-            )
+            print(wav_id, wavmin, wavmax)
+            wav0s = np.array(line_table["linewav"])
+            wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
+            m = (wavs > wavmin) & (wavs < wavmax)
 
-        result = lmfit.minimize(model_minus_data, params, 
-                                args=(wavs[m], flux[m], gauss_components),
-                                xtol=1e-4, ftol=1e-4,
-        )
-        print(result.message)
-        
-        store_all_components(fitdata, params)
-        
-        for i, c in enumerate(gauss_components):
-            # Now calculate auxiliary data for each line
-            linedata = fitdata[c]
-            linedata["local continuum excess"] = model(float(c), params, [])
-            # Select a small window around the line for measuring the continuum
-            wav_min = linedata["Wav"] - linedata["Sigma"]
-            wav_max = linedata["Wav"] + linedata["Sigma"]
-            m = (wavs > wav_min) & (wavs < wav_max)
-            # This is the mean continuum from the whole-spectrum fit
-            cont_mean = cont[m].mean()
-            linedata["global continuum"] = cont_mean
-            # Calculate and store equivalent width
-            # EWs are calculated without the local excess correction to
-            # the continuum, since it just made things worse when I tried
-            # it 
-            linedata["EW"] = linedata["Flux"] / cont_mean
-            linedata["dEW"] = linedata["dFlux"] / cont_mean
-            # Calculate and store continuum color wrt F547M range
-            linedata["Color"] = linedata["Wav"]*cont_mean / cont_F547M
-            
-            # And save it all to disk
-            fit_db_dir = fit_dir / position_id 
-            linepath = fit_db_dir / (c + ".json")
-            if not fit_db_dir.is_dir():
-                fit_db_dir.mkdir(parents=True)
-            with linepath.open("w") as f:
-                json.dump(linedata, f, indent=2, cls=NumpyAwareJSONEncoder)   
+            params = lmfit.Parameters()
+            gauss_components = []
+            init_poly_component(params, [0.0, 0.0, 0.0])
+            for wav0 in wav0s:
+                clabel = str(int(wav0+0.5))
+                if clabel in drop_these:
+                    continue
+                if clabel in possibly_saturated:
+                    saturation = saturation_level
+                else:
+                    saturation = LARGE_VALUE
+                gauss_components.append(
+                    init_gauss_component(params, 1.0, wav0, 1.0, clabel, 
+                                         ubounds=(wav0-3.0, wav0+3.0),
+                                         wbounds=(0.5, 4.0), saturation=saturation)
+                )
+
+            result = lmfit.minimize(model_minus_data, params, 
+                                    args=(wavs[m], flux[m], gauss_components),
+                                    xtol=xtol, ftol=ftol, maxfev=maxfev
+            )
+            print(result.message)
+
+            store_all_components(fitdata, params, gauss_components)
+
+            for i, c in enumerate(gauss_components):
+                # Now calculate auxiliary data for each line
+                linedata = fitdata[c]
+                linedata["local continuum excess"] = model(float(c), params, [])
+                # Select a small window around the line for measuring the continuum
+                wav_min = linedata["Wav"] - linedata["Sigma"]
+                wav_max = linedata["Wav"] + linedata["Sigma"]
+                m = (wavs > wav_min) & (wavs < wav_max)
+                # This is the mean continuum from the whole-spectrum fit
+                cont_mean = cont[m].mean()
+                linedata["global continuum"] = cont_mean
+                # Calculate and store equivalent width
+                # EWs are calculated without the local excess correction to
+                # the continuum, since it just made things worse when I tried
+                # it 
+                linedata["EW"] = linedata["Flux"] / cont_mean
+                linedata["dEW"] = linedata["dFlux"] / cont_mean
+                # Calculate and store continuum color wrt F547M range
+                linedata["Color"] = linedata["Wav"]*cont_mean / cont_F547M
+
+                # And save it all to disk
+                fit_db_dir = fit_dir / position_id 
+                linepath = fit_db_dir / (c + ".json")
+                if not fit_db_dir.is_dir():
+                    fit_db_dir.mkdir(parents=True)
+                with linepath.open("w") as f:
+                    json.dump(linedata, f, indent=2, cls=NumpyAwareJSONEncoder)   
                 
 
 
+
+
+
+if __name__ == "__main__":
+    argh.dispatch_command(main)
