@@ -3,8 +3,6 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table
 import lmfit
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import json
 from pathlib import Path
 import sys 
@@ -15,13 +13,13 @@ from photom_utils import model, \
     LARGE_VALUE, init_poly_component
 
 
-def store_component(db, params, section, clabel, ctype="gauss"):
+def store_component(db, params, clabel, ctype="gauss"):
     """
     Update db with a single spectrum component
     """
-    if not clabel in db[section]:
-        db[section][clabel] = {}
-    d = db[section][clabel]
+    if not clabel in db:
+        db[clabel] = {}
+    d = db[clabel]
     suffix = "_{}_{}".format(ctype, clabel)
     d.update(
              Species=species_dict.get(clabel, "Glow"),
@@ -40,25 +38,33 @@ def store_component(db, params, section, clabel, ctype="gauss"):
             )
     
 
-def store_poly_component(db, params, section, clabel="Power Law"):
-    if not clabel in db[section]:
-        db[section][clabel] = {}
-    db[section][clabel].update(
+def store_poly_component(db, params, clabel="Power Law"):
+    if not clabel in db:
+        db[clabel] = {}
+    db[clabel].update(
         C0=params["p0"].value, dC0=params["p0"].stderr,
         C1=params["p1"].value, dC1=params["p1"].stderr,
         C2=params["p2"].value, dC2=params["p2"].stderr,
     )
 
 
-def store_all_components(db, params, section):
+def store_all_components(db, params):
     for clabel in gauss_components:
-        store_component(db, params, section, clabel)
-    store_poly_component(db, params, section)
+        store_component(db, params, clabel)
+    store_poly_component(db, params)
         
 
 def fit_continuum(wavs, spec, cmask, npoly=4):
     cont_coeffs = np.polyfit(wavs[cmask], spec[cmask], npoly)
     return np.poly1d(cont_coeffs)(wavs)
+
+
+class NumpyAwareJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 
 
 # Read in the emission line rest wavelengths
@@ -79,69 +85,6 @@ box_w, box_h = 60.0, 60.0       # Box width and height, in arcsec
 # box_w, box_h = 3.0, 3.0       # Box width and height, in arcsec
 THRESH = 1.e-13                 # Threshold for possible saturation of long exposures
 brightlines = [6562.79, 4861.32, 4958.91, 5006.84]
-
-sections = {}
-wavs = {}
-cmask = {}
-# This is different from the slit observations, since each band is done separately
-for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
-    thdu = {
-        "long": fits.open("Manu-Data/M42_{}/table_M42_l{}.fits".format(longband, band))[1],
-        "short": fits.open("Manu-Data/M42_{}/table_M42_s{}.fits".format(longband, band))[1],
-    }
-    hdu = {
-        "long": fits.open("Manu-Data/M42_{}/M42_l{}.fits".format(longband, band))[0],
-        "short": fits.open("Manu-Data/M42_{}/M42_s{}.fits".format(longband, band))[0],
-    }
-
-    # First filter out fibers based on position.  We will take a 60 x
-    # 60 arcsec box, centered on 5:35:13.592, -5:24:11.04
-    mask = (np.abs(thdu["long"].data.dRA - box_x) <= box_w/2) &  \
-           (np.abs(thdu["long"].data.dDEC - box_y) <= box_h/2)
-    # Collect only the masked fibers
-    tabdata = thdu["long"].data[mask]
-    tabdata_s = thdu["short"].data[mask]
-    specdata = hdu["long"].data[mask]
-    specdata_s = hdu["short"].data[mask]
-
-    # Set up wavelength coordinates - Angstrom
-    nx, wav0, i0, dwav = [hdu["long"].header[k] for k in 
-                          ("NAXIS1", "CRVAL1", "CRPIX1", "CDELT1")]
-    wavs[band] = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
-
-    # Use short exposure for the brightest lines
-    brightmask = np.zeros_like(wavs[band]).astype(bool)
-    for wav0 in brightlines:
-        brightmask[np.abs(wavs[band] - wav0) <= 5.0] = True
-
-    # Create a wavelength mask containing clean continuum regions
-    cmask[band] = np.zeros_like(wavs[band], dtype=bool)
-    for wav1, wav2 in cont_table:
-        cmask[band] = cmask[band] | ((wavs[band] > wav1) & (wavs[band] < wav2))
-
-    # Create one section for each fiber position in each of the three bands
-    for spectrum, spectrum_s, metadata in zip(specdata, specdata_s, tabdata):
-        # Key is formed from the band and the position, in 1/10 of
-        # arcsec: e.g., green-0013-0104 for (dRA, dDEC) = (-1.3,
-        # -10.4)
-        key = "{:s}{:+05d}{:+05d}".format(longband,
-                                          int(10*metadata["dRA"]),
-                                          int(10*metadata["dDEC"]))
-        section = {}
-        sections[key] = section
-        section["x"] = float(metadata["dRA"])
-        section["y"] = float(metadata["dDEC"])
-        section["aperture"] = int(metadata["id_ap"])
-        section["band"] = band
-        # Multiply by 1e15 as with the Helix to make the spectra of order unity for weak lines
-        section["mean"] = 1.e15*np.where(brightmask, spectrum_s, spectrum)/metadata["factor2"]
-        # We don't have a good estimate of the std of the data - so make something up!
-        section["std"] = 0.01*np.ones_like(spectrum)
-        # Fit continuum to the clean wav ranges
-        section["cont"] = fit_continuum(wavs[band], section["mean"], cmask[band], npoly=2)
-        section["mean"] -= section["cont"]
-
-
 
 species_dict = {}
 for c in line_table:
@@ -175,34 +118,33 @@ saturation_level = 25.0
 # possibly_saturated = ["4959", "5007", "6563", "6583"]
 possibly_saturated = []
 
-# Set up containers for the figures
-nplots = {"b": 6, "g": 6, "r": 6}
-nx = 3
-figures = {}
-axes = {}
-ny = {}
-for section in sections:
-    band = sections[section]["band"]
-    ny[band] = 1 + (nplots[band] - 1)//nx
-    figures[section], axes[section] = plt.subplots(ny[band], nx)
-    axes[section] = np.atleast_2d(axes[section])
+positions_dir = Path("Manu-Data") / "Positions"
+fit_dir = Path("Manu-Data") / "LineFit"
+positions_paths = positions_dir.glob("*.json")
+for path in positions_paths:
+    data = json.load(path.open())
+    position_id = path.stem
+    band = data["band"]
+    wavs = data["wavs"]
+    flux = data["mean"]
+    cont = data["cont"]
+    sigma = data["std"]
+    fitdata = {}
+    print(position_id)
+    # Find the F547M continuum if we can
+    m = (wavs > 5100.0) & (wavs < 5850.0)
+    cont_F547M = np.mean(wavs[m]*cont[m])
+    data["F547M continuum lam Flam"] = cont_F547M
 
-# Do the fits
-for section in sections:
-    band = sections[section]["band"]
-    print(section)
-    iax = 0
+    # Now loop through the bands, fitting all the lines in each
     for wav_id, wavmin, wavmax, bands_covered in wavranges:
-        print(wav_id, wavmin, wavmax)
-        wav0s = np.array(line_table["linewav"])
-        wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
         if not band in bands_covered:
             # skip over wav ranges that are not in the current band
             continue
-        m = (wavs[band] > wavmin) & (wavs[band] < wavmax)
-        flux = sections[section]["mean"]
-        cont = sections[section]["cont"]
-        sigma = sections[section]["std"]
+        print(wav_id, wavmin, wavmax)
+        wav0s = np.array(line_table["linewav"])
+        wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
+        m = (wavs > wavmin) & (wavs < wavmax)
 
         params = lmfit.Parameters()
         gauss_components = []
@@ -222,105 +164,40 @@ for section in sections:
             )
 
         result = lmfit.minimize(model_minus_data, params, 
-                                args=(wavs[band][m], flux[m], gauss_components),
+                                args=(wavs[m], flux[m], gauss_components),
                                 xtol=1e-4, ftol=1e-4,
         )
         print(result.message)
         
-        store_all_components(sections, params, section)
+        store_all_components(fitdata, params)
         
-        # Need to address a 1D version of the axes array
-        ax = axes[section].reshape((nx*ny[band]))[iax]
-#        lmfit.report_errors(params)
-        ax.plot(wavs[band][m], cont[m]+ flux[m], label="data", lw=1.5, alpha=0.6)
-        ax.plot(wavs[band][m], cont[m] + model(wavs[band][m], params, gauss_components),
-                 "r", label="fit", lw=1.5, alpha=0.6)
-        # plot the global continuum fit
-        ax.plot(wavs[band][m], cont[m], ":k", label="global cont", lw=2, alpha=0.3)
-        # and the continuum with local excess included
-        ax.plot(wavs[band][m], cont[m] + model(wavs[band][m], params, []),
-                "--k", label="local cont", lw=2, alpha=0.3)
         for i, c in enumerate(gauss_components):
-            ax.annotate("{} {}".format(species_dict[c], c), 
-                         (float(c), 0.0), 
-                         xytext=(0, -14*(1 + (i % 3))), 
-                         textcoords="offset points", 
-                         ha="center", va="top", fontsize="x-small", 
-                         arrowprops={"arrowstyle": "->", "facecolor": "red"})
-            # Also save the value of the fitted local continuum excess
-            # This is found from the model, but with the gauss_components omitted
-            sections[section][c]["local continuum excess"] = model(float(c), params, [])
-        ax.minorticks_on()
-        ax.grid(ls='-', c='b', lw=0.3, alpha=0.3)
-        ax.grid(ls='-', c='b', lw=0.3, alpha=0.05, which='minor')
-        ymax = np.max(flux[m] + cont[m])
-        ymin = np.min(flux[m] + cont[m])
-        ax.set_ylim(-0.5*ymax, 1.5*ymax)
-        # ax.set_ylim(ymin/1.1, 1.1*ymax)
-        # ax.set_yscale('log')
-        legtitle = "{} :: Fiber = {}".format(wav_id, section)
-
-        legend = ax.legend(title=legtitle,
-                           fontsize="small", ncol=4, loc="upper left")
-        legend.get_title().set_fontsize("small")     
-        iax += 1
-        
-
-# Put all the plots in one multi-page PDF file PER band
-for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
-    with PdfPages('manu-fits-{}.pdf'.format(longband)) as pdf:
-        for section in sorted(sections):
-            if sections[section]["band"] == band:
-                fig = figures[section]
-                # Set axis labels along left and bottom edges only
-                for ax in axes[section][-1,:]:
-                    ax.set_xlabel("Wavelength")
-                for ax in axes[section][:,0]:
-                    ax.set_ylabel("Flux")
-
-                fig.subplots_adjust(left=0.05, right=0.98, bottom=0.05, top=0.98)
-                fig.set_size_inches(5*nx, 4*ny[band])
-                pdf.savefig(fig)
-
-for secdata in sections.values():
-    band = secdata["band"]
-    m = (wavs[band] > 5100.0) & (wavs[band] < 5850.0)
-    cont_F547M = np.mean(wavs[band][m]*secdata["cont"][m])
-    secdata["F547M continuum lam Flam"] = cont_F547M
-    for key, linedata in secdata.items():
-        if not key in species_dict:
-            # jump over anything that is not an emission line
-            continue
-        # Select a small window around the line for measuring the continuum
-        wav_min = linedata["Wav"] - linedata["Sigma"]
-        wav_max = linedata["Wav"] + linedata["Sigma"]
-        m = (wavs[band] > wav_min) & (wavs[band] < wav_max)
-        # This is the mean continuum from the whole-spectrum fit
-        cont_mean = secdata["cont"][m].mean()
-        linedata["global continuum"] = cont_mean
-        # Calculate and store equivalent width
-        # EWs are calculated without the local excess correction to
-        # the continuum, since it just made things worse when I tried
-        # it 
-        linedata["EW"] = linedata["Flux"] / cont_mean
-        linedata["dEW"] = linedata["dFlux"] / cont_mean
-        # Calculate and store continuum color wrt F547M range
-        linedata["Color"] = linedata["Wav"]*cont_mean / cont_F547M
-        
-    # we don't want these big arrays going into the JSON store
-    del secdata["mean"]
-    del secdata["std"]
-    del secdata["cont"]
+            # Now calculate auxiliary data for each line
+            linedata = fitdata[c]
+            linedata["local continuum excess"] = model(float(c), params, [])
+            # Select a small window around the line for measuring the continuum
+            wav_min = linedata["Wav"] - linedata["Sigma"]
+            wav_max = linedata["Wav"] + linedata["Sigma"]
+            m = (wavs > wav_min) & (wavs < wav_max)
+            # This is the mean continuum from the whole-spectrum fit
+            cont_mean = cont[m].mean()
+            linedata["global continuum"] = cont_mean
+            # Calculate and store equivalent width
+            # EWs are calculated without the local excess correction to
+            # the continuum, since it just made things worse when I tried
+            # it 
+            linedata["EW"] = linedata["Flux"] / cont_mean
+            linedata["dEW"] = linedata["dFlux"] / cont_mean
+            # Calculate and store continuum color wrt F547M range
+            linedata["Color"] = linedata["Wav"]*cont_mean / cont_F547M
+            
+            # And save it all to disk
+            fit_db_dir = fit_dir / position_id 
+            linepath = fit_db_dir / (c + ".json")
+            if not fit_db_dir.is_dir():
+                fit_db_dir.mkdir(parents=True)
+            with linepath.open("w") as f:
+                json.dump(linedata, f, indent=2, cls=NumpyAwareJSONEncoder)   
+                
 
 
-##
-## Dump all the data to a JSON file
-##
-class NumpyAwareJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray) and obj.ndim <= 1:
-            return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
-
-with open("manu_spectral_fit_db.json", "w") as f:
-    json.dump(sections, f, indent=2, cls=NumpyAwareJSONEncoder)   

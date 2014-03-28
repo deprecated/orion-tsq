@@ -99,7 +99,7 @@ for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
         section["wavs"] = wavs[band]
 
 
-dbdir = Path("Manu-Data") / "Sections"
+dbdir = Path("Manu-Data") / "Positions"
 if not dbdir.is_dir():
     dbdir.mkdir(parents=True)
 
