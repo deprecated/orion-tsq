@@ -34,7 +34,7 @@ box_x, box_y = -43.0, -48.0     # Center of box in arcsec: dRA, dDEC
 box_w, box_h = 60.0, 60.0       # Box width and height, in arcsec
 # box_w, box_h = 3.0, 3.0       # Box width and height, in arcsec
 THRESH = 1.e-13                 # Threshold for possible saturation of long exposures
-brightlines = [6562.79, 4861.32, 4340.47, 4958.91, 5006.84]
+brightlines = [6562.79, 4861.32, 4340.47, 4958.91, 5006.84, 6548.05, 6583.45]
 
 sections = {}
 wavs = {}
