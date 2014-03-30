@@ -145,7 +145,8 @@ def main(pattern="*", rangelist="narrow", only=None, xtol=1.e-3, ftol=1.e-3, max
     wavranges = json.load(open('Manu-Data/wavrange-{}.json'.format(rangelist)))
     positions_paths = positions_dir.glob(pattern + ".json")
     for path in positions_paths:
-        data = json.load(path.open())
+        with path.open() as f:
+            data = json.load(f)
         position_id = path.stem
         band = data["band"]
         wavs = np.array(data["wavs"])
@@ -191,6 +192,12 @@ def main(pattern="*", rangelist="narrow", only=None, xtol=1.e-3, ftol=1.e-3, max
                 )
                 if clabel in tied_lines:
                     tie_lines_together(params, clabel, tied_lines[clabel])
+                if clabel in ['4651']:
+                    # Special case for middle component of (4639,
+                    # 4651, 4662). They all have very similar
+                    # dependence on (Ne, Te) but 4651 is the most
+                    # badly blended, so we set its flux to be the mean of the other ywo
+                    params['area_gauss_'+clabel].expr = '0.5*(area_gauss_4639 + area_gauss_4662)'
 
             result = lmfit.minimize(model_minus_data, params, 
                                     args=(wavs[m], flux[m], gauss_components),
