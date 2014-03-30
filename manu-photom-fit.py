@@ -11,6 +11,7 @@ from photom_utils import model, \
     model_minus_data, \
     init_gauss_component, \
     LARGE_VALUE, init_poly_component
+from manu_utils import sanitize_string
 
 
 def store_component(db, params, clabel, ctype="gauss"):
@@ -59,12 +60,18 @@ def fit_continuum(wavs, spec, cmask, npoly=4):
     return np.poly1d(cont_coeffs)(wavs)
 
 
+def save_params_values(params, path):
+    """Dump the parameter values to a file"""
+    d = {k: params[k].value for k in params}
+    with path.open("w") as f:
+        json.dump(d, f, indent=2)
+    
+
 class NumpyAwareJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray) and obj.ndim <= 1:
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
-
 
 
 # Read in the emission line rest wavelengths
@@ -91,25 +98,6 @@ for c in line_table:
     id_ = str(int(c['linewav']+0.5))
     species_dict[id_] = c['lineid']
 
-wavranges = [
-    ["Far Blue", 3960.0, 4200.0, "b"],
-    ["FQ436N, FQ437N A", 4240.0, 4320.0, "b"],
-    ["FQ436N, FQ437N B", 4320.0, 4400.0, "b"],
-    ["FQ436N, FQ437N C", 4400.0, 4500.0, "b"],
-    ["F469N A", 4560.0, 4680.0, "bg"],
-    ["F469N B", 4680.0, 4800.0, "bg"],
-    ["F487N", 4800.0, 4900.0, "g"],
-    ["F502N", 4900.0, 5100.0, "g"], 
-    ["F547M short", 5150.0, 5400.0, "g"],
-    ["F547M mid", 5350.0, 5650.0, "g"],
-    ["FQ575N, F547M long A", 5650.0, 5830.0, "r"],
-    ["FQ575N, F547M long B", 5830.0, 6000.0, "r"],
-    ["[O I] Red", 6000.0, 6330.0, "r"],
-    ["F656N, F658N A", 6330.0, 6480.0, "r"],
-    ["F656N, F658N B", 6530.0, 6650.0, "r"],
-    ["F673N", 6640.0, 6760.0, "r"],
-    ]
-
 # Sky
 drop_these = ["6398"]
 # For Orion, we also drop He II and Mg I
@@ -120,11 +108,12 @@ possibly_saturated = []
 
 positions_dir = Path("Manu-Data") / "Positions"
 fit_dir = Path("Manu-Data") / "LineFit"
+wavrange_dir = Path("Manu-Data") / "WavRanges"
 
-
-def main(pattern="*.json", xtol=1.e-3, ftol=1.e-3, maxfev=0):
+def main(pattern="*", rangelist="narrow", xtol=1.e-3, ftol=1.e-3, maxfev=0):
     """Fit Gaussians to all the lines in the spectra that match `pattern`"""
-    positions_paths = positions_dir.glob(pattern)
+    wavranges = json.load(open('Manu-Data/wavrange-{}.json'.format(rangelist)))
+    positions_paths = positions_dir.glob(pattern + ".json")
     for path in positions_paths:
         data = json.load(path.open())
         position_id = path.stem
@@ -172,6 +161,14 @@ def main(pattern="*.json", xtol=1.e-3, ftol=1.e-3, maxfev=0):
             )
             print(result.message)
 
+            # A full dump of the fit parameters each wav range (for later plotting)
+            wavrange_subdir = wavrange_dir / position_id
+            if not wavrange_subdir.is_dir():
+                wavrange_subdir.mkdir(parents=True)
+            savepath = wavrange_subdir / (sanitize_string(wav_id) + ".json")
+            save_params_values(params, savepath)
+
+            # And also save a dict for each emission line, with all relevant data
             store_all_components(fitdata, params, gauss_components)
 
             for i, c in enumerate(gauss_components):
