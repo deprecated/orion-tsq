@@ -75,12 +75,16 @@ There are at least three sorts of shadows:
 | O II          |    4610.2 |
 | N II/C II?    |   4621.39 |
 | N II          |   4630.54 |
+| N III         |   4634.14 |
 | O II          |   4638.86 |
-| O II          |   4641.81 |
+| N III         |   4640.64 |
+| O II/N III    |   4641.81 |
+| N II          |   4643.06 |
 | O II          |   4649.13 |
 | O II          |   4650.84 |
 | [Fe III]      |   4658.10 |
 | O II          |   4661.63 |
+| [Fe III]      |   4667.01 |
 | O II          |   4676.24 |
 | [Fe III]      |   4701.62 |
 | [Ar IV]       |   4711.37 |

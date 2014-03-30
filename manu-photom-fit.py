@@ -37,6 +37,11 @@ def store_component(db, params, clabel, ctype="gauss"):
             Sat=params['saturation'+suffix].value,
             dSat=params['saturation'+suffix].stderr,
             )
+    if params['u0'+suffix].expr is not None:
+        d.update(
+            Wav_expr=params['u0'+suffix].expr,
+            Sigma_expr=params['sigma'+suffix].expr,
+        )
     
 
 def store_poly_component(db, params, clabel="Power Law"):
@@ -66,6 +71,17 @@ def save_params_values(params, path):
     with path.open("w") as f:
         json.dump(d, f, indent=2)
     
+
+def tie_lines_together(params, lineA, lineB):
+    """Set the parameters such that lineA is forced to have the same width
+as lineB and the same radial velocity
+    """
+    suffixA = "_gauss_{}".format(lineA)
+    suffixB = "_gauss_{}".format(lineB)
+    wav_offset = params['u0'+suffixA].init_value - params['u0'+suffixB].init_value
+    params['u0'+suffixA].expr = '{:s} + {:.3f}'.format('u0'+suffixB, wav_offset)
+    params['sigma'+suffixA].expr = 'sigma'+suffixB
+
 
 class NumpyAwareJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -98,10 +114,24 @@ for c in line_table:
     id_ = str(int(c['linewav']+0.5))
     species_dict[id_] = c['lineid']
 
+# Lines that are forced to have the same Delta Wav and Sigma as another line
+tied_lines = {
+    # O II lines
+    "4651": "4639", "4662": "4639", "4649": "4639",
+    # N III lines
+    "4641": "4634",
+    # N II lines
+    "4643": "4631",
+}
+
 # Sky
 drop_these = ["6398"]
 # For Orion, we also drop He II and Mg I
 drop_these += ["4542", "4563", "4571"]
+# These N II and N III lines are right underneath the O III V1 multiplet
+# Unfortunately, they make the line fitting be too degenerate
+drop_these += ["4641", "4643"]
+
 saturation_level = 25.0
 # possibly_saturated = ["4959", "5007", "6563", "6583"]
 possibly_saturated = []
@@ -110,7 +140,7 @@ positions_dir = Path("Manu-Data") / "Positions"
 fit_dir = Path("Manu-Data") / "LineFit"
 wavrange_dir = Path("Manu-Data") / "WavRanges"
 
-def main(pattern="*", rangelist="narrow", xtol=1.e-3, ftol=1.e-3, maxfev=0):
+def main(pattern="*", rangelist="narrow", only=None, xtol=1.e-3, ftol=1.e-3, maxfev=0):
     """Fit Gaussians to all the lines in the spectra that match `pattern`"""
     wavranges = json.load(open('Manu-Data/wavrange-{}.json'.format(rangelist)))
     positions_paths = positions_dir.glob(pattern + ".json")
@@ -133,6 +163,11 @@ def main(pattern="*", rangelist="narrow", xtol=1.e-3, ftol=1.e-3, maxfev=0):
             if not band in bands_covered:
                 # skip over wav ranges that are not in the current band
                 continue
+            if only is not None:
+                # If the --only option is set, check that wav is within this range
+                if not wavmin <= float(only) <= wavmax:
+                    # Otherwise, skip
+                    continue
             print(wav_id, wavmin, wavmax)
             wav0s = np.array(line_table["linewav"])
             wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
@@ -151,9 +186,11 @@ def main(pattern="*", rangelist="narrow", xtol=1.e-3, ftol=1.e-3, maxfev=0):
                     saturation = LARGE_VALUE
                 gauss_components.append(
                     init_gauss_component(params, 1.0, wav0, 1.0, clabel, 
-                                         ubounds=(wav0-3.0, wav0+3.0),
-                                         wbounds=(0.5, 4.0), saturation=saturation)
+                                         ubounds=(wav0-0.1, wav0+1.5),
+                                         wbounds=(0.4, 1.2))
                 )
+                if clabel in tied_lines:
+                    tie_lines_together(params, clabel, tied_lines[clabel])
 
             result = lmfit.minimize(model_minus_data, params, 
                                     args=(wavs[m], flux[m], gauss_components),

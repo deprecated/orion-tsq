@@ -8,7 +8,7 @@ from astropy.table import Table
 from matplotlib import pyplot as plt
 import sys
 sys.path.insert(0, '../../RingNebula/WFC3/2013-Geometry')
-from photom_utils import model
+from photom_utils import model, gauss
 from manu_utils import sanitize_string
 
 
@@ -56,7 +56,7 @@ fit_dir = Path("Manu-Data") / "LineFit"
 wavrange_dir = Path("Manu-Data") / "WavRanges"
 plot_dir = Path("Manu-Data") / "Plots"
 
-def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False):
+def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False, only=None):
     """Plot graphs of fits to PPAK spectra"""
     positions_paths = positions_dir.glob(pattern + ".json")
     with open('Manu-Data/wavrange-{}.json'.format(rangelist)) as f:
@@ -79,6 +79,11 @@ def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False):
         for wav_id, wavmin, wavmax, bands_covered in wavranges:
             if not band in bands_covered:
                 continue
+            if only is not None:
+                # If the --only option is set, check that wav is within this range
+                if not wavmin <= float(only) <= wavmax:
+                    # Otherwise, skip
+                    continue
             m = (wavs > wavmin) & (wavs < wavmax)
             wavrange_subdir = wavrange_dir / position_id
             loadpath = wavrange_subdir / (sanitize_string(wav_id) + ".json")
@@ -104,11 +109,14 @@ def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False):
                 with fit_path.open() as f:
                     cdata = json.load(f)
                 ax.annotate("{} {}".format(species_dict[c], c), 
-                             (cdata["Wav0"], cdata["global continuum"]), 
-                             xytext=(0, -14*(1 + (i % 3))), 
+                             (cdata["Wav0"],
+                              cdata["global continuum"]
+                              + cdata["local continuum excess"]), 
+                             xytext=(0, -14*(1 + (i % 4))), 
                              textcoords="offset points", 
                              ha="center", va="top", fontsize="x-small", 
                              arrowprops={"arrowstyle": "->", "facecolor": "red"})
+                ax.plot(wavs[m], cont[m]+ model(wavs[m], params, [c]), 'k-', lw=0.1)
             ax.minorticks_on()
             ax.grid(ls='-', c='b', lw=0.3, alpha=0.3)
             ax.grid(ls='-', c='b', lw=0.3, alpha=0.05, which='minor')
