@@ -176,17 +176,23 @@ There are at least three sorts of shadows:
     #+TBLFM: @1$3=15 cos(5) ($2 - $1)::@2$3=$2 - $1
   + So this puts the box center at (-43, -48) in arcsec
   + This is running, but is going to take all day
-+ [-] Need to refactor - split into three parts:
++ [X] Need to refactor - split into three parts:
   1. [X] Extract the spectra I need 
      - save a seperate JSON db for each section
-  2. [ ] Perform the Gaussian fits 
+  2. [X] Perform the Gaussian fits 
      - save fit parameters separately for each section, and in different files from the actual spectra
      - have flexible mechanism for doing/redoing particular sections and particular wavranges
      - tie together the wavelengths of lines of the same ion/multiplet
        - for instance, O II lines of the V1 multiplet
-  3. [ ] Produce the figures
+  3. [X] Produce the figures
 + [ ] manu-calibration.py
-+ [ ] process-orion-spectra-by-filter.py manu
++ [-] process-orion-spectra-by-filter.py manu
+  + Before we can do this, we need to do one of two things:
+    1. Consolidate all the litle files into a big database, as we had before
+    2. Change the program to use folders instead of one big database
+  + [X] Option 1 would be simpler: manu-photom-consolidate.py
+  + [ ] And run the program
+
 + Do the plots
 *** Using the filesystem as a poor-man's database
 + Tha main concern is to allow multiple processes to be working on the line-fitting, either on the same machine or different machines

@@ -2,10 +2,11 @@ import numpy as np
 import json
 from astropy.table import Table
 import wfc3_utils
-import sys
+import argh
 
 def find_E_by_W(secdata, wavs_f, T_f, itarget=5755):
-    result = Table(names=["Species", "line", "E/W", "efrac(E/W)"], dtype=['<U12', int, float, float])
+    result = Table(names=["Species", "line", "E/W", "efrac(E/W)"],
+                   dtype=['<U12', int, float, float])
     for lineid, data in secdata.items():
         if (isinstance(data, dict) 
             and "Wav0" in data 
@@ -32,47 +33,56 @@ wavtargets = {"F469N": "4713", "F673N": "6716",
 wavf, F547M = wfc3_utils.get_filter("F547M", return_wavelength=True)
 filts = {fn: wfc3_utils.get_filter(fn) for fn in fns}
 
-try:
-    dataset = sys.argv[1]
-    db = json.load(open(dataset + "_spectral_fit_db.json"))
-except:
-    sys.exit("Usage: {} DATASET".format(sys.argv[0]))
-
 # Names of sections are longer for the Manu dataset
 section_dtype = {"odh": '<U7', "manu": '<U15', "adal": '<U10'}
 
-factabs = {}
-for fn in fns:
-    print("Processing", fn, "...")
-    iwav = wavtargets[fn]
-    factabs[fn] = Table(names=["Section", "Sum(E/W)", 
-                               "dSum", "Strongest", 
-                               "E{}".format(iwav), "dE{}".format(iwav), "E/W {}".format(iwav),
-                               "k{}".format(iwav), "kk{}".format(iwav), "F{}".format(iwav)
-                           ], 
-                        dtype=[section_dtype[dataset], float, float, '<U22'] + [float]*6)
-    for section, secdata in db.items():
-        if not iwav in secdata:
-            # Skip sections where the target line is not present
-            continue
-        factors = find_E_by_W(secdata, wavf, filts[fn], iwav)
-        sum_e_w = factors["E/W"].sum()
-        sum_errors = np.sqrt(np.sum((factors["E/W"]*factors["efrac(E/W)"])**2))
-        if iwav is not None:
-            target = secdata[iwav]
-            # Quantities for target line
-            E = target["EW"]
-            dE = target["dEW"]
-            E_W = E/wfc3_utils.Wtwid(target["Wav0"], wavf, filts[fn])
-            k = target['Color']
-            kk = k*(target["global continuum"]
-                    + target["local continuum excess"])/target["global continuum"]
-            F = target["Flux"]
-        else:
-            E, dE, E_W, k, kk, F = 0.0, 0.0, 0.0, 1.0, 1.0, 0.0
-        factors["E/W"] *= 100/sum_e_w
-        strongest = "{} {} {:.0f}%".format(*factors[-1].data)
-        factabs[fn].add_row([section, sum_e_w, sum_errors, strongest, E, dE, E_W, k, kk, F])
 
-    datafile = dataset + "-spectra-data-{}.tab".format(fn)
-    factabs[fn].write(datafile, format='ascii.tab')
+def main(dataset):
+    """Process the line fitting database to extract a table for each WFC3 filter"""
+    factabs = {}
+    with open(dataset + "_spectral_fit_db.json") as f:
+        db = json.load(f)
+    for fn in fns:
+        print("Processing", fn, "...")
+        iwav = wavtargets[fn]
+        factabs[fn] = Table(names=["Section", "Sum(E/W)", 
+                                   "dSum", "Strongest", 
+                                   "E{}".format(iwav),
+                                   "dE{}".format(iwav),
+                                   "E/W {}".format(iwav),
+                                   "k{}".format(iwav),
+                                   "kk{}".format(iwav),
+                                   "F{}".format(iwav)], 
+                            dtype=[section_dtype[dataset],
+                                   float, float,
+                                   '<U22'] + [float]*6)
+        for section, secdata in db.items():
+            if not iwav in secdata:
+                # Skip sections where the target line is not present
+                continue
+            factors = find_E_by_W(secdata, wavf, filts[fn], iwav)
+            sum_e_w = factors["E/W"].sum()
+            sum_errors = np.sqrt(np.sum((factors["E/W"]*factors["efrac(E/W)"])**2))
+            if iwav is not None:
+                target = secdata[iwav]
+                # Quantities for target line
+                E = target["EW"]
+                dE = target["dEW"]
+                E_W = E/wfc3_utils.Wtwid(target["Wav0"], wavf, filts[fn])
+                k = target['Color']
+                kk = k*(target["global continuum"]
+                        + target["local continuum excess"])/target["global continuum"]
+                F = target["Flux"]
+            else:
+                E, dE, E_W, k, kk, F = 0.0, 0.0, 0.0, 1.0, 1.0, 0.0
+            factors["E/W"] *= 100/sum_e_w
+            strongest = "{} {} {:.0f}%".format(*factors[-1].data)
+            factabs[fn].add_row([section, sum_e_w, sum_errors, strongest,
+                                 E, dE, E_W, k, kk, F])
+
+        datafile = dataset + "-spectra-data-{}.tab".format(fn)
+        factabs[fn].write(datafile, format='ascii.tab')
+
+
+if __name__ == "__main__":
+    argh.dispatch_command(main)
