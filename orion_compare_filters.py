@@ -64,20 +64,27 @@ def get_filtertab(f1, f2, dataset="odh"):
     ftab = Table.read(tabfile, format="ascii.tab", fill_values=('--', 0.0))
     assert f1 in ftab.colnames, f1 + " not in " + tabfile
     assert f2 in ftab.colnames, f2 + " not in " + tabfile
-    selection = ftab['PA', 'Section', 'x0', f1, f2]
+    try:
+        selection = ftab['PA', 'Section', 'x0', f1, f2]
+    except ValueError:
+        selection = ftab['x', 'y', 'Section', f1, f2]
     return selection
 
 
 def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
+                  fixedcolor=None,
                   colorstrategy="average", simple=False, logscale=False,
-                  suffix=""):
+                  suffix="", ymax=None, alpha=0.6):
     """Make a plot of Filter Ratio versus equivalent width"""
     xo = tab['E'+wav]
     xe = 3*tab['dE'+wav]
-
+    snscale = {"odh": 2.0, "manu": 0.1, "adal": 1.0}
     r0, q1, q2 = rqq(get_exact_wav(wav), wavf, filts[f1], filts[f2])
 
-    if colorstrategy == "global":
+    if fixedcolor is not None:
+        kcolor = fixedcolor
+        kerr = 0.0
+    elif colorstrategy == "global":
         kcolor = tab['k'+wav]
         kerr = 0.0
     elif colorstrategy == "local":
@@ -92,20 +99,23 @@ def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
         # Apply the correction for contaminating lines in the narrow filter
         yo -= r0*tab['Sum(E/W)_1']
 
-    ye = 3*tab[f1]*tab['dSum_2']/(tab[f2]*kcolor)
+    ye = tab[f1]*tab['dSum_2']/(tab[f2]*kcolor)
     ye = np.sqrt(ye**2 + (kerr*yo)**2)
     snr = 2*np.sqrt((xo/xe)*(yo/ye))
     #snr = bigtab['W'+wav]/bigtab['dW'+wav]
-    y0 = np.array([float(s[1:3]) for s in tab['Section']])
-    d = np.hypot(tab['x0'], y0)
+    if 'x' in tab.colnames and 'y' in tab.colnames:
+        d = np.hypot(tab['x'], tab['y'])
+    else:
+        y0 = np.array([float(s[1:3]) for s in tab['Section']])
+        d = np.hypot(tab['x0'], y0)
     try:
         mask = ~tab[f1].mask  
     except AttributeError:
         mask = np.ones_like(xo).astype(bool)
     fig, ax = plt.subplots(1, 1)
-    ax.errorbar(xo, yo, xerr=xe, yerr=ye, fmt=None)
+    ax.errorbar(xo, yo, xerr=xe, yerr=ye, fmt=None, zorder=0, alpha=alpha)
     #scatter(xo, yo, c=bigtab[f2], s=2*snr, alpha=0.6, vmax=0.2)
-    scat = ax.scatter(xo, yo, c=d, s=2*snr, alpha=0.6)
+    scat = ax.scatter(xo, yo, c=d, s=snscale[dataset]*snr, alpha=alpha)
 
     if logscale: 
         xmin = xo[mask].min()/1.1
@@ -124,7 +134,7 @@ def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
         ax.set_yscale('log')
         ax.set_xlim(xmin, xmax)
     else:
-        ax.set_ylim(0.0, None)
+        ax.set_ylim(0.0, ymax)
         ax.set_xlim(0.0, xmax)
 
     cbar = fig.colorbar(scat)
@@ -175,19 +185,24 @@ def fmt_ylabel(f1, f2, simple, latex=True):
      choices=["odh", "adal", "manu"])
 @arg("--colorstrategy", help="Which version of continuum color to use",
      choices=["local", "global", "average"])
+@arg("--fixedcolor", help="Set the k-value by hand - do not read from table", type=float)
 @arg("--simple", help="Do not correct for line contamination of narrow filter")
 @arg("--logscale", help="Use logarithmic scales for x- and y-axes")
 @arg("--pa", help="Restrict data to the slit with this PA", type=int)
-def main(f1, f2, dataset="odh", colorstrategy="global",
-         simple=False, logscale=False, pa=None): 
+@arg("--ymax", help="Set the plot limit of y-axis by hand", type=float)
+def main(f1, f2, dataset="odh", colorstrategy="global", fixedcolor=None,
+         simple=False, logscale=False, pa=None, ymax=None, alpha=0.6): 
     """Compare the intensity in two different filters - image versus spectra"""
     print("Filters are", f1, "and", f2)
     spectab = astropy.table.join(get_spectab(f1, dataset),
                                  get_spectab(f2, dataset)["Section", "Sum(E/W)", "dSum"],
                                  keys=["Section"], join_type="left")
     tab = astropy.table.join(get_filtertab(f1, f2, dataset), spectab, join_type="left")
-    tab.sort(['PA', 'x0'])
-    tab.write("compare_{}_{}.tab".format(f1, f2), format="ascii.tab")
+    if 'PA' in tab.colnames:
+        tab.sort(['PA', 'x0'])
+    else:
+        tab.sort(['x', 'y'])
+    tab.write("{}_compare_{}_{}.tab".format(dataset, f1, f2), format="ascii.tab")
 
     if pa is not None:
         m = tab['PA'] == pa
@@ -196,9 +211,9 @@ def main(f1, f2, dataset="odh", colorstrategy="global",
     else:
         suffix = ''
 
-    plot_ew_ratio(tab, wavtargets[f1], f1, f2,
-                  colorstrategy=colorstrategy, simple=simple,
-                  logscale=logscale, suffix=suffix)
+    plot_ew_ratio(tab, wavtargets[f1], f1, f2, dataset=dataset,
+                  colorstrategy=colorstrategy, fixedcolor=fixedcolor, simple=simple,
+                  logscale=logscale, suffix=suffix, ymax=ymax, alpha=alpha)
 
             
 if __name__ == "__main__":
