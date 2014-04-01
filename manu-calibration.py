@@ -16,20 +16,8 @@ datadir = "."
 
 # Central coordinates were taken from ODH paper
 # Except S90 is adjusted to have same RA as the others
-slit_center = {
-    "S30": "5:35:16.5 -5:23:53",
-    "S60": "5:35:16.5 -5:24:23",
-    "S90": "5:35:16.5 -5:24:53",
-}
-slit_ids = sorted(list(slit_center))
-slit_width = 1.9                # arcsec
-# From Sec 2.1 of ODH 2010
-pixel_size = 1.3               # arcsec 
-# (taking slit length of 330 pix = 3 x 143 arcsec - from Tab 2 of ODH2010)
-PA = -90                         # All slits are E-W
-# Center of slit in zero-based pixel units
-ny = 330
-j0 = 0.5*(ny - 1)
+
+fiber_radius = 2.69/2.0         # arcsec 
 
 Filters = {
     "FQ436N": "full_FQ436N_north_pad.fits",
@@ -49,31 +37,29 @@ Filters = {
 
 with open("manu_spectral_fit_db.json") as f:
     db = json.load(f)
+positions = sorted(db.keys())
 
-sections = db.keys()
+PA = 90
+th1C_coords = "05:35:16.463 -5:23:23.18"
 results = {}
 bigtable = None
 for Filter, fname in Filters.items():
+    print("Extracting aperture fluxes from", fname)
     hdu = fits.open(os.path.join(datadir, fname))[0]
     RA, DEC = coord_utils.get_radec(hdu.header)
     sdata = ni.gaussian_filter(hdu.data, seeing_FWHM*sig_factor/wfc3_pix, mode='constant')
     sfname = fname.replace("_north_pad", "-s{:03d}".format(int(100*seeing_FWHM)))
     fits.PrimaryHDU(sdata, hdu.header).writeto(os.path.join(datadir, sfname), clobber=True)
     results[Filter] = {}
-    thistable = Table(names=["PA", "Section", "x0", Filter], dtype=[int, '<U6', float, float])
-    for slit_id in slit_ids:
-        sections = sorted(section for section in db if section.startswith(slit_id))
-        xslit, yslit = coord_utils.slitxy_from_radec(RA, DEC, slit_center[slit_id], PA)
-        slitmask = np.abs(yslit) <= slit_width/2.0
-        for section in sections:
-            x1 = pixel_size*(db[section]["j1"] - j0) 
-            x2 = pixel_size*(db[section]["j2"] - j0)
-            dx = np.abs(x2 - x1)
-            x0 = 0.5*(x1 + x2)
-            secmask = slitmask & (np.abs(xslit - x0) <= dx/2.0)
-            if np.any(secmask):
-                flux = sdata[secmask].mean()
-                thistable.add_row([int(PA), str(section), float(x0), float(flux)])
+    thistable = Table(names=["x", "y", "Section", Filter], dtype=[float, float, '<U15', float])
+    xim, yim = coord_utils.slitxy_from_radec(RA, DEC, th1C_coords, PA)
+    for position in positions:
+        x0 = db[position]['x']
+        y0 = db[position]['y']
+        posmask = np.hypot(xim - x0, yim - y0) <= fiber_radius
+        if np.any(posmask):
+            flux = sdata[posmask].mean()
+            thistable.add_row([float(x0), float(y0), str(position), float(flux)])
 
     if bigtable is None:
         bigtable = thistable
@@ -82,5 +68,5 @@ for Filter, fname in Filters.items():
 
 
 
-bigtable.write("odh_calibration_db.tab", format="ascii.tab")
+bigtable.write("manu_calibration_db.tab", format="ascii.tab")
 

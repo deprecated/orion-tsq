@@ -185,15 +185,17 @@ There are at least three sorts of shadows:
      - tie together the wavelengths of lines of the same ion/multiplet
        - for instance, O II lines of the V1 multiplet
   3. [X] Produce the figures
-+ [ ] manu-calibration.py
-+ [-] process-orion-spectra-by-filter.py manu
++ [X] manu-calibration.py
+  + Use the circular apertures of each fiber (2.69 arcsec diameter)
++ [X] process-orion-spectra-by-filter.py manu
   + Before we can do this, we need to do one of two things:
     1. Consolidate all the litle files into a big database, as we had before
     2. Change the program to use folders instead of one big database
   + [X] Option 1 would be simpler: manu-photom-consolidate.py
-  + [ ] And run the program
+  + [X] And run the program
 
-+ Do the plots
++ [ ] Do the plots
+  + 
 *** Using the filesystem as a poor-man's database
 + Tha main concern is to allow multiple processes to be working on the line-fitting, either on the same machine or different machines
 + So we can use separate files for saving the fit parameters of each line for each position

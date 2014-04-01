@@ -13,6 +13,12 @@ def main():
             data = json.load(f)
         position_id = path.stem
 
+        # Zeroth, remove the big arrays that we have no need for here
+        del data["mean"]
+        del data["std"]
+        del data["cont"]
+        del data["wavs"]
+
         # First, get the per-position data such as x, y
         db[position_id] = data
 
