@@ -107,7 +107,8 @@ def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
     else:
         kcolor = 0.5*(tab['k'+wav] + tab['kk'+wav])
         kerr = 0.5*np.abs((tab['k'+wav] - tab['kk'+wav])/tab['k'+wav])
-    if  np.any(~tab['Sum(E/W)_2'].mask):
+    missing_values = getattr(tab['Sum(E/W)_2'], 'mask', np.array([False]))
+    if  np.any(~missing_values):
         EW2 = tab['Sum(E/W)_2']
         dEW2 = tab['dSum_2']
     else:
@@ -134,7 +135,10 @@ def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
     except AttributeError:
         mask = np.ones_like(xo).astype(bool)
 
-    sm = find_sweetspot_mask(tab['x'], tab['y']) 
+    if 'x' in tab.colnames:
+        sm = find_sweetspot_mask(tab['x'], tab['y']) 
+    else:
+        sm = np.ones_like(tab[f1]).astype(bool)
     fig, ax = plt.subplots(1, 1)
     ax.errorbar(xo[sm], yo[sm], xerr=xe[sm], yerr=ye[sm], fmt=None, zorder=0, alpha=alpha)
     #scatter(xo, yo, c=bigtab[f2], s=2*snr, alpha=0.6, vmax=0.2)

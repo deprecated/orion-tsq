@@ -41,7 +41,8 @@ There are at least three sorts of shadows:
   + It is also necessary to be careful with concurrent connections, although I think I have that just about sorted
     + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
 * Final calibration of WFC3 filters
-
+** Doing the combined calibration for FQ575N
++ This is the filter that we need most
 ** Data to use
 #+name: line-wavelengths-orion
 | He I          |   3964.73 |
@@ -194,12 +195,12 @@ There are at least three sorts of shadows:
   + [X] Option 1 would be simpler: manu-photom-consolidate.py
   + [X] And run the program
 
-+ [ ] Do the plots
++ [X] Do the plots
   + 
 *** Using the filesystem as a poor-man's database
 + Tha main concern is to allow multiple processes to be working on the line-fitting, either on the same machine or different machines
 + So we can use separate files for saving the fit parameters of each line for each position
-+ Chenge to using =Positions= instead of =Sections=
++ Change to using =Positions= instead of =Sections=
   + =Manu-Data/Positions/blue-0140-0262.json= has the data written by =manu-photom-select.py=, which includes the arrays of wavelengths, fluxes, etc.
   + =Manu-Data/LineFit/blue-0140-0262/5299.json= has the fit data for the line 5299 
 
