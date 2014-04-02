@@ -71,6 +71,20 @@ def get_filtertab(f1, f2, dataset="odh"):
     return selection
 
 
+def find_sweetspot_mask(x, y):
+    """Create a mask for Bob's so-called sweet spot"""
+    sweetmask = np.ones_like(x).astype(bool)
+    theta = np.radians(56.0)
+    s = -x*np.cos(theta) + y*np.sin(theta)
+    sweetmask[s > 10.0] = False
+    sweetmask[s < -70.0] = False
+    theta = np.radians(-34.0)
+    s = -x*np.cos(theta) + y*np.sin(theta)
+    sweetmask[s > 82.0] = False
+    sweetmask[s < 40.0] = False
+    return sweetmask
+    
+
 def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
                   fixedcolor=None,
                   colorstrategy="average", simple=False, logscale=False,
@@ -93,13 +107,20 @@ def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
     else:
         kcolor = 0.5*(tab['k'+wav] + tab['kk'+wav])
         kerr = 0.5*np.abs((tab['k'+wav] - tab['kk'+wav])/tab['k'+wav])
-    yo = tab[f1]*(1.0 + tab['Sum(E/W)_2'])/(tab[f2]*kcolor)
+    if  np.any(~tab['Sum(E/W)_2'].mask):
+        EW2 = tab['Sum(E/W)_2']
+        dEW2 = tab['dSum_2']
+    else:
+        # Case where there is no filter2 spectra data for any position
+        EW2 = 0.01
+        dEW2 = 0.001
+    yo = tab[f1]*(1.0 + EW2)/(tab[f2]*kcolor)
 
     if not simple:
         # Apply the correction for contaminating lines in the narrow filter
         yo -= r0*tab['Sum(E/W)_1']
 
-    ye = tab[f1]*tab['dSum_2']/(tab[f2]*kcolor)
+    ye = tab[f1]*dEW2/(tab[f2]*kcolor)
     ye = np.sqrt(ye**2 + (kerr*yo)**2)
     snr = 2*np.sqrt((xo/xe)*(yo/ye))
     #snr = bigtab['W'+wav]/bigtab['dW'+wav]
@@ -112,10 +133,12 @@ def plot_ew_ratio(tab, wav, f1, f2, dataset="odh",
         mask = ~tab[f1].mask  
     except AttributeError:
         mask = np.ones_like(xo).astype(bool)
+
+    sm = find_sweetspot_mask(tab['x'], tab['y']) 
     fig, ax = plt.subplots(1, 1)
-    ax.errorbar(xo, yo, xerr=xe, yerr=ye, fmt=None, zorder=0, alpha=alpha)
+    ax.errorbar(xo[sm], yo[sm], xerr=xe[sm], yerr=ye[sm], fmt=None, zorder=0, alpha=alpha)
     #scatter(xo, yo, c=bigtab[f2], s=2*snr, alpha=0.6, vmax=0.2)
-    scat = ax.scatter(xo, yo, c=d, s=snscale[dataset]*snr, alpha=alpha)
+    scat = ax.scatter(xo[sm], yo[sm], c=d[sm], s=snscale[dataset]*snr[sm], alpha=alpha)
 
     if logscale: 
         xmin = xo[mask].min()/1.1
