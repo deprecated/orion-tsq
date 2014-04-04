@@ -40,6 +40,28 @@ There are at least three sorts of shadows:
     + Although you can do it by doing =json.dumps= on the sub-objects to convert them to a string
   + It is also necessary to be careful with concurrent connections, although I think I have that just about sorted
     + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
+* Recombination line temperatures and densities
+From the Manu spectra we can measure various useful ratios:
++ O II 4649/(4639+51+62) is density sensitive
+  + We have it in the blue and green spectra but the green spectra are
+    not so good
+  + We have fitted the lines by assuming common velocity and width of all lines in the multiplet, and also that the 4639, 4651, 4662 components have a equal intensities.
+    + This is somewhat justified by the very similar density dependences of those 3 lines, so long as the density is not too low (see Fig 6 of Fang & Liu 2013MNRAS.429.2791F).
++ O II Sum(V1)/[O III] 4959 is temperature sensitive
+  + There are actually 8 lines in the V1 multiplet in total.  The four that we use for the density plus:
+    + 4642, which we measure and is quite strong - theoretically it is about 22% of the total multiplet intensity with almost no density dependence above 1e3 pcc
+      + However, it is blended with an N III line, which we would need to control for
+    + 4676, which we measure but is weaker - 8% of the multiplet theoretically, again with almost no density dependence
+    + 4674 and 4696 are very weak and we do not attempt to fit them.  But they add up to less than 2% of the total multiplet.
+  + So there would be two possible approaches:
+    1. Just use 4649+39+51+62 and then correct for the missing 4 components by dividing by (1 - 0.22 - 0.08 - 0.02) = 0.68 to get the total V1 intensity.
+    2. Also add 4642 and 4676 and divide by (1 - 0.02) = 0.98 to get the total
+       + But in this case we need to check for contamination of the 4642 line.  We could look at the histogram of 4642/(4639+51+62), which ought to be constant at about 0.22/0.68 = 0.32
+       + Also with 4676 line we should maybe add in 4674 since it is probably blended.  So the expected ratio of (4674+4676)/(4639+51+62) is (0.08 + 0.02)/0.68 = 0.15
++ O II 4649/4591 is temperature sensitive
+  + 4591 comes from a different multiplet - M15 supposedly
+  + There is a graph in 
+
 * Final calibration of WFC3 filters
 ** Doing the combined calibration for FQ575N
 + This is the filter that we need most
