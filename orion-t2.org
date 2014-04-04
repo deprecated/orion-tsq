@@ -59,8 +59,22 @@ From the Manu spectra we can measure various useful ratios:
        + But in this case we need to check for contamination of the 4642 line.  We could look at the histogram of 4642/(4639+51+62), which ought to be constant at about 0.22/0.68 = 0.32
        + Also with 4676 line we should maybe add in 4674 since it is probably blended.  So the expected ratio of (4674+4676)/(4639+51+62) is (0.08 + 0.02)/0.68 = 0.15
 + O II 4649/4591 is temperature sensitive
-  + 4591 comes from a different multiplet - M15 supposedly
-  + There is a graph in 
+  + 4591 comes from a different multiplet - V15 supposedly
+    + Fang calls them
+      + M1 2p23p 4Do – 2p23s 4P λ4652
+      + M48a 4f G[5,4,3]o – 3d 4 F λ4089
+      + M15 has 4591 but we have no more details on it
+  + There is a graph in Fang 2013a Fig 21 upper.
+    + Note that it is a *log scale* of 4649/4591
+    + Typical value from our observations is log10(ratio) = 0.8 \pm 0.2, which implies log T = 3.65 \pm 0.25, which is (3000, 4500, 8000) K
+    + To get > 8000 K require log10(ratio) < 0.6, which means 4591 > 1/4 4649
+      + Very few of our positions have such strong 4591 lines
+      + Looking at the fits to 4591, it seems that many have failed
+      + Just taking ones that look like good fits, we get 4649/4591 ratios of 4.6, 10.3, 8.9, 9.9, 11.6 -> log(R) = 0.96 +/- 0.06, which means an even lower T
+      + However, in some of the better quality spectra (e.g., blue-0226-0196) there is slight evidence for an underlying absorption line.  This indicates that 4649 may be under-estimated
+  + In summary we are probebly on a hiding to nothing with this line.  Maybe we could order all the regions by 4363 ratio, split them into 4 parts and look at the average spectrum of each quartile to see if there is any variation in 4649/4591
+
+
 
 * Final calibration of WFC3 filters
 ** Doing the combined calibration for FQ575N
