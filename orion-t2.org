@@ -40,6 +40,13 @@ There are at least three sorts of shadows:
     + Although you can do it by doing =json.dumps= on the sub-objects to convert them to a string
   + It is also necessary to be careful with concurrent connections, although I think I have that just about sorted
     + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
+* Final push to finish this - April 2014
+We have a lot of material that needs to be drawn together
+** Applying the final calibrations of the WFC3 filters
++ For F658N/F547M, the original calibration seems to be right
++ For FQ575N/F547M, the best fit seems to be 
++ 
+** Redoing the spatial scale calculation
 * Recombination line temperatures and densities
 From the Manu spectra we can measure various useful ratios:
 + O II 4649/(4639+51+62) is density sensitive

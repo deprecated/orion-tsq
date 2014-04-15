@@ -89,9 +89,9 @@ def find_sweetspot_mask(x, y):
 def plot_ew_ratio(tabs, wav, f1, f2,
                   fixedcolor=None,
                   colorstrategy="average", simple=False, logscale=True,
-                  ymax=None, alpha=0.6):
+                  ymax=None, alpha=0.4):
     """Make a plot of Filter Ratio versus equivalent width"""
-    snscale = {"odh": 2.0, "manu": 0.03, "adal": 1.0, "ring": 1.5}
+    snscale = {"odh": 1.0, "manu": 0.03, "adal": 1.0, "ring": 1.1}
     plotcolor = {"odh": "c", "manu": "r", "adal": "g", "ring": "y"}
     zorder = {"odh": 100, "manu": 0, "adal": 10, "ring": 50}
     r0, q1, q2 = rqq(get_exact_wav(wav), wavf, filts[f1], filts[f2])
@@ -135,15 +135,20 @@ def plot_ew_ratio(tabs, wav, f1, f2,
         else:
             y0 = np.array([float(s[1:3]) for s in tab['Section']])
             d = np.hypot(tab['x0'], y0)
-        try:
-            mask = ~tab[f1].mask  
-        except AttributeError:
-            mask = np.ones_like(xo).astype(bool)
+
+        mask = np.ones_like(xo).astype(bool)
+        # for column in f1, f2, 'Sum(E/W)_1', 'Sum(E/W)_2':
+        for column in f1, f2, 'Sum(E/W)_1':
+            try:
+                mask = ~tab[column].mask & mask
+            except AttributeError:
+                pass
 
         if 'x' in tab.colnames:
             sm = find_sweetspot_mask(tab['x'], tab['y']) 
         else:
             sm = np.ones_like(tab[f1]).astype(bool)
+        sm = sm & mask
         # ax.errorbar(xo[sm], yo[sm], xerr=xe[sm], yerr=ye[sm], fmt=None, zorder=0, alpha=alpha)
         ax.scatter(xo[sm], yo[sm], c=plotcolor[dataset],
                           s=snscale[dataset]*snr[sm], alpha=alpha,
@@ -151,15 +156,16 @@ def plot_ew_ratio(tabs, wav, f1, f2,
         )
         
         if dataset == "ring":
-            xmax = xo[mask].max()*1.1
+            xmax = xo[sm].max()*1.1
+            print("Maximum", xo[sm].max(), yo[sm][xo[sm].argmax()])
         if dataset == "manu":
-            xmin = xo[mask].min()/1.1
+            xmin = xo[sm].min()/1.1
 
     x = np.linspace(xmin, xmax, 300)
     ax.plot(x, prelaunch_ratio(x, r0, q1, q2), label="Pre-launch calibration")
     ax.plot(x, prelaunch_ratio(x, 1.2*r0, q1, q2), label="1.2 x r0")
     ax.plot(x, prelaunch_ratio(x, r0, 1.2*q1, q2), label="1.2 x q1")
-    ax.plot(x, prelaunch_ratio(x, 1.2*r0, 1.2*q1, q2), label="1.2 x r0, 1.2 x q1")
+    ax.plot(x, prelaunch_ratio(x, 1.1*r0, 1.1*q1, q2), label="1.1 x r0, 1.1 x q1")
     # p = np.poly1d(np.polyfit(xo[mask], yo[mask], 1))
     # y0 = p(x)
     # ax.plot(x, y0, "r-", label="Linear fit")
