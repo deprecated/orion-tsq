@@ -90,7 +90,7 @@ for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
         section["aperture"] = int(metadata["id_ap"])
         section["band"] = band
         # Multiply by 1e15 as with the Helix to make the spectra of order unity for weak lines
-        section["mean"] = 1.e15*np.where(brightmask, spectrum_s, spectrum)/metadata["factor2"]
+        section["mean"] = 1.e15*np.where(brightmask, spectrum_s, spectrum)*metadata["factor2"]
         # We don't have a good estimate of the std of the data - so make something up!
         section["std"] = 0.01*np.ones_like(spectrum)
         # Fit continuum to the clean wav ranges
