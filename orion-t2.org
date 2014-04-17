@@ -116,8 +116,11 @@ We have a lot of material that needs to be drawn together
                                table_names=['s', 'w'])
 
 #+END_SRC
-
-This now produces images with the ODH slits and the Manu fibers
+***** Maps of the ODH slits and the Manu fibers compared with WFC3
++ This now includes inset graphs showing the slit profiles
++ Result is that *all* the slits need to be shifted in x, from 7 to 10 arcsec
++ Shifts in y are less clear, so we won't do those
++ [ ] Now we need to go back and re-run the odh programs, taking into account the shifts
 #+name: manu-map-comparison
 #+header: :var fn="FQ575N" :var band="red" :var maxmeds=4.0
 #+BEGIN_SRC python :noweb yes :results file 
@@ -149,7 +152,7 @@ This now produces images with the ODH slits and the Manu fibers
 
   axes[0].scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
   scat0 = axes[0].scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, alpha=0.6)
-  axes[0].set_title('Manu Spectra: ' + fn)
+  axes[0].set_title('Manu/ODH Spectra: ' + fn)
   fig.colorbar(scat0, ax=axes[0])
   flux = fulltab[fn + '_w'][m]
   fmax = maxmeds*np.median(flux)
@@ -161,13 +164,25 @@ This now produces images with the ODH slits and the Manu fibers
   axes[0].set_xlim(x.max(), x.min())
   axes[0].axis('equal')
 
-  # inset plot with the S30 profile
-  ax_inset = plt.axes([0.2, 0.1, 0.2, 0.2], axisbg='yellow')
-  mm = mm & (yy == -30.0)
-  ax_inset.plot(xx[mm],  odhtab[fn + '_s'][mm], '.')
-  ax_inset.plot(xx[mm],  odhtab[fn + '_w'][mm], '.')
-  ax_inset.tick_params(axis='both', which='major', labelsize='xx-small')
-  ax_inset.set_xlim(xx.max(), xx.min())
+  # inset plot with the S30, S60 profiles
+  for yslit, vport, xshift, yshift  in [[30.0, [0.2, 0.1, 0.2, 0.2], 10.0, -3.0],
+                                        [60.0, [0.7, 0.1, 0.2, 0.2], 8.0, 0.0],
+                                        [90.0, [0.4, 0.7, 0.2, 0.2], 7.0, 0.0]]:
+      ax_inset = plt.axes(vport, axisbg='yellow')
+      mms = mm & (yy == -yslit)
+      mf = m & (np.abs(y + yslit + yshift) <= 3.0) 
+      ax_inset.plot(xx[mms]+xshift,  odhtab[fn + '_s'][mms], '.-',
+                    label='spectra, xshift = {:.0f}'.format(xshift))
+      ax_inset.plot(xx[mms],  4*odhtab[fn + '_w'][mms], '.-', label='WFC3')
+      ax_inset.plot(x[mf],  fulltab[fn + '_s'][mf], '.', alpha=0.2,
+                    label='fibers, yshift = {:.0f}'.format(yshift))
+      ax_inset.plot(x[mf],  4*fulltab[fn + '_w'][mf], '.', alpha=0.2,
+                    label='WFC3, yshift = {:.0f}'.format(yshift))
+      ax_inset.tick_params(axis='both', which='major', labelsize='xx-small')
+      ax_inset.set_xlim(xx.max(), xx.min())
+      ax_inset.set_ylim(0.0, None)
+      ax_inset.set_title('S{:.0f} Profiles'.format(yslit), fontsize='x-small')
+      ax_inset.legend(fontsize=4)
   pltfile = 'manu-{}-{}-maps.pdf'.format(fn, band)
   fig.set_size_inches(12, 6)
   fig.tight_layout()
@@ -198,6 +213,11 @@ This now produces images with the ODH slits and the Manu fibers
 #+RESULTS:
 [[file:manu-F547M-red-maps.pdf]]
 
+#+call: manu-map-comparison(fn="F673N", band="red") :results file
+
+#+RESULTS:
+[[file:manu-F673N-red-maps.pdf]]
+
 #+call: manu-map-comparison(fn="F487N", band="green") :results file
 
 #+RESULTS:
@@ -209,6 +229,39 @@ This now produces images with the ODH slits and the Manu fibers
 [[file:manu-F487N-blue-maps.pdf]]
 
 Note that there are some blue fibers that are drop-outs in the F487N filter.  Presumably, this is what Manu warned me about concerning lines at the end of the ranges. 
+
+#+call: manu-map-comparison(fn="F469N", band="blue") :results file
+
+#+RESULTS:
+[[file:manu-F469N-blue-maps.pdf]]
+
+#+call: manu-map-comparison(fn="F469N", band="green") :results file
+
+#+RESULTS:
+[[file:manu-F469N-green-maps.pdf]]
+
+#+call: manu-map-comparison(fn="FQ437N", band="blue") :results file
+
+#+RESULTS:
+[[file:manu-FQ437N-blue-maps.pdf]]
+
+#+call: manu-map-comparison(fn="FQ436N", band="blue") :results file
+
+#+RESULTS:
+[[file:manu-FQ436N-blue-maps.pdf]]
+
+#+call: manu-map-comparison(fn="FQ672N", band="red") :results file
+
+#+RESULTS:
+[[file:manu-FQ672N-red-maps.pdf]]
+
+#+call: manu-map-comparison(fn="FQ674N", band="red") :results file
+
+#+RESULTS:
+[[file:manu-FQ674N-red-maps.pdf]]
+
+The [S II] lines show a strong peak in the S60 spectrum 
+
 
 #+NAME: manu-absolute
 #+HEADER: :var fn="FQ575N" :var band="red" :var maxmeds=4.0

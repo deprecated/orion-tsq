@@ -23,7 +23,8 @@ slit_center = {
 }
 slit_ids = sorted(list(slit_center))
 slit_width = 1.9                # arcsec
-# From Sec 2.1 of ODH 2010
+# From Sec 2.1 of ODH 2010 
+# (confirmed from http://www.ctio.noao.edu/noao/content/15mRC-Camera)
 pixel_size = 1.3               # arcsec 
 # (taking slit length of 330 pix = 3 x 143 arcsec - from Tab 2 of ODH2010)
 PA = -90                         # All slits are E-W
