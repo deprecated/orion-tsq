@@ -71,7 +71,7 @@ We have a lot of material that needs to be drawn together
 **** TODO Absolute fluxes from ODH spectra
 + This should be even easier
 + Although I had to go back to the FITS files to extract the spectra
-+ Fix the positions of the slits - I don't believe that they are all centered on RA of th1C
++ [X] Fix the positions of the slits - I don't believe that they are all centered on RA of th1C
   + These are the positions from the FITS headers
     | Slit |          RA |         Dec |
     |------+-------------+-------------|
@@ -80,6 +80,7 @@ We have a lot of material that needs to be drawn together
     | S90  | 05:35:16.11 | -05:24:34.0 |
   + So the Dec intervals are consistent with 30'' between each slit (+/- 1 '')
   + And the RA changes by 0.19s = 2.8'', so that is not as much as I had thought
+  + This is now done, based on what I found from plotting the profiles
 
 **** TODO Absolute fluxes from Ring spectra
 **** TODO Absolute fluxes from Adal spectra
@@ -88,104 +89,138 @@ We have a lot of material that needs to be drawn together
 + Results in [[file:manu-filter-fluxes.tab][file:~/Work/RubinWFC3/Tsquared/manu-filter-fluxes.tab]]
 + [X] Need to check that we haven't subtracted the continuum
 **** TODO Plot the results
+***** Common functionality
 #+name: read-manu-data
 #+BEGIN_SRC python
-  import numpy as np
-  from astropy.table import Table
-  import astropy.table
-  from matplotlib import pyplot as plt
-
-  def find_sweetspot_mask(x, y):
-      """Create a mask for Bob's so-called sweet spot"""
-      sweetmask = np.ones_like(x).astype(bool)
-      theta = np.radians(56.0)
-      s = -x*np.cos(theta) + y*np.sin(theta)
-      sweetmask[s > 10.0] = False
-      sweetmask[s < -70.0] = False
-      theta = np.radians(-34.0)
-      s = -x*np.cos(theta) + y*np.sin(theta)
-      sweetmask[s > 82.0] = False
-      sweetmask[s < 40.0] = False
-      return sweetmask
-
   spectab = Table.read('manu-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('manu_calibration_db.tab', format='ascii.tab',
-                       fill_values=('--', 0.0))
+                       fill_values=('nan', np.nan))
 
   fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section', 'x', 'y'],
                                table_names=['s', 'w'])
 
 #+END_SRC
+
+#+name: sweetspot-function
+#+BEGIN_SRC python :tangle sweetspot_utils.py
+  import numpy as np
+
+  def find_sweetspot_mask(fn, x, y):
+      """Create a mask for Bob's so-called sweet spot"""
+      sweetmask = np.ones_like(x).astype(bool)
+      if 'Q' in fn.upper():
+          # Common boundaries for all the quad filters
+          theta = np.radians(56.0)
+          s = -x*np.cos(theta) + y*np.sin(theta)
+          sweetmask[s > 10.0] = False
+          sweetmask[s < -70.0] = False
+          theta = np.radians(-34.0)
+          s = -x*np.cos(theta) + y*np.sin(theta)
+          sweetmask[s > 82.0] = False
+          sweetmask[s < 40.0] = False
+      if fn.upper() in ['FQ672N', 'FQ674N']:
+          # extra cut-off for [S II] filters
+           sweetmask[x > -30.0] = False
+      if fn.upper() in ['FQ575N', 'FQ436N']:
+          # extra cut-off for [N II] and [O III] filters
+          sweetmask[x < -75.0] = False
+
+      return sweetmask
+#+END_SRC
 ***** Maps of the ODH slits and the Manu fibers compared with WFC3
 + This now includes inset graphs showing the slit profiles
 + Result is that *all* the slits need to be shifted in x, from 7 to 10 arcsec
 + Shifts in y are less clear, so we won't do those
-+ [ ] Now we need to go back and re-run the odh programs, taking into account the shifts
++ [-] Now we need to go back and re-run the odh programs, taking into account the shifts
+  + Also increase the seeing width to 2.5 arcsec
 #+name: manu-map-comparison
 #+header: :var fn="FQ575N" :var band="red" :var maxmeds=4.0
 #+BEGIN_SRC python :noweb yes :results file 
-  <<read-manu-data>>
+  import numpy as np
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from sweetspot_utils import find_sweetspot_mask
+  from odh_common import slit_center, PA
+  import coord_utils
+
+  <<read-manu-data>>  
 
   spectab = Table.read('odh-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('odh-filter-wfc3-rates.tab', format='ascii.tab',
-                       fill_values=('--', 0.0))
+                       fill_values=('nan', np.nan))
   odhtab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
                                table_names=['s', 'w'])
 
 
-  fig, axes = plt.subplots(1, 2, sharex=True, sharey=True)
   x = fulltab['x']
   y = fulltab['y']
   m = np.array([sec[:-10] == band for sec in fulltab['Section']])
-  if 'Q' in fn:
-      m = m & find_sweetspot_mask(x, y) 
+  m = m & np.isfinite(x) & np.isfinite(y) 
+  m = m & np.isfinite(fulltab[fn + '_w']) & np.isfinite(fulltab[fn + '_s'])
+  m = m & find_sweetspot_mask(fn, x, y) 
   flux = fulltab[fn + '_s'][m]
   fmax = maxmeds*np.median(flux)
+  xmin, xmax = x[m].min(), x[m].max()
 
   # coordinates for ODH slits
-  xx = -odhtab['x0']
   yy = np.array([-float(s[1:3]) for s in odhtab['Section']])
-  mm = np.isfinite(xx) & np.isfinite(yy)
-  if 'Q' in fn:
-      mm = mm & find_sweetspot_mask(xx, yy) 
+  xx = np.empty_like(yy)
+  for slitid, yslit in [['S30', -30.0], ['S60', -60.0], ['S90', -90.0]]:
+      # Fill in RA offsets from th1C for each slit in turn.  We cannot
+      # just use the 'x0' column unchanged, since it is measured from
+      # the center of the slit, which now varies
+      mms = (yy == yslit)
+      xx[mms], _ = coord_utils.radec_offsets_from_slitx(odhtab['x0'][mms], slit_center[slitid], PA=PA)
+  mm = np.isfinite(yy) & find_sweetspot_mask(fn, xx, yy) 
   odh_flux = odhtab[fn + '_s'][mm]
 
-  axes[0].scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
-  scat0 = axes[0].scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, alpha=0.6)
-  axes[0].set_title('Manu/ODH Spectra: ' + fn)
-  fig.colorbar(scat0, ax=axes[0])
+  fig = plt.figure(figsize=(15,5))
+  ax_spec = plt.axes([0.06, 0.1, 0.3, 0.85])
+  ax_wfc3 = plt.axes([0.36, 0.1, 0.3, 0.85], sharex=ax_spec, sharey=ax_spec)
+  ax_cb = plt.axes([0.66, 0.1, 0.03, 0.85])
+
+  ax_spec.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
+  scat0 = ax_spec.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6)
+  ax_spec.set_title('Manu/ODH Spectra: ' + fn)
+  # fig.colorbar(scat0, ax=ax_spec)
   flux = fulltab[fn + '_w'][m]
   fmax = maxmeds*np.median(flux)
   odh_flux = odhtab[fn + '_w'][mm]
-  scat1 = axes[1].scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
-  axes[1].scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, alpha=0.6)
-  axes[1].set_title('WFC3 Images: ' + fn)
-  fig.colorbar(scat1, ax=axes[1])
-  axes[0].set_xlim(x.max(), x.min())
-  axes[0].axis('equal')
+  scat1 = ax_wfc3.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
+  ax_wfc3.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6)
+  ax_wfc3.set_title('WFC3 Images: ' + fn)
+  plt.setp(ax_wfc3.get_yticklabels(), visible=False)
+  cb = fig.colorbar(scat1, cax=ax_cb)
+  cb.set_label('WFC3 count rate, ADU/s/pixel')
+  ax_spec.set_xlabel('RA offset from th1, arcsec', fontsize='small')
+  ax_spec.set_ylabel('DEC offset from th1C, arcsec', fontsize='small')
+  ax_spec.grid()
+  ax_wfc3.grid()
 
-  # inset plot with the S30, S60 profiles
-  for yslit, vport, xshift, yshift  in [[30.0, [0.2, 0.1, 0.2, 0.2], 10.0, -3.0],
-                                        [60.0, [0.7, 0.1, 0.2, 0.2], 8.0, 0.0],
-                                        [90.0, [0.4, 0.7, 0.2, 0.2], 7.0, 0.0]]:
-      ax_inset = plt.axes(vport, axisbg='yellow')
+  # inset plots with the S30, S60, S90 profiles
+  for yslit, vport in [[30.0, [0.79, 0.7, 0.2, 0.25]],
+                       [60.0, [0.79, 0.375, 0.2, 0.25]],
+                       [90.0, [0.79, 0.05, 0.2, 0.25]]]:
+      ax_inset = plt.axes(vport, sharex=ax_spec)
       mms = mm & (yy == -yslit)
-      mf = m & (np.abs(y + yslit + yshift) <= 3.0) 
-      ax_inset.plot(xx[mms]+xshift,  odhtab[fn + '_s'][mms], '.-',
-                    label='spectra, xshift = {:.0f}'.format(xshift))
+      mf = m & (np.abs(y + yslit) <= 3.0) 
+      ax_inset.plot(xx[mms],  odhtab[fn + '_s'][mms], '.-', label='spectra')
       ax_inset.plot(xx[mms],  4*odhtab[fn + '_w'][mms], '.-', label='WFC3')
-      ax_inset.plot(x[mf],  fulltab[fn + '_s'][mf], '.', alpha=0.2,
-                    label='fibers, yshift = {:.0f}'.format(yshift))
-      ax_inset.plot(x[mf],  4*fulltab[fn + '_w'][mf], '.', alpha=0.2,
-                    label='WFC3, yshift = {:.0f}'.format(yshift))
+      ax_inset.plot(x[mf],  fulltab[fn + '_s'][mf], '.', alpha=0.2, label='fibers')
+      ax_inset.plot(x[mf],  4*fulltab[fn + '_w'][mf], '.', alpha=0.2, label='WFC3 @ fibers')
       ax_inset.tick_params(axis='both', which='major', labelsize='xx-small')
-      ax_inset.set_xlim(xx.max(), xx.min())
-      ax_inset.set_ylim(0.0, None)
+      ax_inset.set_ylim(0.0, maxmeds*np.median(odhtab[fn + '_s'][mms]))
+      ax_inset.grid()
       ax_inset.set_title('S{:.0f} Profiles'.format(yslit), fontsize='x-small')
       ax_inset.legend(fontsize=4)
+
+  ax_spec.set_xlim(-10.0, -100.0)
+  ax_spec.set_aspect('equal', adjustable='box-forced')
+  ax_wfc3.set_aspect('equal', adjustable='box-forced')
+  # ax_spec.axis('equal')
   pltfile = 'manu-{}-{}-maps.pdf'.format(fn, band)
-  fig.set_size_inches(12, 6)
-  fig.tight_layout()
+  # fig.tight_layout()
   fig.savefig(pltfile)
   return pltfile
 #+END_SRC
@@ -203,7 +238,7 @@ We have a lot of material that needs to be drawn together
 #+RESULTS:
 [[file:manu-F658N-red-maps.pdf]]
 
-#+call: manu-map-comparison(fn="F547M", band="green") :results file
+#+call: manu-map-comparison(fn="F547M", band="green", maxmeds=2.0) :results file
 
 #+RESULTS:
 [[file:manu-F547M-green-maps.pdf]]
@@ -213,7 +248,7 @@ We have a lot of material that needs to be drawn together
 #+RESULTS:
 [[file:manu-F547M-red-maps.pdf]]
 
-#+call: manu-map-comparison(fn="F673N", band="red") :results file
+#+call: manu-map-comparison(fn="F673N", band="red", maxmeds=2.5) :results file
 
 #+RESULTS:
 [[file:manu-F673N-red-maps.pdf]]
@@ -240,32 +275,37 @@ Note that there are some blue fibers that are drop-outs in the F487N filter.  Pr
 #+RESULTS:
 [[file:manu-F469N-green-maps.pdf]]
 
-#+call: manu-map-comparison(fn="FQ437N", band="blue") :results file
+#+call: manu-map-comparison(fn="FQ437N", band="blue", maxmeds=2.0) :results file
 
 #+RESULTS:
 [[file:manu-FQ437N-blue-maps.pdf]]
 
-#+call: manu-map-comparison(fn="FQ436N", band="blue") :results file
+#+call: manu-map-comparison(fn="FQ436N", band="blue", maxmeds=2.0) :results file
 
 #+RESULTS:
 [[file:manu-FQ436N-blue-maps.pdf]]
 
-#+call: manu-map-comparison(fn="FQ672N", band="red") :results file
+#+call: manu-map-comparison(fn="FQ672N", band="red", maxmeds=2.0) :results file
 
 #+RESULTS:
 [[file:manu-FQ672N-red-maps.pdf]]
 
-#+call: manu-map-comparison(fn="FQ674N", band="red") :results file
+#+call: manu-map-comparison(fn="FQ674N", band="red", maxmeds=2.0) :results file
 
 #+RESULTS:
 [[file:manu-FQ674N-red-maps.pdf]]
 
-The [S II] lines show a strong peak in the S60 spectrum 
-
-
+The [S II] lines show a strong peak in the S60 spectrum
+***** Results for the Manu spectra
 #+NAME: manu-absolute
 #+HEADER: :var fn="FQ575N" :var band="red" :var maxmeds=4.0
 #+BEGIN_SRC python :results file :noweb yes
+  import numpy as np
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from sweetspot_utils import find_sweetspot_mask
+
   <<read-manu-data>>
 
   x = fulltab[fn + '_s']
@@ -273,7 +313,7 @@ The [S II] lines show a strong peak in the S60 spectrum
   d = np.hypot(fulltab['x'], fulltab['y'])
   m = np.array([sec[:-10] == band for sec in fulltab['Section']])
   m = m & np.isfinite(x) & np.isfinite(y)
-  m = m & find_sweetspot_mask(fulltab['x'], fulltab['y']) 
+  m = m & find_sweetspot_mask(fn, fulltab['x'], fulltab['y']) 
 
   x = x[m]
   y = y[m]
@@ -281,6 +321,7 @@ The [S II] lines show a strong peak in the S60 spectrum
 
   gradient = y.sum()/x.sum()
   plt.scatter(x, y, c=d, alpha=0.6)
+  plt.colorbar()
   plt.plot([0.0, x.max()], [0.0, gradient*x.max()], '-',
            label="gradient: {:.2f}".format(gradient))
   plt.xlim(0.0, maxmeds*np.median(x))
@@ -289,6 +330,7 @@ The [S II] lines show a strong peak in the S60 spectrum
   plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
   plt.title(fn)
   plt.legend()
+  plt.tight_layout()
   pltfile = 'manu-{}-{}-absolute.pdf'.format(fn, band)
   plt.savefig(pltfile)
   return pltfile
@@ -373,28 +415,32 @@ The [S II] lines show a strong peak in the S60 spectrum
 ***** Results for ODH spectra
 
 #+name: odh-absolute
-#+BEGIN_SRC python :results file :var fn="F547M"
+#+BEGIN_SRC python :noweb yes :results file :var fn="F547M"
   import numpy as np
   from astropy.table import Table
   import astropy.table
   from matplotlib import pyplot as plt
+  from sweetspot_utils import find_sweetspot_mask
 
   spectab = Table.read('odh-filter-predicted-rates.tab', format='ascii.tab')
-  wfc3tab = Table.read('odh_calibration_db.tab', format='ascii.tab',
+  wfc3tab = Table.read('odh-filter-wfc3-rates.tab', format='ascii.tab',
                        fill_values=('--', 0.0))
 
   fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
                                table_names=['s', 'w'])
 
-  y0 = np.array([float(s[1:3]) for s in fulltab['Section']])
-  d = np.hypot(fulltab['x0'], y0)
+  dec = -np.array([float(s[1:3]) for s in fulltab['Section']])
+  ra = -fulltab['x0']
+  d = np.hypot(ra, dec)
 
   x = fulltab[fn + '_s']
   y = fulltab[fn + '_w']
   m = np.isfinite(x) & np.isfinite(y)
+  m = m & find_sweetspot_mask(fn, ra, dec) 
 
   gradient = y[m].sum()/x[m].sum()
-  plt.scatter(x, y, c=d, alpha=0.7)
+  plt.scatter(x[m], y[m], c=ra[m], s=3000.0/np.abs(dec[m]), vmin=-120.0, vmax=0.0, alpha=0.6)
+  plt.colorbar()
   plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
            label="gradient: {:.2f}".format(gradient))
   plt.xlabel("ODH spectra predicted count rate per pixel / s$^{-1}$")
@@ -403,6 +449,7 @@ The [S II] lines show a strong peak in the S60 spectrum
   plt.xlim(0.0, None)
   plt.ylim(0.0, None)
   plt.legend()
+  plt.tight_layout()
   pltfile = 'odh-{}-absolute.pdf'.format(fn)
   plt.savefig(pltfile)
   return pltfile

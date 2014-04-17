@@ -5,6 +5,7 @@ import json
 import coord_utils
 import scipy.ndimage as ni
 from astropy.table import Table, join
+from odh_common import slit_center, slit_width, pixel_size, PA
 
 wfc3_pix = 0.04                 # arcsec
 # Seeing/focus was determined by fitting Gaussians to the star profiles
@@ -14,19 +15,8 @@ sig_factor = 1.0/(2.0*np.sqrt(2.0*np.log(2.0)))
 
 datadir = "."
 
-# Central coordinates were taken from ODH paper
-# Except S90 is adjusted to have same RA as the others
-slit_center = {
-    "S30": "5:35:16.5 -5:23:53",
-    "S60": "5:35:16.5 -5:24:23",
-    "S90": "5:35:16.5 -5:24:53",
-}
 slit_ids = sorted(list(slit_center))
-slit_width = 1.9                # arcsec
-# From Sec 2.1 of ODH 2010
-pixel_size = 1.3               # arcsec 
-# (taking slit length of 330 pix = 3 x 143 arcsec - from Tab 2 of ODH2010)
-PA = -90                         # All slits are E-W
+
 # Center of slit in zero-based pixel units
 ny = 330
 j0 = 0.5*(ny - 1)
