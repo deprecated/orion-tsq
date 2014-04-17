@@ -18,6 +18,14 @@ bands = ["red", "green", "blue"]
 wavcache = {}
 Tcache = {"red": {}, "green": {}, "blue": {}}
 
+WFC3_CONSTANT = 0.29462         # counts cm^2 sr / erg / Ang / pixel
+FIBER_AREA_SQARCSEC = np.pi * (2.69/2.0)**2  # square arcseconds
+ARCSEC_RADIAN = 180.0*3600.0/np.pi 
+FIBER_AREA_SR = FIBER_AREA_SQARCSEC / ARCSEC_RADIAN**2
+# The line fluxes were in units of erg/s/cm2/AA/fiber, 
+# but have already been multiplied by 1e15 
+FACTOR = 1.e-15*WFC3_CONSTANT/FIBER_AREA_SR
+
 def main():
     """Construct a table of per-filter fluxes from the Manu spectra. 
 
@@ -40,9 +48,11 @@ Uses the data written by manu-photom-select"""
             if not fn in Tcache[band]:
                 Tcache[band][fn] = wfc3_utils.get_interpolated_filter(fn,
                                                                       wavcache[band])
-            table_row[fn] =  np.trapz(Tcache[band][fn]*spectrum, wavcache[band])
+            # Integrate lambda I_lambda T_lambda 
+            integrand = Tcache[band][fn]*spectrum*wavcache[band]
+            table_row[fn] = FACTOR*np.trapz(integrand, wavcache[band])
         tab.add_row(table_row)
-    tab.write('manu-filter-fluxes.tab', format='ascii.tab')
+    tab.write('manu-filter-predicted-rates.tab', format='ascii.tab')
 
 
         

@@ -3,19 +3,28 @@ import wfc3_utils
 import numpy as np
 from astropy.table import Table
 from astropy.io import fits
+import json
 
 fns = ["F469N", "F673N", "F487N", "F502N", 
        "FQ436N", "FQ437N", "F547M", "FQ575N", "F645N",
        "F656N", "F658N", "FQ672N", "FQ674N"]
 
 col_names = ["Section"] + fns
-col_dtypes = ["<U6"] + [float]*len(fns)
+col_dtypes = ["<U8"] + [float]*len(fns)
 
 bands = ["red", "green", "blue"]
 wavcache = {}
 Tcache = {"red": {}, "green": {}, "blue": {}}
 
-def main():
+WFC3_CONSTANT = 0.29462         # counts cm^2 sr / erg / Ang / WFC3 pixel
+SLIT_WIDTH = 1.9                # arcsec
+PIXEL_SIZE = 1.3                # arcsec
+ARCSEC_RADIAN = 180.0*3600.0/np.pi 
+# The line fluxes were in units of erg/s/cm2/AA/pixel, 
+FACTOR = WFC3_CONSTANT*ARCSEC_RADIAN**2/(SLIT_WIDTH*PIXEL_SIZE)
+
+
+def main(seclength=2):
     """Construct a table of per-filter fluxes from the ODH spectra. 
 
 We need to repeat some portion of what was in odh-photom.py"""
@@ -27,10 +36,7 @@ We need to repeat some portion of what was in odh-photom.py"""
     }
     Offsets = list(hdu.keys())
 
-    # Multiply by 1e15 as with the Helix to make the spectra of order
-    # unity for weak lines
-    for offset in Offsets:
-        hdu[offset].data *= 1.e15
+    # Do not multiply by 1e15 this time
 
     # Set up wavelength coordinates - Angstrom
     nx, wav0, i0, dwav = [hdu[60].header[k] for k in 
@@ -50,15 +56,19 @@ We need to repeat some portion of what was in odh-photom.py"""
 
     # Set up slit sections
     # Much simpler than the for the Ring Nebula - just use integer blocks
-    seclength = 10 # in pixels
     sections = {}
     nsections = ny//seclength
     for offset in Offsets:
         for n in range(nsections):
-            key = "S{}-{:02d}".format(offset, n)
+            key = "S{}-{:03d}".format(offset, n)
             sections[key] = {"Offset": offset,
                              "j1": n*seclength,
                              "j2": (n+1)*seclength}
+
+    # Save these slit sections, which might be different from the ones
+    # used in the line fitting
+    with open('odh-fold-sections.json', 'w') as f:
+        json.dump(sections, f)
 
     for label, section in sections.items():
         table_row = {"Section": label}
@@ -67,9 +77,10 @@ We need to repeat some portion of what was in odh-photom.py"""
         j2 = section["j2"]
         spectrum = hdu[offset].data[j1:j2, :].mean(axis=0)
         for fn in fns:
-            table_row[fn] =  np.trapz(Tfilters[fn]*spectrum, wavs)
+            integrand = Tfilters[fn]*spectrum*wavs
+            table_row[fn] =  FACTOR*np.trapz(integrand, wavs)
         tab.add_row(table_row)
-    tab.write('odh-filter-fluxes.tab', format='ascii.tab')
+    tab.write('odh-filter-predicted-rates.tab', format='ascii.tab')
 
 
         

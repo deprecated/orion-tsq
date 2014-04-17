@@ -46,20 +46,47 @@ We have a lot of material that needs to be drawn together
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [0/5] Absolute calibration of the filters
+*** TODO [0/6] Absolute calibration of the filters
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
 + So we actually don't need any of the line fitting at all
+**** TODO [0/0] Getting the normalizations right
++ From the WFC3 images we have counts/s/pixel (I think)
+  + In the XXX-calibration.py programs we take the average value in the spectrograph aperture, so the units are not changed
++ From the spectroscopy we ought to have erg/s/cm^{2}/sr/\AA
+  + But we don't
+    + Manu has just erg/s/cm^{2}/\AA, which is /presumably/ implicitly per fiber
+      + Fiber area is pi (2.69/2.0)**2 = 5.6832 square arcsec
+    + Bob has ....
+    + Adal has ....
+
+
+  + Which I then multiply by 1e15
++ So in XXX-fold-filters.py I calculate \int \lambda I_{\lambda} T_{\lambda} d\lambda
+  + which now has units erg \cdot \AA / s / cm^{2} / sr
++ The C_{WFC3} constant is in units count \cdot cm^{2} \cdot sr / erg / \AA
++ So I just have to take C_{WFC3} \int \lambda I_{\lambda} T_{\lambda} d\lambda to get to count/s
+
 **** TODO Absolute fluxes from ODH spectra
 + This should be even easier
 + Although I had to go back to the FITS files to extract the spectra
++ Fix the positions of the slits - I don't believe that they are all centered on RA of th1C
+  + These are the positions from the FITS headers
+    | Slit |          RA |         Dec |
+    |------+-------------+-------------|
+    | S30  | 05:35:16.26 | -05:23:33.3 |
+    | S60  | 05:35:16.07 | -05:24:03.2 |
+    | S90  | 05:35:16.11 | -05:24:34.0 |
+  + So the Dec intervals are consistent with 30'' between each slit (+/- 1 '')
+  + And the RA changes by 0.19s = 2.8'', so that is not as much as I had thought
+
 **** TODO Absolute fluxes from Ring spectra
 **** TODO Absolute fluxes from Adal spectra
 **** TODO Absolute fluxes from Manu spectra
 + Calculated by [[file:manu-fold-filters.py][file:~/Work/RubinWFC3/Tsquared/manu-fold-filters.py]]
 + Results in [[file:manu-filter-fluxes.tab][file:~/Work/RubinWFC3/Tsquared/manu-filter-fluxes.tab]]
-+ [ ] Need to check that we haven't subtracted the continuum
++ [X] Need to check that we haven't subtracted the continuum
 **** TODO Plot the results
 #+name: read-manu-data
 #+BEGIN_SRC python
@@ -81,7 +108,7 @@ We have a lot of material that needs to be drawn together
       sweetmask[s < 40.0] = False
       return sweetmask
 
-  spectab = Table.read('manu-filter-fluxes.tab', format='ascii.tab')
+  spectab = Table.read('manu-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('manu_calibration_db.tab', format='ascii.tab',
                        fill_values=('--', 0.0))
 
@@ -90,25 +117,57 @@ We have a lot of material that needs to be drawn together
 
 #+END_SRC
 
-
+This now produces images with the ODH slits and the Manu fibers
 #+name: manu-map-comparison
-#+BEGIN_SRC python :noweb yes :results file :var fn="FQ575N" :var band="red"
+#+header: :var fn="FQ575N" :var band="red" :var maxmeds=4.0
+#+BEGIN_SRC python :noweb yes :results file 
   <<read-manu-data>>
+
+  spectab = Table.read('odh-filter-predicted-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read('odh-filter-wfc3-rates.tab', format='ascii.tab',
+                       fill_values=('--', 0.0))
+  odhtab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
+                               table_names=['s', 'w'])
+
 
   fig, axes = plt.subplots(1, 2, sharex=True, sharey=True)
   x = fulltab['x']
   y = fulltab['y']
   m = np.array([sec[:-10] == band for sec in fulltab['Section']])
+  if 'Q' in fn:
+      m = m & find_sweetspot_mask(x, y) 
   flux = fulltab[fn + '_s'][m]
-  fmax = 2.0*np.median(flux)
-  axes[0].scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, alpha=0.6)
+  fmax = maxmeds*np.median(flux)
+
+  # coordinates for ODH slits
+  xx = -odhtab['x0']
+  yy = np.array([-float(s[1:3]) for s in odhtab['Section']])
+  mm = np.isfinite(xx) & np.isfinite(yy)
+  if 'Q' in fn:
+      mm = mm & find_sweetspot_mask(xx, yy) 
+  odh_flux = odhtab[fn + '_s'][mm]
+
+  axes[0].scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
+  scat0 = axes[0].scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, alpha=0.6)
   axes[0].set_title('Manu Spectra: ' + fn)
+  fig.colorbar(scat0, ax=axes[0])
   flux = fulltab[fn + '_w'][m]
-  fmax = 2.0*np.median(flux)
+  fmax = maxmeds*np.median(flux)
+  odh_flux = odhtab[fn + '_w'][mm]
+  scat1 = axes[1].scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
   axes[1].scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, alpha=0.6)
   axes[1].set_title('WFC3 Images: ' + fn)
+  fig.colorbar(scat1, ax=axes[1])
   axes[0].set_xlim(x.max(), x.min())
   axes[0].axis('equal')
+
+  # inset plot with the S30 profile
+  ax_inset = plt.axes([0.2, 0.1, 0.2, 0.2], axisbg='yellow')
+  mm = mm & (yy == -30.0)
+  ax_inset.plot(xx[mm],  odhtab[fn + '_s'][mm], '.')
+  ax_inset.plot(xx[mm],  odhtab[fn + '_w'][mm], '.')
+  ax_inset.tick_params(axis='both', which='major', labelsize='xx-small')
+  ax_inset.set_xlim(xx.max(), xx.min())
   pltfile = 'manu-{}-{}-maps.pdf'.format(fn, band)
   fig.set_size_inches(12, 6)
   fig.tight_layout()
@@ -119,7 +178,7 @@ We have a lot of material that needs to be drawn together
 #+RESULTS: manu-map-comparison
 [[file:manu-FQ575N-red-maps.pdf]]
 
-#+call: manu-map-comparison(fn="F502N", band="green") :results file
+#+call: manu-map-comparison(fn="F502N", band="green", maxmeds=2.0) :results file
 
 #+RESULTS:
 [[file:manu-F502N-green-maps.pdf]]
@@ -170,11 +229,12 @@ Note that there are some blue fibers that are drop-outs in the F487N filter.  Pr
   gradient = y.sum()/x.sum()
   plt.scatter(x, y, c=d, alpha=0.6)
   plt.plot([0.0, x.max()], [0.0, gradient*x.max()], '-',
-           label="gradient: {:.2e}".format(gradient))
+           label="gradient: {:.2f}".format(gradient))
   plt.xlim(0.0, maxmeds*np.median(x))
   plt.ylim(0.0, maxmeds*np.median(y))
-  plt.xlabel("Manu spectra filter flux")
-  plt.ylabel("WFC3 image filter flux")
+  plt.xlabel("Manu spectra predicted count rate per pixel / s$^{-1}$")
+  plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  plt.title(fn)
   plt.legend()
   pltfile = 'manu-{}-{}-absolute.pdf'.format(fn, band)
   plt.savefig(pltfile)
@@ -266,7 +326,7 @@ Note that there are some blue fibers that are drop-outs in the F487N filter.  Pr
   import astropy.table
   from matplotlib import pyplot as plt
 
-  spectab = Table.read('odh-filter-fluxes.tab', format='ascii.tab')
+  spectab = Table.read('odh-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('odh_calibration_db.tab', format='ascii.tab',
                        fill_values=('--', 0.0))
 
@@ -283,9 +343,10 @@ Note that there are some blue fibers that are drop-outs in the F487N filter.  Pr
   gradient = y[m].sum()/x[m].sum()
   plt.scatter(x, y, c=d, alpha=0.7)
   plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
-           label="gradient: {:.2e}".format(gradient))
-  plt.xlabel("ODH spectra filter flux")
-  plt.ylabel("WFC3 image filter flux")
+           label="gradient: {:.2f}".format(gradient))
+  plt.xlabel("ODH spectra predicted count rate per pixel / s$^{-1}$")
+  plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  plt.title(fn)
   plt.xlim(0.0, None)
   plt.ylim(0.0, None)
   plt.legend()
