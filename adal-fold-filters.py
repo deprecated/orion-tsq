@@ -5,18 +5,20 @@ from astropy.table import Table
 from astropy.io import fits
 import json
 import adal_common
+from coord_utils import radec_offsets_from_slitx
 
 fns = ["F469N", "F673N", "F487N", "F502N", 
        "FQ436N", "FQ437N", "F547M", "FQ575N", "F645N",
        "F656N", "F658N", "FQ672N", "FQ674N"]
 
-col_names = ["Section"] + fns
+col_names = ["Section", "x0", "dRA", "dDEC"] + fns
 # I hate fixed-width strings!  A constant source of bugs.  I give a
 # few extra chars in the first column here to allow for future growth
-col_dtypes = ["<U15"] + [float]*len(fns)
+col_dtypes = ["<U15"] + [float, float, float] + [float]*len(fns)
 # Avoid excessive precision in floats in the output table - 4 sig figs
 # is plenty
 col_fmts = {fn: '%.4g' for fn in fns}
+col_fmts.update({k: '%.2f' for k in ['x0', 'dRA', 'dDEC']})
 
 bands = ["red", "blue"]
 slits = [5, 6]
@@ -67,12 +69,14 @@ def main():
             x0 = 0.0
             dx = PIXEL_SIZE
             xslit = x0 + (np.arange(ny) - j0)*dx
-
+            dRA, dDEC = radec_offsets_from_slitx(xslit,
+                                                 center=adal_common.slit_center[islit],
+                                                 PA=adal_common.slit_PA[islit])
             for j in range(ny):
                 key = "S{:01d}-{:s}-{:03d}".format(islit, band, j)
                 sections[key] = {"Slit": islit, "band": band, "j": j, "x": xslit[j]}
-
-                table_row = {"Section": key}
+                table_row = {"Section": key, "x0": xslit[j],
+                             "dRA": dRA[j], "dDEC": dDEC[j]}
                 spectrum = hdu[(band, islit)].data[j, :]
                 for fn in fns:
                     integrand = Tfilters[fn]*spectrum*wavs
