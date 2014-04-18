@@ -46,7 +46,7 @@ We have a lot of material that needs to be drawn together
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [0/6] Absolute calibration of the filters
+*** TODO [2/6] Absolute calibration of the filters
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
@@ -58,17 +58,16 @@ We have a lot of material that needs to be drawn together
   + But we don't
     + Manu has just erg/s/cm^{2}/\AA, which is /presumably/ implicitly per fiber
       + Fiber area is pi (2.69/2.0)**2 = 5.6832 square arcsec
-    + Bob has ....
+    + Bob has erg/s/cm^{2}/\AA, which I am assuming is per pixel: slit width = 1.9 arcsec, pixel_size = 1.3 \arcsec
     + Adal has ....
-
-
   + Which I then multiply by 1e15
 + So in XXX-fold-filters.py I calculate \int \lambda I_{\lambda} T_{\lambda} d\lambda
   + which now has units erg \cdot \AA / s / cm^{2} / sr
 + The C_{WFC3} constant is in units count \cdot cm^{2} \cdot sr / erg / \AA
 + So I just have to take C_{WFC3} \int \lambda I_{\lambda} T_{\lambda} d\lambda to get to count/s
 
-**** TODO Absolute fluxes from ODH spectra
+**** DONE Absolute fluxes from ODH spectra
+CLOSED: [2014-04-18 Fri 00:30]
 + This should be even easier
 + Although I had to go back to the FITS files to extract the spectra
 + [X] Fix the positions of the slits - I don't believe that they are all centered on RA of th1C
@@ -81,10 +80,29 @@ We have a lot of material that needs to be drawn together
   + So the Dec intervals are consistent with 30'' between each slit (+/- 1 '')
   + And the RA changes by 0.19s = 2.8'', so that is not as much as I had thought
   + This is now done, based on what I found from plotting the profiles
-
++ Workflow:
+  + [[file:odh-fold-filters.py]]
+    + Reads the spectra from the original FITS files and fold with each of the filter transmission profiles.
+    + We do this in sections of length 2 pixels, which is smaller than what I had used for the line fitting.  But the s/n is still acceptable, and it is much better to have more points - it made the spatial alignment easier to do
+    + Normalise to counts/s/WFC3 pixel
+      + /Supposedly/, although we get values that are too large by a factor of about 4 to 5
+    + Writes a table [[file:odh-filter-predicted-rates.tab]] with a column for each filter
+  + [[file:odh-calib-fold.py]]
+    + This is a new version of [[file:odh-calibration.py]] that uses the new smaller slit sections.
+    + It reads in the WFC3 images and convolves them with a gaussian to simulate seeing of 2.5 arcsec FWHM
+    + Then it extracts the average count rate per pixel in the aperture corresponding to each section of the spectrograph slit
+    + Writes a table [[file:odh-filter-wfc3-rates.tab]] with a column for each filter, and also a column with the offset =x0= along the slit from the slit center.
+      + The slit center positions are specified in [[file:odh_common.py]].  I had to move them a bit in RA from the nominal positions (centered on RA of th1C). 
 **** TODO Absolute fluxes from Ring spectra
 **** TODO Absolute fluxes from Adal spectra
-**** TODO Absolute fluxes from Manu spectra
++ This should not be too difficult since we already did it once in the [[file:Adal%20spectra.ipynb][ipython notebook]]
++ Follow similar pattern as for ODH dataset:
+  + [[file:adal-fold-filters.py]]
+    + Use each pixel along the slit as a section
+  + [[file:adal-calib-fold.py]]
+
+**** DONE Absolute fluxes from Manu spectra
+CLOSED: [2014-04-18 Fri 00:29]
 + Calculated by [[file:manu-fold-filters.py][file:~/Work/RubinWFC3/Tsquared/manu-fold-filters.py]]
 + Results in [[file:manu-filter-fluxes.tab][file:~/Work/RubinWFC3/Tsquared/manu-filter-fluxes.tab]]
 + [X] Need to check that we haven't subtracted the continuum
@@ -127,11 +145,13 @@ We have a lot of material that needs to be drawn together
 
       return sweetmask
 #+END_SRC
+
+
 ***** Maps of the ODH slits and the Manu fibers compared with WFC3
 + This now includes inset graphs showing the slit profiles
 + Result is that *all* the slits need to be shifted in x, from 7 to 10 arcsec
 + Shifts in y are less clear, so we won't do those
-+ [-] Now we need to go back and re-run the odh programs, taking into account the shifts
++ [X] Now we need to go back and re-run the odh programs, taking into account the shifts
   + Also increase the seeing width to 2.5 arcsec
 #+name: manu-map-comparison
 #+header: :var fn="FQ575N" :var band="red" :var maxmeds=3.0
@@ -415,9 +435,64 @@ The [S II] lines show a strong peak in the S60 spectrum
 
 #+RESULTS:
 [[file:manu-F469N-green-absolute.pdf]]
+***** Results for the Adal spectra
 
+
+#+name: adal-absolute
+#+BEGIN_SRC python :noweb yes :results file :var fn="F656N" band="red"
+  import numpy as np
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from sweetspot_utils import find_sweetspot_mask
+
+  spectab = Table.read('adal-filter-predicted-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read('adal-filter-wfc3-rates.tab', format='ascii.tab',
+                       fill_values=('nan', np.nan))
+
+  fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
+                               table_names=['s', 'w'])
+
+  slitx = fulltab['x0']
+  islit = np.array([int(s[1]) for s in fulltab['Section']])
+
+  x = fulltab[fn + '_s']
+  y = fulltab[fn + '_w']
+  m = np.isfinite(x) & np.isfinite(y)
+  #  m = m & find_sweetspot_mask(fn, ra, dec) 
+  m = m & np.array([band in s for s in fulltab['Section']])
+  gradient = y[m].sum()/x[m].sum()
+  plt.scatter(x[m], y[m], c=slitx[m], s=100.0/(islit[m]-4), alpha=0.6)
+  plt.colorbar()
+  plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
+           label="gradient: {:.2f}".format(gradient))
+  plt.xlabel("Adal spectra predicted count rate per pixel / s$^{-1}$")
+  plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  plt.title(fn)
+  plt.xlim(0.0, None)
+  plt.ylim(0.0, None)
+  plt.legend()
+  plt.tight_layout()
+  pltfile = 'adal-{}-absolute.pdf'.format(fn)
+  plt.savefig(pltfile)
+  return pltfile
+#+END_SRC
+
+#+RESULTS: adal-absolute
+[[file:adal-F656N-absolute.pdf]]
+
+
+#+call: adal-absolute("F502N", "blue") :results file 
+#+results:
+[[file:adal-F502N-absolute.pdf]]
+
+#+call: adal-absolute("FQ575N", "red") :results file 
+
+#+RESULTS:
+[[file:adal-FQ575N-absolute.pdf]]
 
 ***** Results for ODH spectra
+
 
 #+name: odh-absolute
 #+BEGIN_SRC python :noweb yes :results file :var fn="F547M"
@@ -462,7 +537,7 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+END_SRC
 
 #+RESULTS: odh-absolute
-[[file:odh-F547M-absolute.pdf]]
+file:odh-F547M-absolute.pdf
 
 #+call: odh-absolute("FQ575N") :results file
 
