@@ -134,7 +134,7 @@ We have a lot of material that needs to be drawn together
 + [-] Now we need to go back and re-run the odh programs, taking into account the shifts
   + Also increase the seeing width to 2.5 arcsec
 #+name: manu-map-comparison
-#+header: :var fn="FQ575N" :var band="red" :var maxmeds=4.0
+#+header: :var fn="FQ575N" :var band="red" :var maxmeds=3.0
 #+BEGIN_SRC python :noweb yes :results file 
   import numpy as np
   from astropy.table import Table
@@ -238,6 +238,11 @@ We have a lot of material that needs to be drawn together
 #+RESULTS:
 [[file:manu-F658N-red-maps.pdf]]
 
+#+call: manu-map-comparison(fn="F656N", band="red", maxmeds=2.5) :results file
+
+#+RESULTS:
+[[file:manu-F656N-red-maps.pdf]]
+
 #+call: manu-map-comparison(fn="F547M", band="green", maxmeds=2.0) :results file
 
 #+RESULTS:
@@ -253,7 +258,7 @@ We have a lot of material that needs to be drawn together
 #+RESULTS:
 [[file:manu-F673N-red-maps.pdf]]
 
-#+call: manu-map-comparison(fn="F487N", band="green") :results file
+#+call: manu-map-comparison(fn="F487N", band="green", maxmeds=2.5) :results file
 
 #+RESULTS:
 [[file:manu-F487N-green-maps.pdf]]
@@ -265,12 +270,12 @@ We have a lot of material that needs to be drawn together
 
 Note that there are some blue fibers that are drop-outs in the F487N filter.  Presumably, this is what Manu warned me about concerning lines at the end of the ranges. 
 
-#+call: manu-map-comparison(fn="F469N", band="blue") :results file
+#+call: manu-map-comparison(fn="F469N", band="blue", maxmeds=2.5) :results file
 
 #+RESULTS:
 [[file:manu-F469N-blue-maps.pdf]]
 
-#+call: manu-map-comparison(fn="F469N", band="green") :results file
+#+call: manu-map-comparison(fn="F469N", band="green", maxmeds=2.5) :results file
 
 #+RESULTS:
 [[file:manu-F469N-green-maps.pdf]]
