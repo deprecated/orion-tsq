@@ -153,6 +153,7 @@ CLOSED: [2014-04-18 Fri 00:29]
 + Shifts in y are less clear, so we won't do those
 + [X] Now we need to go back and re-run the odh programs, taking into account the shifts
   + Also increase the seeing width to 2.5 arcsec
+
 #+name: manu-map-comparison
 #+header: :var fn="FQ575N" :var band="red" :var maxmeds=3.0
 #+BEGIN_SRC python :noweb yes :results file 
@@ -323,7 +324,7 @@ Note that there are some blue fibers that are drop-outs in the F487N filter.  Pr
 The [S II] lines show a strong peak in the S60 spectrum
 ***** Results for the Manu spectra
 #+NAME: manu-absolute
-#+HEADER: :var fn="FQ575N" :var band="red" :var maxmeds=4.0
+#+HEADER: :var fn="FQ575N" :var band="red" :var maxmeds=4.0 
 #+BEGIN_SRC python :results file :noweb yes
   import numpy as np
   from astropy.table import Table
@@ -695,9 +696,20 @@ From the Manu spectra we can measure various useful ratios:
       | Tmin |    3500 |
       | Y    |   0.002 |
     + So this gives negligibly small values and can be ignored
-
-
-
+** TODO Combination with (Te, Ne) from He I lines
+:LOGBOOK:
+CLOCK: [2014-04-18 Fri 17:05]--[2014-04-18 Fri 17:24] =>  0:19
+:END:
++ We find Ne, Te from the He lines
++ Data and calculations [[id:674FBA41-692F-4BB3-8A3B-14292CE4FE03][here in keck-revisited.org]]
++ From Porter et al. 2007 it looks like:
+  + 5048/5876 is T_{e}-sensitive, almost insensitive to N_{e}
+    + Ratio goes approx as T_{e}^{1/2} so it may be tricky since the ratio at 10^{4} K is 0.015
+    + But at least the two lines are in the same waveband (green for Manu)
+    + 5048 is not covered by the Adal spectra
+  + 6678/5876 is N_{e}-sensitive, almost insensitive to T_{e}
+    + But only 10% variation between 10^{3} and 10^{4} pcc so high-precision required
+    + And also in same  waveband (red)
 * Final calibration of WFC3 filters
 ** Doing the combined calibration for FQ575N
 + This is the filter that we need most
