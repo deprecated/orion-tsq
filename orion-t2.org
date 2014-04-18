@@ -145,8 +145,6 @@ CLOSED: [2014-04-18 Fri 00:29]
 
       return sweetmask
 #+END_SRC
-
-
 ***** Maps of the ODH slits and the Manu fibers compared with WFC3
 + This now includes inset graphs showing the slit profiles
 + Result is that *all* the slits need to be shifted in x, from 7 to 10 arcsec
@@ -491,6 +489,71 @@ The [S II] lines show a strong peak in the S60 spectrum
 
 #+RESULTS:
 [[file:adal-FQ575N-absolute.pdf]]
+
+# #+header: :results output
+#+name: adal-profile-test
+#+header: :results file
+#+header: :var band="red" :var islit=6 :var xshift=4.0 :var fudge=4.0
+#+BEGIN_SRC python :var fn="F658N" 
+  import numpy as np
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from sweetspot_utils import find_sweetspot_mask
+
+  spectab = Table.read('adal-filter-predicted-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read('adal-filter-wfc3-rates.tab', format='ascii.tab',
+                       fill_values=('nan', np.nan))
+
+  fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
+                               table_names=['s', 'w'], join_type='outer')
+  x = fulltab['x0_s']
+  m = np.array([int(s[1]) == islit for s in fulltab['Section']])
+  plt.plot(x[m], fulltab[fn+'_s'][m])
+  plt.plot(-x[m] - xshift, fudge*fulltab[fn+'_w'][m], 'r')
+  pltfile = 'adal-profile-s{}-{}-{}.pdf'.format(islit, fn, band)
+  plt.savefig(pltfile)
+  return pltfile
+#+END_SRC
+
+#+RESULTS: adal-profile-test
+[[file:adal-profile-s6-F658N-red.pdf]]
+
+#+call: adal-profile-test(islit=5, xshift=3.5) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-F658N-red.pdf]]
+
+#+call: adal-profile-test(fn="F502N", band="blue", islit=5, xshift=3.5, fudge=2.2) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-F502N-blue.pdf]]
+
+#+call: adal-profile-test(fn="F502N", band="blue", islit=6, xshift=4.0, fudge=2.2) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-F502N-blue.pdf]]
+
+#+call: adal-profile-test(fn="FQ575N", band="red", islit=5, xshift=3.5) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-FQ575N-red.pdf]]
+
+#+call: adal-profile-test(fn="FQ575N", band="red", islit=6) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-FQ575N-red.pdf]]
+
+#+call: adal-profile-test(fn="F547M", band="red", islit=6, fudge=2.4) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-F547M-red.pdf]]
+
+#+call: adal-profile-test(fn="F673N", band="red", islit=6) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-F673N-red.pdf]]
+
 
 ***** Results for ODH spectra
 
