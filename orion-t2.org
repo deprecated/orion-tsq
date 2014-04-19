@@ -46,7 +46,7 @@ We have a lot of material that needs to be drawn together
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [3/6] Absolute calibration of the filters
+*** TODO [4/6] Absolute calibration of the filters
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
@@ -95,7 +95,8 @@ CLOSED: [2014-04-18 Fri 00:30]
     + Then it extracts the average count rate per pixel in the aperture corresponding to each section of the spectrograph slit
     + Writes a table [[file:odh-filter-wfc3-rates.tab]] with a column for each filter, and also a column with the offset =x0= along the slit from the slit center.
       + The slit center positions are specified in [[file:odh_common.py]].  I had to move them a bit in RA from the nominal positions (centered on RA of th1C). 
-**** TODO Absolute fluxes from Ring spectra
+**** DONE Absolute fluxes from Ring spectra
+CLOSED: [2014-04-19 Sat 14:02]
 :LOGBOOK:
 CLOCK: [2014-04-19 Sat 09:07]--[2014-04-19 Sat 11:21] =>  2:14
 :END:
@@ -105,7 +106,7 @@ CLOCK: [2014-04-19 Sat 09:07]--[2014-04-19 Sat 11:21] =>  2:14
 + So I just need to write [[file:ring-fold-filters.py]]
   + Problem is that the json file only has x1, x2 - not j1, j2
   + But we just have to use the same conversion as in [[file:~/Work/RingNebula/WFC3/2013-Geometry/ring-photom-fine.py][ring-photom-fine.py]]
-+ It seems to work, but the numbers are very low
+
 **** DONE Absolute fluxes from Adal spectra
 CLOSED: [2014-04-18 Fri 23:21]
 + This should not be too difficult since we already did it once in the [[file:Adal%20spectra.ipynb][ipython notebook]]
@@ -697,10 +698,119 @@ The next ones have problems with the zero level, but it is unclear whether this 
 
 #+RESULTS:
 [[file:adal-profile-s6-FQ674N-red.pdf]]
+***** Results for the Ring spectra
+:LOGBOOK:
+CLOCK: [2014-04-19 Sat 14:05]
+:END:
 
+#+name: ring-absolute
+#+BEGIN_SRC python :noweb yes :results file :var fn="F656N" brightmax=1000.0
+    import numpy as np
+    from pathlib import Path
+    from astropy.table import Table
+    import astropy.table
+    from matplotlib import pyplot as plt
+    from sweetspot_utils import find_sweetspot_mask
 
+    root_dir = Path.cwd().parent.parent
+    data_dir = root_dir/"RingNebula"/"WFC3"/"2013-Geometry"
 
-***** Results for ODH spectra
+    spectab = Table.read('ring-filter-predicted-rates.tab', format='ascii.tab')
+    wfc3tab = Table.read(str(data_dir/'ring_calibration_db.tab'),
+                         format='ascii.tab',
+                         fill_values=('--', 0.0))
+
+    fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section', 'PA'],
+                                 table_names=['s', 'w'])
+
+    d = np.abs(fulltab['x0_w'])
+
+    x = fulltab[fn + '_s']
+    y = fulltab[fn + '_w']
+    m = np.isfinite(x) & np.isfinite(y) & (x < brightmax) & (x > 0.0) & (y > 0.0)
+
+    gradient = y[m].sum()/x[m].sum()
+    plt.scatter(x[m], y[m], c=d[m], s=100.0, alpha=0.6)
+    plt.colorbar()
+    plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
+             label="gradient: {:.2f}".format(gradient))
+    plt.xlabel("Ring spectra predicted count rate per pixel / s$^{-1}$")
+    plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+    plt.title(fn)
+    plt.xlim(0.0, None)
+    plt.ylim(0.0, None)
+    plt.legend()
+    plt.tight_layout()
+    pltfile = 'ring-{}-absolute.pdf'.format(fn)
+    plt.savefig(pltfile)
+    return pltfile
+
+#+END_SRC
+
+#+RESULTS: ring-absolute
+[[file:ring-F656N-absolute.pdf]]
+
+#+call: ring-absolute("F547M", 1.0) :results file
+
+#+RESULTS:
+[[file:ring-F547M-absolute.pdf]]
+
+#+call: ring-absolute("F658N") :results file
+
+#+RESULTS:
+[[file:ring-F658N-absolute.pdf]]
+
+#+call: ring-absolute("F673N") :results file
+
+#+RESULTS:
+[[file:ring-F673N-absolute.pdf]]
+
+#+call: ring-absolute("F502N") :results file
+
+#+RESULTS:
+[[file:ring-F502N-absolute.pdf]]
+
+#+call: ring-absolute("F469N") :results file
+
+#+RESULTS:
+[[file:ring-F469N-absolute.pdf]]
+
+#+call: ring-absolute("F487N") :results file
+
+#+RESULTS:
+[[file:ring-F487N-absolute.pdf]]
+
+#+call: ring-absolute("F645N") :results file
+
+#+RESULTS:
+[[file:ring-F645N-absolute.pdf]]
+
+#+call: ring-absolute("FQ575N") :results file
+
+#+RESULTS:
+[[file:ring-FQ575N-absolute.pdf]]
+
+#+call: ring-absolute("FQ672N") :results file
+
+#+RESULTS:
+[[file:ring-FQ672N-absolute.pdf]]
+
+#+call: ring-absolute("FQ674N") :results file
+
+#+RESULTS:
+[[file:ring-FQ674N-absolute.pdf]]
+
+#+call: ring-absolute("FQ437N") :results file
+
+#+RESULTS:
+[[file:ring-FQ437N-absolute.pdf]]
+
+#+call: ring-absolute("FQ436N") :results file
+
+#+RESULTS:
+[[file:ring-FQ436N-absolute.pdf]]
+
+***** Results for the ODH spectra
 
 
 #+name: odh-absolute

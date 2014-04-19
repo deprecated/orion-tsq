@@ -39,6 +39,17 @@ Uses the data written to spectral_fit_fine_db"""
         60: fits.open(str(data_dir/"sb60ed.fits"))[0]
     }
 
+    # This is the conversion factor between the short-slit sb150ed files
+    # and the full-slit E1200PA150 files.  I still need to track down the
+    # provenance of this
+    conversion = 10**(-5.3)
+    # Note that this puts the units to be the same as my previous edited
+    # full-slit files, which had been multiplied by 1e15 so that the
+    # numbers are of order unity
+    snorm = 1./(conversion)
+    for pa in PAs:
+        hdu[pa].data *= snorm
+
     # Set up wavelength coordinates - Angstrom
     nx, wav0, i0, dwav = [hdu[150].header[k] for k in 
                           ("NAXIS1", "CRVAL1", "CRPIX1", "CD1_1")]
