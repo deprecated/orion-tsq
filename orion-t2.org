@@ -46,12 +46,12 @@ We have a lot of material that needs to be drawn together
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [2/6] Absolute calibration of the filters
+*** TODO [3/6] Absolute calibration of the filters
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
 + So we actually don't need any of the line fitting at all
-**** TODO [0/0] Getting the normalizations right
+**** TODO [0/1] Getting the normalizations right
 + From the WFC3 images we have counts/s/pixel (I think)
   + In the XXX-calibration.py programs we take the average value in the spectrograph aperture, so the units are not changed
 + From the spectroscopy we ought to have erg/s/cm^{2}/sr/\AA
@@ -59,12 +59,14 @@ We have a lot of material that needs to be drawn together
     + Manu has just erg/s/cm^{2}/\AA, which is /presumably/ implicitly per fiber
       + Fiber area is pi (2.69/2.0)**2 = 5.6832 square arcsec
     + Bob has erg/s/cm^{2}/\AA, which I am assuming is per pixel: slit width = 1.9 arcsec, pixel_size = 1.3 \arcsec
-    + Adal has ....
+    + Adal has erg/s/cm^{2}/\AA/pixel too.  His pixels are 1.2 arcsec and his slit width is 1.03 arcsec
   + Which I then multiply by 1e15
 + So in XXX-fold-filters.py I calculate \int \lambda I_{\lambda} T_{\lambda} d\lambda
   + which now has units erg \cdot \AA / s / cm^{2} / sr
 + The C_{WFC3} constant is in units count \cdot cm^{2} \cdot sr / erg / \AA
 + So I just have to take C_{WFC3} \int \lambda I_{\lambda} T_{\lambda} d\lambda to get to count/s
++ [ ] The problem is that I am a factor of 4 adrift
+  + The factor is the same with all 3 Orion datasets, suggesting that it is either a problem with the WFC3 images, or an error in the calculation of the conversion.
 
 **** DONE Absolute fluxes from ODH spectra
 CLOSED: [2014-04-18 Fri 00:30]
@@ -94,7 +96,8 @@ CLOSED: [2014-04-18 Fri 00:30]
     + Writes a table [[file:odh-filter-wfc3-rates.tab]] with a column for each filter, and also a column with the offset =x0= along the slit from the slit center.
       + The slit center positions are specified in [[file:odh_common.py]].  I had to move them a bit in RA from the nominal positions (centered on RA of th1C). 
 **** TODO Absolute fluxes from Ring spectra
-**** TODO Absolute fluxes from Adal spectra
+**** DONE Absolute fluxes from Adal spectra
+CLOSED: [2014-04-18 Fri 23:21]
 + This should not be too difficult since we already did it once in the [[file:Adal%20spectra.ipynb][ipython notebook]]
 + Follow similar pattern as for ODH dataset:
   + [[file:adal-fold-filters.py]]
@@ -108,6 +111,7 @@ CLOSED: [2014-04-18 Fri 00:29]
 + [X] Need to check that we haven't subtracted the continuum
 **** TODO Plot the results
 ***** Common functionality
+
 #+name: read-manu-data
 #+BEGIN_SRC python
   spectab = Table.read('manu-filter-predicted-rates.tab', format='ascii.tab')
@@ -172,6 +176,14 @@ CLOSED: [2014-04-18 Fri 00:29]
                                table_names=['s', 'w'])
 
 
+  spectab = Table.read('adal-filter-predicted-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read('adal-filter-wfc3-rates.tab', format='ascii.tab',
+                       fill_values=('--', np.nan))
+
+  adaltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
+                               table_names=['s', 'w'])
+
+
   x = fulltab['x']
   y = fulltab['y']
   m = np.array([sec[:-10] == band for sec in fulltab['Section']])
@@ -194,23 +206,35 @@ CLOSED: [2014-04-18 Fri 00:29]
   mm = np.isfinite(yy) & find_sweetspot_mask(fn, xx, yy) 
   odh_flux = odhtab[fn + '_s'][mm]
 
-  fig = plt.figure(figsize=(15,5))
-  ax_spec = plt.axes([0.06, 0.1, 0.3, 0.85])
-  ax_wfc3 = plt.axes([0.36, 0.1, 0.3, 0.85], sharex=ax_spec, sharey=ax_spec)
-  ax_cb = plt.axes([0.66, 0.1, 0.03, 0.85])
+  # coordinates from Adal slits
+  xxx = adaltab['dRA']
+  yyy = adaltab['dDEC']
+  mmm = np.isfinite(xxx) & np.isfinite(yyy)
+  mmm = mmm & find_sweetspot_mask(fn, xxx, yyy)
+  aband = band if band in ['blue', 'red'] else 'blue'
+  mmm = mmm & np.array([aband in s for s in adaltab['Section']])
+  adal_flux = adaltab[fn + '_s'][mmm]
 
-  ax_spec.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
-  scat0 = ax_spec.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6)
+  fig = plt.figure(figsize=(16,8))
+  ax_spec = plt.axes([0.06, 0.35, 0.25, 0.6])
+  ax_wfc3 = plt.axes([0.36, 0.35, 0.25, 0.6], sharex=ax_spec, sharey=ax_spec)
+  # ax_cb = plt.axes([0.56, 0.35, 0.02, 0.65])
+
+  ax_spec.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s', edgecolors='none')
+  ax_spec.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>', edgecolors='none')
+  scat0 = ax_spec.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, edgecolors='none')
   ax_spec.set_title('Manu/ODH Spectra: ' + fn)
   # fig.colorbar(scat0, ax=ax_spec)
   flux = fulltab[fn + '_w'][m]
   fmax = maxmeds*np.median(flux)
   odh_flux = odhtab[fn + '_w'][mm]
-  scat1 = ax_wfc3.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
-  ax_wfc3.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6)
+  adal_flux = adaltab[fn + '_w'][mmm]
+  scat1 = ax_wfc3.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s', edgecolors='none')
+  ax_wfc3.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>', edgecolors='none')
+  ax_wfc3.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, edgecolors='none')
   ax_wfc3.set_title('WFC3 Images: ' + fn)
   plt.setp(ax_wfc3.get_yticklabels(), visible=False)
-  cb = fig.colorbar(scat1, cax=ax_cb)
+  cb = fig.colorbar(scat1, ax=[ax_spec, ax_wfc3], fraction=0.1, aspect=40, orientation='horizontal')
   cb.set_label('WFC3 count rate, ADU/s/pixel')
   ax_spec.set_xlabel('RA offset from th1, arcsec', fontsize='small')
   ax_spec.set_ylabel('DEC offset from th1C, arcsec', fontsize='small')
@@ -218,9 +242,9 @@ CLOSED: [2014-04-18 Fri 00:29]
   ax_wfc3.grid()
 
   # inset plots with the S30, S60, S90 profiles
-  for yslit, vport in [[30.0, [0.79, 0.7, 0.2, 0.25]],
-                       [60.0, [0.79, 0.375, 0.2, 0.25]],
-                       [90.0, [0.79, 0.05, 0.2, 0.25]]]:
+  for yslit, vport in [[30.0, [0.68, 0.7, 0.25, 0.25]],
+                       [60.0, [0.68, 0.375, 0.25, 0.25]],
+                       [90.0, [0.68, 0.05, 0.25, 0.25]]]:
       ax_inset = plt.axes(vport, sharex=ax_spec)
       mms = mm & (yy == -yslit)
       mf = m & (np.abs(y + yslit) <= 3.0) 
@@ -232,6 +256,21 @@ CLOSED: [2014-04-18 Fri 00:29]
       ax_inset.set_ylim(0.0, maxmeds*np.median(odhtab[fn + '_s'][mms]))
       ax_inset.grid()
       ax_inset.set_title('S{:.0f} Profiles'.format(yslit), fontsize='x-small')
+      ax_inset.legend(fontsize=4)
+
+  # inset plots with the Adal profiles
+  for islit, vport in [[5, [0.06, 0.05, 0.25, 0.25]],
+                       [6, [0.36, 0.05, 0.25, 0.25]]]:
+      ax_inset = plt.axes(vport, sharex=ax_spec)
+      mmms = mmm & np.array([int(s[1]) == islit for s in adaltab['Section']])
+      ax_inset.plot(xxx[mmms],  adaltab[fn + '_s'][mmms], '.-', label='spectra')
+      ax_inset.plot(xxx[mmms],  4*adaltab[fn + '_w'][mmms], '.-', label='WFC3')
+      # ax_inset.plot(x[mf],  fulltab[fn + '_s'][mf], '.', alpha=0.2, label='fibers')
+      # ax_inset.plot(x[mf],  4*fulltab[fn + '_w'][mf], '.', alpha=0.2, label='WFC3 @ fibers')
+      ax_inset.tick_params(axis='both', which='major', labelsize='xx-small')
+      ax_inset.set_ylim(0.0, maxmeds*np.median(adaltab[fn + '_s'][mmms]))
+      ax_inset.grid()
+      ax_inset.set_title('Mesa Delgado Slit {:.0f} Profiles'.format(islit), fontsize='x-small')
       ax_inset.legend(fontsize=4)
 
   ax_spec.set_xlim(-10.0, -100.0)
@@ -257,7 +296,7 @@ CLOSED: [2014-04-18 Fri 00:29]
 #+RESULTS:
 [[file:manu-F658N-red-maps.pdf]]
 
-#+call: manu-map-comparison(fn="F656N", band="red", maxmeds=2.5) :results file
+#+call: manu-map-comparison(fn="F656N", band="red", maxmeds=2.8) :results file
 
 #+RESULTS:
 [[file:manu-F656N-red-maps.pdf]]
@@ -610,6 +649,9 @@ The [S II] lines show a strong peak in the S60 spectrum
 
 #+RESULTS:
 [[file:adal-profile-s6-F673N-red.pdf]]
+
+
+The next ones have problems with the zero level, but it is unclear whether this is in the spectra or in the images
 
 #+call: adal-profile-test(fn="F469N", band="blue", islit=6, floor=0.15) :results file
 
