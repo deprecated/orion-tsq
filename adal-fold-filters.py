@@ -66,9 +66,10 @@ def main():
             # # Set up position coordinates along slit - arcsec from slit center
             ny = hdu[(band, islit)].header['NAXIS2']
             j0 = ny/2 + 0.5
-            x0 = 0.0
+            x0 = adal_common.slit_xshift[islit]
             dx = PIXEL_SIZE
-            xslit = x0 + (np.arange(ny) - j0)*dx
+            # Slits are upside-down wrt the stated PA, hence the minus sign
+            xslit = -(x0 + (np.arange(ny) - j0)*dx)
             dRA, dDEC = radec_offsets_from_slitx(xslit,
                                                  center=adal_common.slit_center[islit],
                                                  PA=adal_common.slit_PA[islit])

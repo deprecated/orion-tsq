@@ -509,8 +509,8 @@ The [S II] lines show a strong peak in the S60 spectrum
                                table_names=['s', 'w'], join_type='outer')
   x = fulltab['x0_s']
   m = np.array([int(s[1]) == islit for s in fulltab['Section']])
-  plt.plot(x[m], fulltab[fn+'_s'][m])
-  plt.plot(-x[m] - xshift, fudge*fulltab[fn+'_w'][m], 'r')
+  plt.plot(-xshift - x[m], fulltab[fn+'_s'][m])
+  plt.plot(x[m], fudge*fulltab[fn+'_w'][m], 'r')
   pltfile = 'adal-profile-s{}-{}-{}.pdf'.format(islit, fn, band)
   plt.savefig(pltfile)
   return pltfile
