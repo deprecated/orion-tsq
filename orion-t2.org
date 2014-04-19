@@ -96,6 +96,16 @@ CLOSED: [2014-04-18 Fri 00:30]
     + Writes a table [[file:odh-filter-wfc3-rates.tab]] with a column for each filter, and also a column with the offset =x0= along the slit from the slit center.
       + The slit center positions are specified in [[file:odh_common.py]].  I had to move them a bit in RA from the nominal positions (centered on RA of th1C). 
 **** TODO Absolute fluxes from Ring spectra
+:LOGBOOK:
+CLOCK: [2014-04-19 Sat 09:07]--[2014-04-19 Sat 11:21] =>  2:14
+:END:
++ This time I am not going to mess with changing the apertures
++ We already have [[file:~/Work/RingNebula/WFC3/2013-Geometry/ring-calibration.py][ring-calibration.py]], which writes the WFC3 aperture rates to [[file:~/Work/RingNebula/WFC3/2013-Geometry/ring_calibration_db.tab][ring_calibration_db.tab]]
+  + This reads the sections from [[file:~/Work/RingNebula/WFC3/2013-Geometry/Spectra/spectral_fit_fine_db.json][Spectra/spectral_fit_fine_db.json]]
++ So I just need to write [[file:ring-fold-filters.py]]
+  + Problem is that the json file only has x1, x2 - not j1, j2
+  + But we just have to use the same conversion as in [[file:~/Work/RingNebula/WFC3/2013-Geometry/ring-photom-fine.py][ring-photom-fine.py]]
++ It seems to work, but the numbers are very low
 **** DONE Absolute fluxes from Adal spectra
 CLOSED: [2014-04-18 Fri 23:21]
 + This should not be too difficult since we already did it once in the [[file:Adal%20spectra.ipynb][ipython notebook]]
