@@ -730,7 +730,7 @@ CLOCK: [2014-04-19 Sat 14:05]
     m = np.isfinite(x) & np.isfinite(y) & (x < brightmax) & (x > 0.0) & (y > 0.0)
 
     gradient = y[m].sum()/x[m].sum()
-    plt.scatter(x[m], y[m], c=d[m], s=100.0, alpha=0.6)
+    plt.scatter(x[m], y[m], c=d[m], s=fulltab['PA'][m], alpha=0.6)
     plt.colorbar()
     plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
              label="gradient: {:.2f}".format(gradient))
@@ -809,6 +809,183 @@ CLOCK: [2014-04-19 Sat 14:05]
 
 #+RESULTS:
 [[file:ring-FQ436N-absolute.pdf]]
+****** Ring profiles
+#+name: ring-profile-test
+#+header: :results file
+#+header: :var PA=60 :var floor=0.0 :var fudge=6
+#+BEGIN_SRC python :var fn="F658N" 
+  import numpy as np
+  from pathlib import Path
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from sweetspot_utils import find_sweetspot_mask
+
+  root_dir = Path.cwd().parent.parent
+  data_dir = root_dir/"RingNebula"/"WFC3"/"2013-Geometry"
+
+  spectab = Table.read('ring-filter-predicted-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read(str(data_dir/'ring_calibration_db.tab'),
+                       format='ascii.tab',
+                       fill_values=('--', 0.0))
+
+  fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section', 'PA'],
+                               table_names=['s', 'w'])
+  fulltab.sort(['PA', 'x0_w'])
+
+  m = fulltab['PA'] == PA
+  # m = m & find_sweetspot_mask(fn, fulltab['dRA'], fulltab['dDEC']) 
+  # m = m & (fulltab[fn+'_w'] < fulltab[fn+'_s']) 
+  plt.plot(fulltab['x0_w'][m], fulltab[fn+'_s'][m] + floor, 'o', label='spectrum')
+  plt.plot(fulltab['x0_w'][m], fudge*fulltab[fn+'_w'][m], 'r', label='WFC3')
+  plt.ylim(0.0, None)
+  # plt.ylim(0.0, 5.0*np.median(fulltab[fn+'_s'][m] + floor))
+  plt.grid()
+  plt.legend(loc='upper center', title='Ring Nebula: PA{}'.format(PA))
+  plt.xlabel("Radius, arcsec")
+  plt.ylabel("{} count rate, ADU/s/pixel".format(fn))
+  pltfile = 'ring-profile-pa{}-{}.pdf'.format(PA, fn)
+  plt.savefig(pltfile)
+  return pltfile
+#+END_SRC
+******* F658N Ring profiles
+#+call: ring-profile-test(fn="F658N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F658N.pdf]]
+
+#+call: ring-profile-test(fn="F658N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F658N.pdf]]
+******* F656N Ring profiles
+#+call: ring-profile-test(fn="F656N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F656N.pdf]]
+
+#+call: ring-profile-test(fn="F656N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F656N.pdf]]
+******* F673N Ring profiles
+#+call: ring-profile-test(fn="F673N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F673N.pdf]]
+
+#+call: ring-profile-test(fn="F673N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F673N.pdf]]
+******* FQ672N Ring profiles
+#+call: ring-profile-test(fn="FQ672N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-FQ672N.pdf]]
+
+#+call: ring-profile-test(fn="FQ672N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-FQ672N.pdf]]
+******* FQ674N Ring profiles
+#+call: ring-profile-test(fn="FQ674N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-FQ674N.pdf]]
+
+#+call: ring-profile-test(fn="FQ674N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-FQ674N.pdf]]
+
+******* FQ575N Ring profiles
+#+call: ring-profile-test(fn="FQ575N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-FQ575N.pdf]]
+
+#+call: ring-profile-test(fn="FQ575N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-FQ575N.pdf]]
+
+******* FQ437N Ring profiles
+#+call: ring-profile-test(fn="FQ437N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-FQ437N.pdf]]
+
+#+call: ring-profile-test(fn="FQ437N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-FQ437N.pdf]]
+
+******* FQ436N Ring profiles
+#+call: ring-profile-test(fn="FQ436N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-FQ436N.pdf]]
+
+#+call: ring-profile-test(fn="FQ436N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-FQ436N.pdf]]
+
+******* F547M Ring profiles
+#+call: ring-profile-test(fn="F547M", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F547M.pdf]]
+
+#+call: ring-profile-test(fn="F547M", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F547M.pdf]]
+
+******* F645N Ring profiles
+#+call: ring-profile-test(fn="F645N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F645N.pdf]]
+
+#+call: ring-profile-test(fn="F645N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F645N.pdf]]
+
+******* F487N Ring profiles
+#+call: ring-profile-test(fn="F487N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F487N.pdf]]
+
+#+call: ring-profile-test(fn="F487N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F487N.pdf]]
+
+******* F502N Ring profiles
+#+call: ring-profile-test(fn="F502N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F502N.pdf]]
+
+#+call: ring-profile-test(fn="F502N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F502N.pdf]]
+
+******* F469N Ring profiles
+#+call: ring-profile-test(fn="F469N", PA=60) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa60-F469N.pdf]]
+
+#+call: ring-profile-test(fn="F469N", PA=150) :results file
+
+#+RESULTS:
+[[file:ring-profile-pa150-F469N.pdf]]
 
 ***** Results for the ODH spectra
 
