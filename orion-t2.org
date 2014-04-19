@@ -438,7 +438,8 @@ The [S II] lines show a strong peak in the S60 spectrum
 
 
 #+name: adal-absolute
-#+BEGIN_SRC python :noweb yes :results file :var fn="F656N" band="red"
+#+header: :var fn="F656N" :var band="red"  :var maxcount=1000.0
+#+BEGIN_SRC python :noweb yes :results file 
   import numpy as np
   from astropy.table import Table
   import astropy.table
@@ -447,19 +448,21 @@ The [S II] lines show a strong peak in the S60 spectrum
 
   spectab = Table.read('adal-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('adal-filter-wfc3-rates.tab', format='ascii.tab',
-                       fill_values=('nan', np.nan))
+                       fill_values=('--', np.nan))
 
   fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
                                table_names=['s', 'w'])
 
-  slitx = fulltab['x0']
+  slitx = fulltab['x0_s']
   islit = np.array([int(s[1]) for s in fulltab['Section']])
 
   x = fulltab[fn + '_s']
   y = fulltab[fn + '_w']
   m = np.isfinite(x) & np.isfinite(y)
-  #  m = m & find_sweetspot_mask(fn, ra, dec) 
+  m = m & find_sweetspot_mask(fn, fulltab['dRA'], fulltab['dDEC']) 
   m = m & np.array([band in s for s in fulltab['Section']])
+  # Eliminate some spurious points
+  m = m & (y < x) & (x < maxcount)
   gradient = y[m].sum()/x[m].sum()
   plt.scatter(x[m], y[m], c=slitx[m], s=100.0/(islit[m]-4), alpha=0.6)
   plt.colorbar()
@@ -490,10 +493,55 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+RESULTS:
 [[file:adal-FQ575N-absolute.pdf]]
 
+#+call: adal-absolute("F658N", "red") :results file 
+
+#+RESULTS:
+[[file:adal-F658N-absolute.pdf]]
+
+#+call: adal-absolute("F673N", "red", maxcount=10) :results file 
+
+#+RESULTS:
+[[file:adal-F673N-absolute.pdf]]
+
+#+call: adal-absolute("F469N", "blue", maxcount=1.0) :results file 
+
+#+RESULTS:
+[[file:adal-F469N-absolute.pdf]]
+
+#+call: adal-absolute("F487N", "blue") :results file 
+
+#+RESULTS:
+[[file:adal-F487N-absolute.pdf]]
+
+#+call: adal-absolute("F547M", "red", maxcount=20) :results file 
+
+#+RESULTS:
+[[file:adal-F547M-absolute.pdf]]
+
+#+call: adal-absolute("FQ437N", "blue") :results file 
+
+#+RESULTS:
+[[file:adal-FQ437N-absolute.pdf]]
+
+#+call: adal-absolute("FQ436N", "blue") :results file 
+
+#+RESULTS:
+[[file:adal-FQ436N-absolute.pdf]]
+
+#+call: adal-absolute("FQ672N", "red") :results file 
+
+#+RESULTS:
+[[file:adal-FQ672N-absolute.pdf]]
+
+#+call: adal-absolute("FQ674N", "red") :results file 
+
+#+RESULTS:
+[[file:adal-FQ674N-absolute.pdf]]
+
 # #+header: :results output
 #+name: adal-profile-test
 #+header: :results file
-#+header: :var band="red" :var islit=6 :var xshift=4.0 :var fudge=4.0
+#+header: :var band="red" :var islit=6 :var floor=0.0 :var fudge=4.0
 #+BEGIN_SRC python :var fn="F658N" 
   import numpy as np
   from astropy.table import Table
@@ -503,14 +551,18 @@ The [S II] lines show a strong peak in the S60 spectrum
 
   spectab = Table.read('adal-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('adal-filter-wfc3-rates.tab', format='ascii.tab',
-                       fill_values=('nan', np.nan))
+                       fill_values=('--', np.nan))
 
   fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
                                table_names=['s', 'w'], join_type='outer')
-  x = fulltab['x0_s']
   m = np.array([int(s[1]) == islit for s in fulltab['Section']])
-  plt.plot(-xshift - x[m], fulltab[fn+'_s'][m])
-  plt.plot(x[m], fudge*fulltab[fn+'_w'][m], 'r')
+  m = m & find_sweetspot_mask(fn, fulltab['dRA'], fulltab['dDEC']) 
+  m = m & (fulltab[fn+'_w'] < fulltab[fn+'_s']) 
+  plt.plot(fulltab['x0_s'][m], fulltab[fn+'_s'][m] + floor, 'o', label='spectrum')
+  plt.plot(fulltab['x0_w'][m], fudge*fulltab[fn+'_w'][m], 'r', label='WFC3')
+  plt.ylim(0.0, 5.0*np.median(fulltab[fn+'_s'][m] + floor))
+  plt.grid()
+  plt.legend()
   pltfile = 'adal-profile-s{}-{}-{}.pdf'.format(islit, fn, band)
   plt.savefig(pltfile)
   return pltfile
@@ -519,22 +571,22 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+RESULTS: adal-profile-test
 [[file:adal-profile-s6-F658N-red.pdf]]
 
-#+call: adal-profile-test(islit=5, xshift=3.5) :results file
+#+call: adal-profile-test(islit=5) :results file
 
 #+RESULTS:
 [[file:adal-profile-s5-F658N-red.pdf]]
 
-#+call: adal-profile-test(fn="F502N", band="blue", islit=5, xshift=3.5, fudge=2.2) :results file
+#+call: adal-profile-test(fn="F502N", band="blue", islit=5, fudge=2.2) :results file
 
 #+RESULTS:
 [[file:adal-profile-s5-F502N-blue.pdf]]
 
-#+call: adal-profile-test(fn="F502N", band="blue", islit=6, xshift=4.0, fudge=2.2) :results file
+#+call: adal-profile-test(fn="F502N", band="blue", islit=6, fudge=2.2) :results file
 
 #+RESULTS:
 [[file:adal-profile-s6-F502N-blue.pdf]]
 
-#+call: adal-profile-test(fn="FQ575N", band="red", islit=5, xshift=3.5) :results file
+#+call: adal-profile-test(fn="FQ575N", band="red", islit=5) :results file
 
 #+RESULTS:
 [[file:adal-profile-s5-FQ575N-red.pdf]]
@@ -544,15 +596,56 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+RESULTS:
 [[file:adal-profile-s6-FQ575N-red.pdf]]
 
-#+call: adal-profile-test(fn="F547M", band="red", islit=6, fudge=2.4) :results file
+#+call: adal-profile-test(fn="F547M", band="red", islit=6, fudge=2.4, floor=0.5) :results file
 
 #+RESULTS:
 [[file:adal-profile-s6-F547M-red.pdf]]
+
+#+call: adal-profile-test(fn="F547M", band="red", islit=5, fudge=2.4, floor=0.5) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-F547M-red.pdf]]
 
 #+call: adal-profile-test(fn="F673N", band="red", islit=6) :results file
 
 #+RESULTS:
 [[file:adal-profile-s6-F673N-red.pdf]]
+
+#+call: adal-profile-test(fn="F469N", band="blue", islit=6, floor=0.15) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-F469N-blue.pdf]]
+
+#+call: adal-profile-test(fn="FQ437N", band="blue", islit=6, floor=0.15) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-FQ437N-blue.pdf]]
+
+#+call: adal-profile-test(fn="FQ437N", band="blue", islit=5, floor=0.17) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-FQ437N-blue.pdf]]
+
+#+call: adal-profile-test(fn="FQ672N", band="red", islit=5) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-FQ672N-red.pdf]]
+
+#+call: adal-profile-test(fn="FQ674N", band="red", islit=5) :results file
+
+#+RESULTS:
+[[file:adal-profile-s5-FQ674N-red.pdf]]
+
+#+call: adal-profile-test(fn="FQ672N", band="red", islit=6) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-FQ672N-red.pdf]]
+
+#+call: adal-profile-test(fn="FQ674N", band="red", islit=6) :results file
+
+#+RESULTS:
+[[file:adal-profile-s6-FQ674N-red.pdf]]
+
 
 
 ***** Results for ODH spectra

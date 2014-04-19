@@ -5,7 +5,7 @@ import json
 import coord_utils
 import scipy.ndimage as ni
 from astropy.table import Table, join
-from adal_common import slit_center, slit_width, pixel_size, slit_PA
+from adal_common import slit_center, slit_width, pixel_size, slit_PA, Bands
 
 wfc3_pix = 0.04                 # arcsec
 # Seeing/focus was determined by fitting Gaussians to the star profiles
@@ -57,7 +57,8 @@ for Filter, fname in Filters.items():
     thistable = Table(names=["PA", "Section", "x0", Filter],
                       dtype=[int, '<U15', float, float])
     for islit in [5, 6]:
-        sections = sorted(section for section in db if db[section]["Slit"] == islit)
+        sections = sorted(section for section in db
+                          if db[section]["Slit"] == islit and Bands[Filter] in section)
         xslit, yslit = coord_utils.slitxy_from_radec(RA, DEC,
                                                      slit_center[islit],
                                                      slit_PA[islit])

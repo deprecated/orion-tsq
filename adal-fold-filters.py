@@ -8,7 +8,7 @@ import adal_common
 from coord_utils import radec_offsets_from_slitx
 
 fns = ["F469N", "F673N", "F487N", "F502N", 
-       "FQ436N", "FQ437N", "F547M", "FQ575N", "F645N",
+       "FQ436N", "FQ437N", "F547M", "FQ575N",
        "F656N", "F658N", "FQ672N", "FQ674N"]
 
 col_names = ["Section", "x0", "dRA", "dDEC"] + fns
@@ -80,8 +80,9 @@ def main():
                              "dRA": dRA[j], "dDEC": dDEC[j]}
                 spectrum = hdu[(band, islit)].data[j, :]
                 for fn in fns:
-                    integrand = Tfilters[fn]*spectrum*wavs
-                    table_row[fn] =  FACTOR*np.trapz(integrand, wavs)
+                    if band == adal_common.Bands[fn]:
+                        integrand = Tfilters[fn]*spectrum*wavs
+                        table_row[fn] =  FACTOR*np.trapz(integrand, wavs)
                 tab.add_row(table_row)
 
 

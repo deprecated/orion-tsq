@@ -15,6 +15,21 @@ slit_PA = {
 # reference point does not seem to be exactly in the center of the
 # slit
 slit_xshift = {
-    5: 3.5, 
-    6: 4.0,
+    5: 2.5, 
+    6: 3.0,
+}
+
+Bands = {
+    "FQ436N": "blue", 
+    "FQ575N": "red", 
+    "FQ672N": "red", 
+    "FQ674N": "red", 
+    "F673N":  "red", 
+    "F469N":  "blue", 
+    "F487N":  "blue", 
+    "F656N":  "red", 
+    "F658N":  "red", 
+    "F547M":  "red", 
+    "F502N":  "blue", 
+    "FQ437N": "blue", 
 }
