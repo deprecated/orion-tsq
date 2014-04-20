@@ -46,7 +46,7 @@ We have a lot of material that needs to be drawn together
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [4/6] Absolute calibration of the filters
+*** TODO [4/7] Absolute calibration of the filters
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
@@ -67,6 +67,13 @@ We have a lot of material that needs to be drawn together
 + So I just have to take C_{WFC3} \int \lambda I_{\lambda} T_{\lambda} d\lambda to get to count/s
 + [ ] The problem is that I am a factor of 4 adrift
   + The factor is the same with all 3 Orion datasets, suggesting that it is either a problem with the WFC3 images, or an error in the calculation of the conversion.
+**** TODO [0/4] Little tweaks to improve things
++ [ ] Need to mask out some Ring positions
+  + Particularly for FQ672N and FQ674N
++ [ ] Plate scale for Ring Nebula - need to expand it a bit
++ [ ] Zero point of Adal spectra
+  + and others?
++ [ ] Split Manu dataset into different exposures
 
 **** DONE Absolute fluxes from ODH spectra
 CLOSED: [2014-04-18 Fri 00:30]
