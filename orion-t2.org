@@ -51,7 +51,7 @@ We have a lot of material that needs to be drawn together
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
 + So we actually don't need any of the line fitting at all
-**** TODO [0/1] Getting the normalizations right
+**** TODO [0/3] Getting the normalizations right
 + From the WFC3 images we have counts/s/pixel (I think)
   + In the XXX-calibration.py programs we take the average value in the spectrograph aperture, so the units are not changed
 + From the spectroscopy we ought to have erg/s/cm^{2}/sr/\AA
@@ -67,13 +67,22 @@ We have a lot of material that needs to be drawn together
 + So I just have to take C_{WFC3} \int \lambda I_{\lambda} T_{\lambda} d\lambda to get to count/s
 + [ ] The problem is that I am a factor of 4 adrift
   + The factor is the same with all 3 Orion datasets, suggesting that it is either a problem with the WFC3 images, or an error in the calculation of the conversion.
-**** TODO [0/4] Little tweaks to improve things
+  + Slightly different with the Ring spectra - more like a factor of 6
++ [ ] I should check out the photometry kwds in the FITS header
++ [ ] I should compare with some 3rd party measurements
+  + Esteban for Orion? Or Baldwin?
+  + Manchado for the Ring Nebula
+    + They give a dereddened H\beta flux for each of the regions
+      + With C(H\beta) = 0.14 everywhere = 1.38 times increase in F(H\beta)
+    + Units are erg/cm^{2}/s/\AA, presumably in one 0.96 x 1.2 arcsec pixel
+**** TODO [1/4] Little tweaks to improve things
 + [ ] Need to mask out some Ring positions
   + Particularly for FQ672N and FQ674N
 + [ ] Plate scale for Ring Nebula - need to expand it a bit
 + [ ] Zero point of Adal spectra
   + and others?
-+ [ ] Split Manu dataset into different exposures
++ [X] Split Manu dataset into different fields
+  + there is clearly an offset between the fields
 
 **** DONE Absolute fluxes from ODH spectra
 CLOSED: [2014-04-18 Fri 00:30]
@@ -137,7 +146,7 @@ CLOSED: [2014-04-18 Fri 00:29]
                        fill_values=('nan', np.nan))
 
   fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section', 'x', 'y'],
-                               table_names=['s', 'w'])
+                               table_names=['s', 'w'], join_type='outer')
 
 #+END_SRC
 
@@ -238,8 +247,8 @@ CLOSED: [2014-04-18 Fri 00:29]
   ax_wfc3 = plt.axes([0.36, 0.35, 0.25, 0.6], sharex=ax_spec, sharey=ax_spec)
   # ax_cb = plt.axes([0.56, 0.35, 0.02, 0.65])
 
-  ax_spec.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s', edgecolors='none')
-  ax_spec.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>', edgecolors='none')
+  ax_spec.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
+  ax_spec.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>')
   scat0 = ax_spec.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, edgecolors='none')
   ax_spec.set_title('Manu/ODH Spectra: ' + fn)
   # fig.colorbar(scat0, ax=ax_spec)
@@ -247,8 +256,8 @@ CLOSED: [2014-04-18 Fri 00:29]
   fmax = maxmeds*np.median(flux)
   odh_flux = odhtab[fn + '_w'][mm]
   adal_flux = adaltab[fn + '_w'][mmm]
-  scat1 = ax_wfc3.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s', edgecolors='none')
-  ax_wfc3.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>', edgecolors='none')
+  scat1 = ax_wfc3.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s')
+  ax_wfc3.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>')
   ax_wfc3.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, edgecolors='none')
   ax_wfc3.set_title('WFC3 Images: ' + fn)
   plt.setp(ax_wfc3.get_yticklabels(), visible=False)
@@ -292,6 +301,7 @@ CLOSED: [2014-04-18 Fri 00:29]
       ax_inset.legend(fontsize=4)
 
   ax_spec.set_xlim(-10.0, -100.0)
+  ax_spec.set_ylim(-100.0, 0.0)
   ax_spec.set_aspect('equal', adjustable='box-forced')
   ax_wfc3.set_aspect('equal', adjustable='box-forced')
   # ax_spec.axis('equal')
@@ -394,22 +404,37 @@ The [S II] lines show a strong peak in the S60 spectrum
   d = np.hypot(fulltab['x'], fulltab['y'])
   m = np.array([sec[:-10] == band for sec in fulltab['Section']])
   m = m & np.isfinite(x) & np.isfinite(y)
+  m = m & (x > 0.0) & (y > 0.0)
   m = m & find_sweetspot_mask(fn, fulltab['x'], fulltab['y']) 
+  m = m & ~x.mask & ~y.mask
+  m = m & (y < x)
+  xmax = maxmeds*np.median(x[m])
+  ymax = maxmeds*np.median(y[m])
+  m = m & (x < xmax) & (y < ymax)
+  # m = m & (fulltab['aperture'] > 60)
+  x = np.array(x)[m]
+  y = np.array(y)[m]
+  d = np.array(d)[m]
 
-  x = x[m]
-  y = y[m]
-  d = d[m]
-
+  pointing = fulltab['pointing'][m]
+  pset = set(pointing)
+  pmin = pointing.min()
+  pmax = pointing.max()
+  ncols = pmax - pmin + 1
+  # cmap = plt.cm.get_cmap('Dark2_r', ncols)
+  cmap = plt.cm.get_cmap('Accent_r', ncols)
   gradient = y.sum()/x.sum()
-  plt.scatter(x, y, c=d, alpha=0.6)
-  plt.colorbar()
-  plt.plot([0.0, x.max()], [0.0, gradient*x.max()], '-',
+  order = np.random.permutation(len(x))
+  plt.scatter(x[order], y[order], c=fulltab['pointing'][m][order], vmin=pmin-0.5, vmax=pmax+0.5, cmap=cmap, alpha=0.8, edgecolor=None, linewidths=0.1, s=10)
+  plt.colorbar(label='Field number')
+  # plt.text(0.2, 0.25, str(pset))
+  plt.plot([0.0, x.max()], [0.0, gradient*x.max()], '-', zorder=-10,
            label="gradient: {:.2f}".format(gradient))
-  plt.xlim(0.0, maxmeds*np.median(x))
-  plt.ylim(0.0, maxmeds*np.median(y))
+  plt.xlim(0.0, xmax)
+  plt.ylim(0.0, ymax)
   plt.xlabel("Manu spectra predicted count rate per pixel / s$^{-1}$")
   plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
-  plt.title(fn)
+  plt.title('{} - {} band'.format(fn, band))
   plt.legend()
   plt.tight_layout()
   pltfile = 'manu-{}-{}-absolute.pdf'.format(fn, band)
@@ -432,17 +457,17 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+RESULTS:
 [[file:manu-F656N-red-absolute.pdf]]
 
-#+call: manu-absolute(fn="F502N", band="green", maxmeds=2.5) :results file
+#+call: manu-absolute(fn="F502N", band="green", maxmeds=3.5) :results file
 
 #+RESULTS:
 [[file:manu-F502N-green-absolute.pdf]]
 
-#+call: manu-absolute(fn="F487N", band="green", maxmeds=2.5) :results file
+#+call: manu-absolute(fn="F487N", band="green", maxmeds=3.5) :results file
 
 #+RESULTS:
 [[file:manu-F487N-green-absolute.pdf]]
 
-#+call: manu-absolute(fn="F487N", band="blue", maxmeds=2.5) :results file
+#+call: manu-absolute(fn="F487N", band="blue", maxmeds=3.5) :results file
 
 #+RESULTS:
 [[file:manu-F487N-blue-absolute.pdf]]
@@ -457,7 +482,7 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+RESULTS:
 [[file:manu-F547M-red-absolute.pdf]]
 
-#+call: manu-absolute(fn="F673N", band="red") :results file
+#+call: manu-absolute(fn="F673N", band="red", maxmeds=3.0) :results file
 
 #+RESULTS:
 [[file:manu-F673N-red-absolute.pdf]]

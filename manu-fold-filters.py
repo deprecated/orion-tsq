@@ -11,8 +11,8 @@ fns = ["F469N", "F673N", "F487N", "F502N",
        "FQ436N", "FQ437N", "F547M", "FQ575N", "F645N",
        "F656N", "F658N", "FQ672N", "FQ674N"]
 
-col_names = ["Section", "x", "y"] + fns
-col_dtypes = ["<U15", float, float] + [float]*len(fns)
+col_names = ["Section", "x", "y", "pointing", "aperture"] + fns
+col_dtypes = ["<U15", float, float, int, int] + [float]*len(fns)
 
 bands = ["red", "green", "blue"]
 wavcache = {}
@@ -26,7 +26,7 @@ FIBER_AREA_SR = FIBER_AREA_SQARCSEC / ARCSEC_RADIAN**2
 # but have already been multiplied by 1e15 
 FACTOR = 1.e-15*WFC3_CONSTANT/FIBER_AREA_SR
 
-def main():
+def main(choice='mean'):
     """Construct a table of per-filter fluxes from the Manu spectra. 
 
 Uses the data written by manu-photom-select"""
@@ -36,14 +36,18 @@ Uses the data written by manu-photom-select"""
         with path.open() as f:
             data = json.load(f)
         print(path.stem)
-        table_row = {"Section": path.stem, "x": data["x"], "y": data["y"]}
+        table_row = {"Section": path.stem, "x": data["x"], "y": data["y"],
+                     "pointing": data["pointing"], "aperture": data["aperture"]}
         for b in bands:
             if path.stem.startswith(b):
                 band = b 
                 exit
         if not band in wavcache:
             wavcache[band] = np.array(data["wavs"])
-        spectrum = np.array(data["mean"]) + np.array(data["cont"])
+        spectrum = np.array(data[choice])
+        if choice == 'mean':
+            # The mean is the only one that has had the continuum removed
+            spectrum += np.array(data["cont"])
         for fn in fns:
             if not fn in Tcache[band]:
                 Tcache[band][fn] = wfc3_utils.get_interpolated_filter(fn,

@@ -31,7 +31,7 @@ cont_table = Table.read("clean-continuum-ranges.tab",
 
 # Box that comfortably covers the sweet spot
 box_x, box_y = -43.0, -48.0     # Center of box in arcsec: dRA, dDEC
-box_w, box_h = 60.0, 60.0       # Box width and height, in arcsec
+box_w, box_h = 120.0, 120.0       # Box width and height, in arcsec
 # box_w, box_h = 3.0, 3.0       # Box width and height, in arcsec
 THRESH = 1.e-13                 # Threshold for possible saturation of long exposures
 brightlines = [6562.79, 4861.32, 4340.47, 4958.91, 5006.84, 6548.05, 6583.45]
@@ -88,9 +88,15 @@ for longband, band in ("red", "r"), ("green", "g"), ("blue", "b"):
         section["x"] = float(metadata["dRA"])
         section["y"] = float(metadata["dDEC"])
         section["aperture"] = int(metadata["id_ap"])
+        section["pointing"] = int(metadata["name"][6:8])
         section["band"] = band
         # Multiply by 1e15 as with the Helix to make the spectra of order unity for weak lines
         section["mean"] = 1.e15*np.where(brightmask, spectrum_s, spectrum)*metadata["factor2"]
+        section["short"] = 1.e15*spectrum_s*metadata["factor2"]
+        section["long"] = 1.e15*spectrum*metadata["factor2"]
+        section["factor1"] = float(metadata["factor1"])
+        section["factor2"] = float(metadata["factor2"])
+
         # We don't have a good estimate of the std of the data - so make something up!
         section["std"] = 0.01*np.ones_like(spectrum)
         # Fit continuum to the clean wav ranges
