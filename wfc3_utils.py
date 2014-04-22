@@ -4,6 +4,12 @@ import numpy as np
 datapath = os.path.join(os.path.dirname(__file__), 
                         "WFC3-filters", "SystemThroughput")
 
+WFC3_CONSTANT = 0.0840241 # counts cm^2 sr / erg / Ang / WFC3 pixel (used to be 0.29462)
+GAIN = 1.5
+ARCSEC_RADIAN = 180.0*3600.0/np.pi 
+
+AIR_REFRACTIVE_INDEX = 1.000277 # @STP according to Wikipedia
+
 def get_filter(fname, UVIS=1, return_wavelength=False):
     datafile = "{:s}.UVIS{:01d}.tab".format(fname.lower(), UVIS)
     fullpath = os.path.join(datapath, datafile) 

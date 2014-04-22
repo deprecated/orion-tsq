@@ -23,13 +23,11 @@ col_fmts.update({k: '%.2f' for k in ['x0', 'dRA', 'dDEC']})
 bands = ["red", "blue"]
 slits = [5, 6]
 
-WFC3_CONSTANT = 0.29462         # counts cm^2 sr / erg / Ang / WFC3 pixel
 SLIT_WIDTH = adal_common.slit_width              # arcsec
 PIXEL_SIZE = adal_common.pixel_size              # arcsec
-ARCSEC_RADIAN = 180.0*3600.0/np.pi 
 # The line fluxes were in units of erg/s/cm2/AA/pixel, 
 # This FACTOR should convert to counts per second per WFC3 pixel
-FACTOR = WFC3_CONSTANT*ARCSEC_RADIAN**2/(SLIT_WIDTH*PIXEL_SIZE)
+FACTOR = wfc3_utils.WFC3_CONSTANT*wfc3_utils.ARCSEC_RADIAN**2/(SLIT_WIDTH*PIXEL_SIZE)
 
 
 def main():
@@ -58,9 +56,11 @@ def main():
                               ("NAXIS1", "CRVAL1", "CRPIX1", "CD1_1")]
         # Subtract 1 from i0 because it is 1-based 
         wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+        # Vacuum wavelengths are necessary  to use with the filter curves
+        vacwavs = wavs*wfc3_utils.AIR_REFRACTIVE_INDEX
         
         # Set up the filter transmission curves
-        Tfilters = {fn: wfc3_utils.get_interpolated_filter(fn, wavs) for fn in fns}
+        Tfilters = {fn: wfc3_utils.get_interpolated_filter(fn, vacwavs) for fn in fns}
 
         for islit in slits:
             # # Set up position coordinates along slit - arcsec from slit center
