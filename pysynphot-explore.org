@@ -1,0 +1,67 @@
+This is in a separate file, to make it easy to use python 2.7 instead of 3.3
+
+We use the python in =/Users/will/anaconda/envs/py27/bin=
+
+* Test of setup
+#+BEGIN_SRC python :results output
+import sys
+print(sys.version)
+#+END_SRC
+
+#+RESULTS:
+: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+* Double-checking my absolute calibrations
+#+BEGIN_SRC python :results file 
+import numpy as np
+import pysynphot as S
+import json
+from astropy.io import fits
+import wfc3_utils
+import matplotlib.pyplot as plt
+
+# Set up filter bandpass
+bandpass = S.ObsBandpass('wfc3,uvis2,FQ575N')
+
+with open('odh-fold-sections.json') as f:
+    sections = json.load(f)
+hdu = fits.open("ODell-Harris/S30.30ed.fits")[0]
+# Set up wavelength coordinates - Angstrom
+nx, wav0, i0, dwav = [hdu.header[k] for k in 
+                      ("NAXIS1", "CRVAL1", "CRPIX1", "CD1_1")]
+wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+vacwavs = wavs*wfc3_utils.AIR_REFRACTIVE_INDEX
+# An example spectrum
+j1, j2 = sections["S30-100"]["j1"], sections["S30-100"]["j2"]
+
+flux_per_pixel = hdu.data[j1:j2,:].mean(axis=0) * (0.04**2)/(1.9*1.3)
+spectrum = S.ArraySpectrum(wave=vacwavs, flux=flux_per_pixel, fluxunits='flam')
+
+observation = S.Observation(spectrum, bandpass, force='extrapolate')
+
+# return observation.countrate()
+
+plotfile = 'pysynphot-test.pdf'
+plt.plot(observation.binwave, observation.binflux)
+plt.plot(observation.wave, observation.flux)
+plt.plot(spectrum.wave, spectrum.flux)
+plt.xlim(5700, 5800)
+plt.ylim(0.0, 1e-17)
+plt.savefig(plotfile)
+
+return plotfile
+
+#+END_SRC
+
+#+RESULTS:
+[[file:pysynphot-test.pdf]]
+
+
+* Set default python version to 2.7
+# Local Variables:
+# org-babel-python-command: "/Users/will/anaconda/envs/py27/bin/python"
+# End:
+
+
+
