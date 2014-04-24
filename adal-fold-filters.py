@@ -48,6 +48,12 @@ def main():
     # Set up slit sections
     sections = {}
 
+    # Correct zero point of blue spectra. This is completely ad hoc,
+    # but it is necessary to make the calibration plots go through the
+    # origin
+    for islit in slits:
+        hdu[('blue', islit)].data += 7.0e-16
+
     for band in bands:
 
         # Set up wavelength coordinates - Angstrom
@@ -56,6 +62,20 @@ def main():
                               ("NAXIS1", "CRVAL1", "CRPIX1", "CD1_1")]
         # Subtract 1 from i0 because it is 1-based 
         wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+
+        # extend and extrapolate red spectrum to cover the entire F547M bandpass
+        if band == 'red':
+            dwav, = np.diff(wavs[:2])
+            i1 = np.argmin(np.abs(wavs - 5450.0))
+            i2 = np.argmin(np.abs(wavs - 5700.0))
+            nx_extend = int((wavs[i1] - 4900)/dwav)
+            wavs_extend = wavs[i1] - (1. + np.arange(nx_extend)[::-1])*dwav
+            wavs = np.hstack((wavs_extend, wavs[i1:]))
+            for islit in slits:
+                fill_values = np.mean(hdu[('red', islit)].data[:, i1:i2], axis=1)
+                data_extend = np.ones(nx_extend)[None, :] * fill_values[:, None]
+                hdu[('red', islit)].data = np.hstack((data_extend,
+                                                      hdu[('red', islit)].data[:, i1:]))
         # Vacuum wavelengths are necessary  to use with the filter curves
         vacwavs = wavs*wfc3_utils.AIR_REFRACTIVE_INDEX
         
@@ -83,6 +103,11 @@ def main():
                     if band == adal_common.Bands[fn]:
                         integrand = Tfilters[fn]*spectrum*wavs
                         table_row[fn] =  FACTOR*np.trapz(integrand, wavs)
+                        if fn == 'F502N':
+                            # Spot correction for the 5007 line, based
+                            # on forcing the the average 5007/4959
+                            # ratio to be the theoretical value of 2.918
+                            table_row[fn] *= 1.62
                 tab.add_row(table_row)
 
 

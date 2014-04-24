@@ -16,12 +16,10 @@ bands = ["red", "green", "blue"]
 wavcache = {}
 Tcache = {"red": {}, "green": {}, "blue": {}}
 
-WFC3_CONSTANT = 0.29462         # counts cm^2 sr / erg / Ang / WFC3 pixel
 SLIT_WIDTH = 1.9                # arcsec
 PIXEL_SIZE = 1.3                # arcsec
-ARCSEC_RADIAN = 180.0*3600.0/np.pi 
 # The line fluxes were in units of erg/s/cm2/AA/pixel, 
-FACTOR = WFC3_CONSTANT*ARCSEC_RADIAN**2/(SLIT_WIDTH*PIXEL_SIZE)
+FACTOR = wfc3_utils.WFC3_CONSTANT*wfc3_utils.ARCSEC_RADIAN**2/(SLIT_WIDTH*PIXEL_SIZE)
 
 
 def main(seclength=2):
@@ -42,6 +40,7 @@ We need to repeat some portion of what was in odh-photom.py"""
     nx, wav0, i0, dwav = [hdu[60].header[k] for k in 
                           ("NAXIS1", "CRVAL1", "CRPIX1", "CD1_1")]
     wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+    vacwavs = wavs*wfc3_utils.AIR_REFRACTIVE_INDEX
 
     # # Set up position coordinates - pixels from the central star
     ny, x0, j0, dx = [hdu[60].header[k] for k in 
@@ -49,7 +48,7 @@ We need to repeat some portion of what was in odh-photom.py"""
     # xpos = x0 + (np.arange(ny) - (j0 - 1))*dx 
 
     # Set up the filter transmission curves
-    Tfilters = {fn: wfc3_utils.get_interpolated_filter(fn, wavs) for fn in fns}
+    Tfilters = {fn: wfc3_utils.get_interpolated_filter(fn, vacwavs) for fn in fns}
         
     # Set up table to hold the results 
     tab = Table(names=col_names, dtype=col_dtypes)

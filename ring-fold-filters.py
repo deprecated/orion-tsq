@@ -16,15 +16,13 @@ fns = ["F469N", "F673N", "F487N", "F502N",
 col_names = ["Section", "PA", "x0"] + fns
 col_dtypes = ["<U15", int, float] + [float]*len(fns)
 
-WFC3_CONSTANT = 0.29462         # counts cm^2 sr / erg / Ang / pixel
 SLIT_WIDTH = 1.9                # arcsec
 PIXEL_SIZE = 1.3                # arcsec
-ARCSEC_RADIAN = 180.0*3600.0/np.pi 
-PIXEL_AREA_SR = SLIT_WIDTH*PIXEL_SIZE / ARCSEC_RADIAN**2
+PIXEL_AREA_SR = SLIT_WIDTH*PIXEL_SIZE / wfc3_utils.ARCSEC_RADIAN**2
 
 # The line fluxes were in units of erg/s/cm2/AA/fiber, 
 # but have already been multiplied by 1e15 
-FACTOR = 1.e-15*WFC3_CONSTANT/PIXEL_AREA_SR
+FACTOR = 1.e-15*wfc3_utils.WFC3_CONSTANT/PIXEL_AREA_SR
 
 PAs = [60, 150]
 
@@ -54,6 +52,7 @@ Uses the data written to spectral_fit_fine_db"""
     nx, wav0, i0, dwav = [hdu[150].header[k] for k in 
                           ("NAXIS1", "CRVAL1", "CRPIX1", "CD1_1")]
     wavs = wav0 + (np.arange(nx) - (i0 - 1))*dwav 
+    vacwavs = wavs*wfc3_utils.AIR_REFRACTIVE_INDEX
 
     # Set up position coordinates - pixels from the central star
     ny, x0, j0, dx = [hdu[150].header[k] for k in 
@@ -62,7 +61,7 @@ Uses the data written to spectral_fit_fine_db"""
     xpos = x0 + (np.arange(ny) - (j0 + jshift - 1))*dx 
 
     # Set up the filter transmission curves
-    Tfilters = {fn: wfc3_utils.get_interpolated_filter(fn, wavs) for fn in fns}
+    Tfilters = {fn: wfc3_utils.get_interpolated_filter(fn, vacwavs) for fn in fns}
 
     # Get the positions of each slit section
     with open(str(data_dir / "spectral_fit_fine_db.json")) as f:
