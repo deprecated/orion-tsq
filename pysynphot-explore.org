@@ -13,6 +13,9 @@ print(sys.version)
 : [GCC 4.0.1 (Apple Inc. build 5493)]
 
 * Double-checking my absolute calibrations
+:PROPERTIES:
+:ID:       F3E918A4-5ADA-496B-B16C-9C16D75AD8C0
+:END:
 #+BEGIN_SRC python :results file 
 import numpy as np
 import pysynphot as S

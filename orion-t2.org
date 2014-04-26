@@ -46,12 +46,16 @@ We have a lot of material that needs to be drawn together
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [4/7] Absolute calibration of the filters
+*** TODO [6/7] Absolute calibration of the filters
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
 + So we actually don't need any of the line fitting at all
-**** TODO [3/4] Getting the normalizations right
+**** DONE [3/3] Getting the normalizations right
+CLOSED: [2014-04-25 Fri 12:05]
++ Summary:
+  + Orion absolute photometry is good to within 20%
+  + Ring is pverestimated by about 60%
 + From the WFC3 images we have counts/s/pixel (I think)
   + In the XXX-calibration.py programs we take the average value in the spectrograph aperture, so the units are not changed
 + From the spectroscopy we ought to have erg/s/cm^{2}/sr/\AA
@@ -87,7 +91,7 @@ We have a lot of material that needs to be drawn together
       + Header values
         + PHOTFLAM = 1.8167775E-17
         + PHOTBW = 4.2453072E+01
-+ [ ] I should compare with some 3rd party measurements
++ [X] I should compare with some 3rd party measurements
   + Esteban for Orion? Or Baldwin?
   + Manchado for the Ring Nebula
     + They give a dereddened H\beta flux for each of the regions
@@ -97,12 +101,19 @@ We have a lot of material that needs to be drawn together
 + The tables I have are the same as the ones recommended in the instrument handbook
   + http://www.stsci.edu/hst/wfc3/ins_performance/throughputs/Throughput_Tables
   + Except that those ones are not complete (no quad filters that I can find)
-***** The issue of the gain
+***** DONE The issue of the gain
+CLOSED: [2014-04-24 Thu 19:45]
 + This is 1.5 for WFC3
 + It seems that the images are in electrons, not in ADU
-+ So we should multiply all our measured rates by 1.5
-***** TODO Use pysynphot to double-check my normalizations
-
++ [X] So we should multiply all our measured rates by 1.5?
+  + *NO* - this is already included in the transmission curves
+***** DONE Use pysynphot to double-check my normalizations
+CLOSED: [2014-04-24 Thu 19:45]
++ Initial tests in [[file:pysynphot-explore.org][this]] separate org file
+  + pysynphot requires python 2.7
++ Full-scale test done in [[file:odh-synphot.py]]
+  + Works perfectly - agrees with previous method to within about 1%
+  + Turns out that the gain is *included* in the transmission curves
 ***** DONE The area factor
 CLOSED: [2014-04-21 Mon 22:07]
 It seems that the fraction of the mirror circular area that is blocked by the secondary is included in the transmission factors, so it /should not be included in the area/
@@ -151,10 +162,11 @@ CLOSED: [2014-04-21 Mon 20:06]
 | F814W | WFPC2 Wide I   |         802.4 |      153.6 |   0.23 | 663.33 | 2.316 |
 #+TBLFM: $7=10 $4 /$6 ; f3
 
-**** TODO [4/6] Little tweaks to improve things
-+ [ ] Need to mask out some Ring positions
+**** DONE [6/6] Little tweaks to improve things
+CLOSED: [2014-04-25 Fri 22:50]
++ [X] Need to mask out some Ring positions
   + Particularly for FQ672N and FQ674N
-+ [ ] Plate scale for Ring Nebula - need to expand it a bit
++ [X] Plate scale for Ring Nebula - need to expand it a bit, and shift the PA150
 + [X] Zero point of Adal spectra
   + and others?
   + Adal F469N - add 0.08 to spectrum?
@@ -170,29 +182,29 @@ CLOSED: [2014-04-21 Mon 20:06]
   + Strangely, it seems OK already for Manu
 **** Table of gradients
 These should all be 1, but they ain't ...
-|        |  ODH | Manu | Adal | Ring | ODH' | Manu' | Adal' | Ring' | Average'      |   |
-|--------+------+------+------+------+------+-------+-------+-------+---------------+---|
-| F658N  | 0.73 | 0.89 | 0.83 | 0.55 | 0.90 |  1.02 |  0.90 |  0.98 | 0.95 +/- 0.03 | ? |
-| F656N  | 0.92 | 0.95 | 0.93 | 0.58 | 1.14 |  1.09 |  1.01 |  1.04 | 1.07 +/- 0.03 | * |
-| F673N  | 0.80 | 0.73 | 0.81 | 0.58 | 0.99 |  0.84 |  0.88 |  1.04 | 0.94 +/- 0.05 |   |
-| F502N  | 0.83 | 0.91 | 0.91 | 0.53 | 1.02 |  1.05 |  0.99 |  0.95 | 1.00 +/- 0.02 | * |
-| F487N  | 0.81 | 0.88 | 0.86 | 0.57 | 1.00 |  1.01 |  0.93 |  1.02 | 0.99 +/- 0.02 |   |
-| F469N  | 0.73 | 0.61 | 0.88 | 0.76 | 0.90 |  0.70 |  0.96 |  1.36 | 0.98 +/- 0.14 | ? |
-| F547M  | 0.81 | 0.87 | 0.92 | 0.56 | 1.00 |  1.00 |  1.00 |  1.00 | 1.00          |   |
-| FQ575N | 0.91 | 0.79 | 0.92 | 0.61 | 1.12 |  0.91 |  1.00 |  1.09 | 1.03 +/- 0.05 |   |
-| FQ672N | 0.79 | 0.75 | 0.84 | 0.48 | 0.98 |  0.86 |  0.91 |  0.86 | 0.90 +/- 0.03 | * |
-| FQ674N | 0.88 | 0.79 | 0.87 | 0.46 | 1.09 |  0.91 |  0.95 |  0.82 | 0.94 +/- 0.06 |   |
-| FQ437N | 0.76 | 0.61 | 0.84 | 0.66 | 0.94 |  0.70 |  0.91 |  1.18 | 0.93 +/- 0.10 |   |
-| FQ436N | 0.78 | 0.66 | 0.87 | 0.55 | 0.96 |  0.76 |  0.95 |  0.98 | 0.91 +/- 0.05 |   |
-|--------+------+------+------+------+------+-------+-------+-------+---------------+---|
-| F645N  |  nan |  nan |  nan | 0.52 |  nan |   nan |   nan |  0.93 | nan +/- nan   |   |
-|--------+------+------+------+------+------+-------+-------+-------+---------------+---|
-| mean   |      |      |      |      | 1.00 |  0.90 |  0.95 |  1.03 | 1.00          |   |
-| std    |      |      |      |      | 0.08 |  0.13 |  0.04 |  0.14 | 0.10 +/- 0.02 |   |
+|        |  ODH | Manu | Adal | Ring | ODH' | Manu' | Adal' | Ring' | Average'      |   | Ring |
+|--------+------+------+------+------+------+-------+-------+-------+---------------+---+------|
+| F658N  | 0.73 | 0.89 | 0.83 | 0.55 | 0.90 |  1.02 |  0.90 |  1.08 | 0.98 +/- 0.05 | ? | 0.99 |
+| F656N  | 0.92 | 0.95 | 0.93 | 0.58 | 1.14 |  1.09 |  1.01 |  1.14 | 1.10 +/- 0.03 | * | 1.02 |
+| F673N  | 0.80 | 0.73 | 0.81 | 0.58 | 0.99 |  0.84 |  0.88 |  1.14 | 0.96 +/- 0.07 |   | 1.01 |
+| F502N  | 0.83 | 0.91 | 0.91 | 0.53 | 1.02 |  1.05 |  0.99 |  1.04 | 1.03 +/- 0.01 | * | 0.94 |
+| F487N  | 0.81 | 0.88 | 0.86 | 0.57 | 1.00 |  1.01 |  0.93 |  1.12 | 1.02 +/- 0.04 |   | 1.01 |
+| F469N  | 0.73 | 0.61 | 0.88 | 0.76 | 0.90 |  0.70 |  0.96 |  1.49 | 1.01 +/- 0.17 | ? | 1.35 |
+| F547M  | 0.81 | 0.87 | 0.92 | 0.51 | 1.00 |  1.00 |  1.00 |  1.00 | 1.00          |   | 1.00 |
+| FQ575N | 0.91 | 0.79 | 0.92 | 0.61 | 1.12 |  0.91 |  1.00 |  1.20 | 1.06 +/- 0.06 |   | 1.09 |
+| FQ672N | 0.79 | 0.75 | 0.84 | 0.48 | 0.98 |  0.86 |  0.91 |  0.94 | 0.92 +/- 0.03 | * | 0.97 |
+| FQ674N | 0.88 | 0.79 | 0.87 | 0.46 | 1.09 |  0.91 |  0.95 |  0.90 | 0.96 +/- 0.04 |   | 0.87 |
+| FQ437N | 0.76 | 0.61 | 0.84 | 0.66 | 0.94 |  0.70 |  0.91 |  1.29 | 0.96 +/- 0.12 |   | 1.13 |
+| FQ436N | 0.78 | 0.66 | 0.87 | 0.55 | 0.96 |  0.76 |  0.95 |  1.08 | 0.94 +/- 0.07 |   | 0.97 |
+|--------+------+------+------+------+------+-------+-------+-------+---------------+---+------|
+| F645N  |  nan |  nan |  nan | 0.52 |  nan |   nan |   nan |  1.02 | nan +/- nan   |   | 0.95 |
+|--------+------+------+------+------+------+-------+-------+-------+---------------+---+------|
+| mean   |      |      |      |      | 1.00 |  0.90 |  0.95 |  1.12 | 1.00          |   |      |
+| std    |      |      |      |      | 0.08 |  0.13 |  0.04 |  0.16 | 0.10 +/- 0.03 |   |      |
 #+TBLFM: $6=$2/@8$2;f2::$7=$3/@8$3;f2::$8=$4/@8$4;f2::$9=$5/@8$5;f2::$10=vmeane($6..$9);f2::@15$6..@15$10=vmean(@I..@II);f2::@16$6..@16$9=vsdev(@I..@II);f2
 + The primed columns are normalized by the F547M value
 + Manu's F547M needs sorting out - it runs off the end of the wav scale, so we are missing some flux
-  + this will reduce the value from 0.87 by a bit, so that the primed values will all be highre
+  + this will reduce the value from 0.87 by a bit, so that the primed values will all be higher
   + That will help the quad features, but make F658N even more anomalou
 **** Lines that show a possible deviation from the nominal calibration
 ***** F658N
@@ -201,7 +213,13 @@ These should all be 1, but they ain't ...
 + The Ring should really be the best quality since highest EW and minimal contamination from H\alpha or continuum
   + But 0.56 might be a better choice than 0.51 for the F547M gradient, which would put F658N just a tad below unity
 + Manu's data shows a lot of variation between fields
-***** 
+***** a
+
+**** Plotting some ratios
+#+BEGIN_SRC python
+
+#+END_SRC
+
 **** DONE Absolute fluxes from ODH spectra
 CLOSED: [2014-04-18 Fri 00:30]
 + This should be even easier
@@ -256,6 +274,12 @@ CLOSED: [2014-04-18 Fri 00:29]
 + [X] Need to check that we haven't subtracted the continuum
 **** TODO Plot the results
 ***** Common functionality
+
+#+name: aesthetics
+#+BEGIN_SRC python
+bgcolor = "#c0c0c0" # light gray
+cmap = plt.cm.get_cmap('hot')
+#+END_SRC
 
 #+name: read-manu-data
 #+BEGIN_SRC python
@@ -367,12 +391,12 @@ CLOSED: [2014-04-18 Fri 00:29]
   mmm = mmm & np.array([aband in s for s in adaltab['Section']])
   adal_flux = adaltab[fn + '_s'][mmm]
   
-  bgcolor = "#b0b0b0" # light gray
   fig = plt.figure(figsize=(16,8))
+  <<aesthetics>>
   ax_spec = plt.axes([0.06, 0.35, 0.25, 0.6], axisbg=bgcolor)
   ax_wfc3 = plt.axes([0.36, 0.35, 0.25, 0.6], sharex=ax_spec, sharey=ax_spec, axisbg=bgcolor)
   # ax_cb = plt.axes([0.56, 0.35, 0.02, 0.65])
-  cmap = plt.cm.get_cmap('hot')
+  
   ax_spec.scatter(xx[mm], yy[mm], c=odh_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='s', cmap=cmap)
   ax_spec.scatter(xxx[mmm], yyy[mmm], c=adal_flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, marker='>', cmap=cmap)
   scat0 = ax_spec.scatter(x[m], y[m], c=flux, vmin=0.0, vmax=fmax, s=50, alpha=0.6, edgecolors='none', cmap=cmap)
@@ -868,116 +892,90 @@ The next ones have problems with the zero level, but it is unclear whether this 
 CLOCK: [2014-04-19 Sat 14:05]
 :END:
 
+****** Ring correlation graph
+#+name: empty-ranges
+|  60 | 0.0 | 0.0 |
+| 150 | 0.0 | 0.0 |
+
+#+name: range-test
+#+BEGIN_SRC python :var exclude=empty-ranges :results verbatim :return d
+d = {k: (x1, x2) for k, x1, x2 in exclude}
+#+END_SRC
+
+#+RESULTS: range-test
+: {60: (0.0, 0.0), 150: (0.0, 0.0)}
+
 #+name: ring-absolute
-#+BEGIN_SRC python :noweb yes :results file :var fn="F656N" brightmax=1000.0
-    import numpy as np
-    from pathlib import Path
-    from astropy.table import Table
-    import astropy.table
-    from matplotlib import pyplot as plt
-    from sweetspot_utils import find_sweetspot_mask
+#+header: :var fn="F656N" brightmax=1000.0 offset=0.0 exclude=empty-ranges norm=0.35
+#+BEGIN_SRC python :noweb yes :results file 
+  import numpy as np
+  from pathlib import Path
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from matplotlib.ticker import MaxNLocator
+  from sweetspot_utils import find_sweetspot_mask
 
-    root_dir = Path.cwd().parent.parent
-    data_dir = root_dir/"RingNebula"/"WFC3"/"2013-Geometry"
+  <<aesthetics>>
+  root_dir = Path.cwd().parent.parent
+  data_dir = root_dir/"RingNebula"/"WFC3"/"2013-Geometry"
 
-    spectab = Table.read('ring-filter-predicted-rates.tab', format='ascii.tab')
-    wfc3tab = Table.read(str(data_dir/'ring_calibration_db.tab'),
-                         format='ascii.tab',
-                         fill_values=('--', 0.0))
+  spectab = Table.read('ring-filter-predicted-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read(str(data_dir/'ring_calibration_db.tab'),
+                       format='ascii.tab',
+                       fill_values=('--', 0.0))
 
-    fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section', 'PA'],
-                                 table_names=['s', 'w'])
+  fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section', 'PA'],
+                               table_names=['s', 'w'])
 
-    d = np.abs(fulltab['x0_w'])
+  d = np.abs(fulltab['x0_w'])
 
-    x = fulltab[fn + '_s']
-    y = fulltab[fn + '_w']
-    m = np.isfinite(x) & np.isfinite(y) & (x < brightmax) & (x > 0.0) & (y > 0.0)
+  x = (fulltab[fn + '_s'] - offset)*norm
+  y = fulltab[fn + '_w']
 
-    gradient = y[m].sum()/x[m].sum()
-    plt.scatter(x[m], y[m], c=d[m], s=fulltab['PA'][m], alpha=0.6)
-    plt.colorbar()
-    plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
-             label="gradient: {:.2f}".format(gradient))
-    plt.xlabel("Ring spectra predicted count rate per pixel / s$^{-1}$")
-    plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
-    plt.title(fn)
-    plt.xlim(0.0, None)
-    plt.ylim(0.0, None)
-    plt.legend()
-    plt.tight_layout()
-    pltfile = 'ring-{}-absolute.pdf'.format(fn)
-    plt.savefig(pltfile)
-    return pltfile
+  m = np.isfinite(x) & np.isfinite(y) & (x < brightmax) & (x > 0.0) & (y > 0.0)
+  for pa, x1, x2 in exclude:
+      excluded = (pa == fulltab['PA']) & (fulltab['x0_w'] >= x1) & (fulltab['x0_w'] <= x2)
+      m = m & ~excluded
+      
+  gradient = y[m].sum()/x[m].sum()
+  order = np.random.permutation(len(x[m]))
+  fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
+  scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=fulltab['PA'][m][order], vmin=0.0, alpha=0.8, cmap=cmap)
+  cb = fig.colorbar(scat, ax=ax)
+  cb.set_label('Radius, arcsec')
+  ax.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '--',
+           label="gradient: {:.2f}".format(gradient))
+  ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
+           label="gradient: {:.2f}".format(1.0))
+  ax.set_xlabel("Ring spectra predicted count rate per pixel / s$^{-1}$")
+  ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  ax.set_title(fn)
+  plotmax = 1.1*max(x[m].max(), y[m].max())
+  ax.set_xlim(0.0, plotmax)
+  ax.set_ylim(0.0, plotmax)
+  # Omit number from 0.0 tick on both axes
+  ax.xaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.yaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.legend(loc='upper left')
+  ax.set_aspect('equal', adjustable='box')
+  ax.grid(ls='-', c='w', alpha=0.3)
+  ax.set_axisbelow(True)
+  pltfile = 'ring-{}-absolute.pdf'.format(fn)
+  fig.tight_layout()
+  fig.savefig(pltfile)
+  return pltfile
 
 #+END_SRC
 
 #+RESULTS: ring-absolute
 [[file:ring-F656N-absolute.pdf]]
 
-#+call: ring-absolute("F547M", 1.0) :results file
 
-#+RESULTS:
-[[file:ring-F547M-absolute.pdf]]
-
-#+call: ring-absolute("F658N") :results file
-
-#+RESULTS:
-[[file:ring-F658N-absolute.pdf]]
-
-#+call: ring-absolute("F673N") :results file
-
-#+RESULTS:
-[[file:ring-F673N-absolute.pdf]]
-
-#+call: ring-absolute("F502N") :results file
-
-#+RESULTS:
-[[file:ring-F502N-absolute.pdf]]
-
-#+call: ring-absolute("F469N") :results file
-
-#+RESULTS:
-[[file:ring-F469N-absolute.pdf]]
-
-#+call: ring-absolute("F487N") :results file
-
-#+RESULTS:
-[[file:ring-F487N-absolute.pdf]]
-
-#+call: ring-absolute("F645N") :results file
-
-#+RESULTS:
-[[file:ring-F645N-absolute.pdf]]
-
-#+call: ring-absolute("FQ575N") :results file
-
-#+RESULTS:
-[[file:ring-FQ575N-absolute.pdf]]
-
-#+call: ring-absolute("FQ672N") :results file
-
-#+RESULTS:
-[[file:ring-FQ672N-absolute.pdf]]
-
-#+call: ring-absolute("FQ674N") :results file
-
-#+RESULTS:
-[[file:ring-FQ674N-absolute.pdf]]
-
-#+call: ring-absolute("FQ437N") :results file
-
-#+RESULTS:
-[[file:ring-FQ437N-absolute.pdf]]
-
-#+call: ring-absolute("FQ436N") :results file
-
-#+RESULTS:
-[[file:ring-FQ436N-absolute.pdf]]
 ****** Ring profiles
 #+name: ring-profile-test
 #+header: :results file
-#+header: :var PA=60 :var floor=0.0 fudge=0.51 shift=0.0 stretch=1.0
+#+header: :var PA=60 :var floor=0.0 fudge=0.35
 #+BEGIN_SRC python :var fn="F658N" 
   import numpy as np
   from pathlib import Path
@@ -1002,7 +1000,9 @@ CLOCK: [2014-04-19 Sat 14:05]
   # m = m & find_sweetspot_mask(fn, fulltab['dRA'], fulltab['dDEC']) 
   # m = m & (fulltab[fn+'_w'] < fulltab[fn+'_s']) 
   plt.plot(fulltab['x0_w'][m], fudge*fulltab[fn+'_s'][m] + floor, 'o', label='spectrum')
-  plt.plot(fulltab['x0_w'][m]*stretch + shift, fulltab[fn+'_w'][m], 'r', label='WFC3')
+  # xx = fulltab['x0_s'][m]*stretch + shift
+  # yy = np.interp(xx, fulltab['x0_s'][m], )
+  plt.plot(fulltab['x0_w'][m], fulltab[fn+'_w'][m], 'r', label='WFC3')
   plt.ylim(0.0, None)
   # plt.ylim(0.0, 5.0*np.median(fulltab[fn+'_s'][m] + floor))
   plt.grid()
@@ -1015,19 +1015,37 @@ CLOCK: [2014-04-19 Sat 14:05]
 #+END_SRC
 
 #+RESULTS: ring-profile-test
-[[file:]]
+[[file:ring-profile-pa60-F658N.pdf]]
 
 ******* F658N Ring profiles
-#+call: ring-profile-test(fn="F658N", PA=60, fudge=0.56, stretch=1.0) :results file
+#+name: f658n-exclude
+|  60 | -20.0 |   3.0 |
+| 150 | -20.0 | -10.0 |
+
+#+call: ring-absolute("F658N", exclude=f658n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-F658N-absolute.pdf]]
+
+#+call: ring-profile-test(fn="F658N", PA=60) :results file
 
 #+RESULTS:
 [[file:ring-profile-pa60-F658N.pdf]]
 
-#+call: ring-profile-test(fn="F658N", PA=150, fudge=0.56, shift=-0.7, stretch=1.02) :results file
+#+call: ring-profile-test(fn="F658N", PA=150) :results file
 
 #+RESULTS:
 [[file:ring-profile-pa150-F658N.pdf]]
 ******* F656N Ring profiles
+#+name: f656n-exclude
+|  60 | -20.0 |   3.0 |
+| 150 | -20.0 | -10.0 |
+
+#+call: ring-absolute("F656N") :results file
+
+#+RESULTS:
+[[file:ring-F656N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="F656N", PA=60) :results file
 
 #+RESULTS:
@@ -1038,6 +1056,15 @@ CLOCK: [2014-04-19 Sat 14:05]
 #+RESULTS:
 [[file:ring-profile-pa150-F656N.pdf]]
 ******* F673N Ring profiles
+#+name: f673n-exclude
+|  60 | -45.0 | -20.0 |
+| 150 |   0.0 |   0.0 |
+
+#+call: ring-absolute("F673N", exclude=f673n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-F673N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="F673N", PA=60) :results file
 
 #+RESULTS:
@@ -1048,6 +1075,15 @@ CLOCK: [2014-04-19 Sat 14:05]
 #+RESULTS:
 [[file:ring-profile-pa150-F673N.pdf]]
 ******* FQ672N Ring profiles
+#+name: fq672n-exclude
+|  60 | -60.0 |   3.0 |
+| 150 | -50.0 | -10.0 |
+
+#+call: ring-absolute("FQ672N", exclude=fq672n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-FQ672N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="FQ672N", PA=60) :results file
 
 #+RESULTS:
@@ -1057,7 +1093,17 @@ CLOCK: [2014-04-19 Sat 14:05]
 
 #+RESULTS:
 [[file:ring-profile-pa150-FQ672N.pdf]]
+
 ******* FQ674N Ring profiles
+#+name: fq674n-exclude
+|  60 | -60.0 |   3.0 |
+| 150 | -50.0 | -10.0 |
+
+#+call: ring-absolute("FQ674N", exclude=fq674n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-FQ674N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="FQ674N", PA=60) :results file
 
 #+RESULTS:
@@ -1069,6 +1115,16 @@ CLOCK: [2014-04-19 Sat 14:05]
 [[file:ring-profile-pa150-FQ674N.pdf]]
 
 ******* FQ575N Ring profiles
+#+name: fq575n-exclude
+|  60 | -60.0 |  10.0 |
+| 150 | -50.0 | -15.0 |
+| 150 |  -4.0 | 4.0   |
+
+#+call: ring-absolute("FQ575N", exclude=fq575n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-FQ575N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="FQ575N", PA=60) :results file
 
 #+RESULTS:
@@ -1080,6 +1136,16 @@ CLOCK: [2014-04-19 Sat 14:05]
 [[file:ring-profile-pa150-FQ575N.pdf]]
 
 ******* FQ437N Ring profiles
+#+name: fq437n-exclude
+|  60 | -60.0 |  10.0 |
+| 150 | -50.0 | -15.0 |
+| 150 |  -4.0 | 4.0   |
+
+#+call: ring-absolute("FQ437N", exclude=fq437n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-FQ437N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="FQ437N", PA=60) :results file
 
 #+RESULTS:
@@ -1091,6 +1157,16 @@ CLOCK: [2014-04-19 Sat 14:05]
 [[file:ring-profile-pa150-FQ437N.pdf]]
 
 ******* FQ436N Ring profiles
+#+name: fq436n-exclude
+|  60 | -60.0 |  10.0 |
+| 150 | -50.0 | -15.0 |
+| 150 |  -4.0 | 4.0   |
+
+#+call: ring-absolute("FQ436N", exclude=fq436n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-FQ436N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="FQ436N", PA=60) :results file
 
 #+RESULTS:
@@ -1102,28 +1178,60 @@ CLOCK: [2014-04-19 Sat 14:05]
 [[file:ring-profile-pa150-FQ436N.pdf]]
 
 ******* F547M Ring profiles
-#+call: ring-profile-test(fn="F547M", PA=60, fudge=0.56, stretch=1.02) :results file
+#+name: f547m-exclude
+|  60 | -5.0 | 5.0 |
+| 150 | -5.0 | 5.0 |
+
+#+call: ring-absolute("F547M", 2.0, 0.01, f547m-exclude) :results file
+
+#+RESULTS:
+[[file:ring-F547M-absolute.pdf]]
+
+
+#+call: ring-profile-test(fn="F547M", PA=60, fudge=0.35, floor=-0.002) :results file
 
 #+RESULTS:
 [[file:ring-profile-pa60-F547M.pdf]]
 
-#+call: ring-profile-test(fn="F547M", PA=150, fudge=0.56, shift=-0.7, stretch=1.02) :results file
+
+#+call: ring-profile-test(fn="F547M", PA=150, fudge=0.35, floor=-0.005) :results file
 
 #+RESULTS:
 [[file:ring-profile-pa150-F547M.pdf]]
 
 ******* F645N Ring profiles
-#+call: ring-profile-test(fn="F645N", PA=60) :results file
+#+name: f645n-exclude
+|  60 |  -5.0 |   5.0 |
+|  60 | -22.0 | -15.0 |
+|  60 |   7.0 |  15.0 |
+|  60 |  32.0 |  38.0 |
+| 150 |  -5.0 |   5.0 |
+
+#+call: ring-absolute("F645N", exclude=f645n-exclude, offset=0.002) :results file
+
+#+RESULTS:
+[[file:ring-F645N-absolute.pdf]]
+
+#+call: ring-profile-test(fn="F645N", PA=60, floor=-0.0005) :results file
 
 #+RESULTS:
 [[file:ring-profile-pa60-F645N.pdf]]
 
-#+call: ring-profile-test(fn="F645N", PA=150) :results file
+#+call: ring-profile-test(fn="F645N", PA=150, floor=-0.0009) :results file
 
 #+RESULTS:
 [[file:ring-profile-pa150-F645N.pdf]]
 
 ******* F487N Ring profiles
+#+name: f487n-exclude
+|  60 |  -5.0 |   5.0 |
+| 150 |  -5.0 |   5.0 |
+
+#+call: ring-absolute("F487N", exclude=f487n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-F487N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="F487N", PA=60) :results file
 
 #+RESULTS:
@@ -1135,6 +1243,15 @@ CLOCK: [2014-04-19 Sat 14:05]
 [[file:ring-profile-pa150-F487N.pdf]]
 
 ******* F502N Ring profiles
+#+name: f502n-exclude
+|  60 | -10.0 | 5.0 |
+| 150 |   0.0 | 0.0 |
+
+#+call: ring-absolute("F502N", exclude=f502n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-F502N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="F502N", PA=60) :results file
 
 #+RESULTS:
@@ -1146,6 +1263,15 @@ CLOCK: [2014-04-19 Sat 14:05]
 [[file:ring-profile-pa150-F502N.pdf]]
 
 ******* F469N Ring profiles
+#+name: f469n-exclude
+|  60 |  -5.0 |   5.0 |
+| 150 |  -5.0 |   5.0 |
+
+#+call: ring-absolute("F469N", exclude=f469n-exclude) :results file
+
+#+RESULTS:
+[[file:ring-F469N-absolute.pdf]]
+
 #+call: ring-profile-test(fn="F469N", PA=60) :results file
 
 #+RESULTS:
@@ -1160,14 +1286,18 @@ CLOCK: [2014-04-19 Sat 14:05]
 
 
 #+name: odh-absolute
-#+BEGIN_SRC python :noweb yes :results file :var fn="F547M"
+#+header: :var fn="F547M" norm=0.93 offset=0.0
+#+BEGIN_SRC python :noweb yes :results file :noweb yes
   import numpy as np
   from astropy.table import Table
   import astropy.table
   from matplotlib import pyplot as plt
+  from matplotlib.ticker import MaxNLocator
   from sweetspot_utils import find_sweetspot_mask
 
-  spectab = Table.read('odh-filter-predicted-rates.tab', format='ascii.tab')
+  <<aesthetics>>
+
+  spectab = Table.read('odh-filter-synphot-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('odh-filter-wfc3-rates.tab', format='ascii.tab',
                        fill_values=('--', 0.0))
 
@@ -1178,22 +1308,33 @@ CLOCK: [2014-04-19 Sat 14:05]
   ra = -fulltab['x0']
   d = np.hypot(ra, dec)
 
-  x = fulltab[fn + '_s']
+  x = (fulltab[fn + '_s'] - offset)*norm
   y = fulltab[fn + '_w']
   m = np.isfinite(x) & np.isfinite(y)
   m = m & find_sweetspot_mask(fn, ra, dec) 
 
   gradient = y[m].sum()/x[m].sum()
-  plt.scatter(x[m], y[m], c=ra[m], s=3000.0/np.abs(dec[m]), vmin=-120.0, vmax=0.0, alpha=0.6)
-  plt.colorbar()
-  plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
+  order = np.random.permutation(len(x[m]))
+  fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
+  scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=3000.0/np.abs(dec[m][order]), vmin=0.0, vmax=120.0, alpha=0.8, cmap=cmap)
+  cb = fig.colorbar(scat, ax=ax)
+  cb.set_label('Radius, arcsec')
+  ax.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '--',
            label="gradient: {:.2f}".format(gradient))
-  plt.xlabel("ODH spectra predicted count rate per pixel / s$^{-1}$")
-  plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
-  plt.title(fn)
-  plt.xlim(0.0, None)
-  plt.ylim(0.0, None)
-  plt.legend()
+  ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
+           label="gradient: {:.2f}".format(1.0))
+  ax.set_xlabel("ODH spectra predicted count rate per pixel / s$^{-1}$")
+  ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  ax.set_title(fn)
+  plotmax = 1.1*max(x[m].max(), y[m].max())
+  ax.set_xlim(0.0, plotmax)
+  ax.set_ylim(0.0, plotmax)
+  ax.xaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.yaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.legend(loc='upper left')
+  ax.set_aspect('equal', adjustable='box')
+  ax.grid(ls='-', c='w', alpha=0.3)
+  ax.set_axisbelow(True)
   plt.tight_layout()
   pltfile = 'odh-{}-absolute.pdf'.format(fn)
   plt.savefig(pltfile)
@@ -1201,8 +1342,11 @@ CLOCK: [2014-04-19 Sat 14:05]
 
 #+END_SRC
 
-#+RESULTS: odh-absolute
+#+call: odh-absolute("F547M", offset=0.3) :results file
+
+#+RESULTS:
 [[file:odh-F547M-absolute.pdf]]
+
 
 
 #+call: odh-absolute("FQ575N") :results file
@@ -1212,19 +1356,19 @@ CLOCK: [2014-04-19 Sat 14:05]
 
 
 
-#+call: odh-absolute("F658N") :results file
+#+call: odh-absolute("F658N", offset=0.5) :results file
 
 #+RESULTS:
 [[file:odh-F658N-absolute.pdf]]
 
 
-#+call: odh-absolute("F656N") :results file
+#+call: odh-absolute("F656N", offset=0.7) :results file
 
 #+RESULTS:
 [[file:odh-F656N-absolute.pdf]]
 
 
-#+call: odh-absolute("F673N") :results file
+#+call: odh-absolute("F673N", offset=0.1) :results file
 
 #+RESULTS:
 [[file:odh-F673N-absolute.pdf]]
@@ -1239,7 +1383,7 @@ CLOCK: [2014-04-19 Sat 14:05]
 #+RESULTS:
 [[file:odh-FQ674N-absolute.pdf]]
 
-#+call: odh-absolute("F502N") :results file
+#+call: odh-absolute("F502N", offset=0.5) :results file
 
 #+RESULTS:
 [[file:odh-F502N-absolute.pdf]]
@@ -1254,12 +1398,12 @@ CLOCK: [2014-04-19 Sat 14:05]
 #+RESULTS:
 [[file:odh-FQ436N-absolute.pdf]]
 
-#+call: odh-absolute("F469N") :results file
+#+call: odh-absolute("F469N", offset=0.04) :results file
 
 #+RESULTS:
 [[file:odh-F469N-absolute.pdf]]
 
-#+call: odh-absolute("F487N") :results file
+#+call: odh-absolute("F487N", offset=0.3) :results file
 
 #+RESULTS:
 [[file:odh-F487N-absolute.pdf]]

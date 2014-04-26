@@ -1,0 +1,109 @@
+Test of Eric Schulte's patch to allow specifying the python interpreter via the =:python= header command. 
+
+* Default python version
+#+name: check-python-version
+#+BEGIN_SRC python
+import sys
+return sys.version
+#+END_SRC
+
+#+RESULTS: check-python-version
+: 3.3.5 |Anaconda 1.9.1 (x86_64)| (default, Mar 10 2014, 11:22:25) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+This is the control experiment. 
+
+* Custom python version
+#+BEGIN_SRC python :python /Users/will/anaconda/envs/py27/bin/python
+import sys
+return sys.version
+#+END_SRC
+
+#+RESULTS:
+: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+This works.
+
+* Test using call syntax
+It is necessary to put the =:python= command in the /inside header arguments/, which go in square brackets before the function arguments. 
+
+#+call: check-python-version[:python /Users/will/anaconda/envs/py27/bin/python]() 
+
+#+RESULTS:
+: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+So that works fine, but beware that the following does not: 
+
+#+call: check-python-version() :python /Users/will/anaconda/envs/py27/bin/python
+
+#+RESULTS:
+: 3.3.5 |Anaconda 1.9.1 (x86_64)| (default, Mar 10 2014, 11:22:25) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+
+* Sacha Chua's alternative solution using a tag and advice
+
+This lisp code must be evaluated first
+#+begin_src emacs-lisp
+(defadvice org-babel-execute:python (around will activate)
+  (if (member "python2" (org-get-tags-at))
+    (let ((org-babel-python-command "/Users/will/anaconda/envs/py27/bin/python"))
+      ad-do-it)
+    ad-do-it))
+#+end_src
+
+#+RESULTS:
+: org-babel-execute:python
+
+** Sacha direct test                                                :python2:
+This works when the code block is directly evaluated
+#+name: second-check-python-version
+#+BEGIN_SRC python
+import sys
+return sys.version
+#+END_SRC
+
+#+RESULTS:
+: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+** Sacha call test one                                              :python2:
+When calling another code block, what matters is that the tag is on the header where the block is defined, so this does not work
+#+call: check-python-version()
+
+#+RESULTS:
+: 3.3.5 |Anaconda 1.9.1 (x86_64)| (default, Mar 10 2014, 11:22:25) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+
+** Sacha call test two
+But this does
+#+call: second-check-python-version()
+
+#+RESULTS:
+: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+
+* Ian Barton's alternative proposed solution with shebang
+Does not work for direct evaluation with =C-c C-c=
+#+begin_src python :shebang #!/Users/will/anaconda/envs/py27/bin/python :tangle py2-test.py :exports none :noweb yes :results output
+import sys
+print(sys.version)
+#+end_src
+
+#+RESULTS:
+: 3.3.5 |Anaconda 1.9.1 (x86_64)| (default, Mar 10 2014, 11:22:25) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+
+But does work with tangling to a file first
+#+BEGIN_SRC sh :results verbatim
+./py2-test.py
+#+END_SRC
+
+#+RESULTS:
+: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
+: [GCC 4.0.1 (Apple Inc. build 5493)]
+

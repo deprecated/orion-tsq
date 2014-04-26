@@ -16,8 +16,8 @@ fns = ["F469N", "F673N", "F487N", "F502N",
 col_names = ["Section", "PA", "x0"] + fns
 col_dtypes = ["<U15", int, float] + [float]*len(fns)
 
-SLIT_WIDTH = 1.9                # arcsec
-PIXEL_SIZE = 1.3                # arcsec
+SLIT_WIDTH = 1.4                # arcsec
+PIXEL_SIZE = 1.076                # arcsec
 PIXEL_AREA_SR = SLIT_WIDTH*PIXEL_SIZE / wfc3_utils.ARCSEC_RADIAN**2
 
 # The line fluxes were in units of erg/s/cm2/AA/fiber, 
