@@ -674,13 +674,16 @@ The [S II] lines show a strong peak in the S60 spectrum
 
 
 #+name: adal-absolute
-#+header: :var fn="F656N" :var band="red"  :var maxcount=1000.0
+#+header: :var fn="F656N" band="red" maxcount=1000.0 norm=0.92 offset=0.0
 #+BEGIN_SRC python :noweb yes :results file 
   import numpy as np
   from astropy.table import Table
   import astropy.table
   from matplotlib import pyplot as plt
+  from matplotlib.ticker import MaxNLocator
   from sweetspot_utils import find_sweetspot_mask
+
+  <<aesthetics>>
 
   spectab = Table.read('adal-filter-predicted-rates.tab', format='ascii.tab')
   wfc3tab = Table.read('adal-filter-wfc3-rates.tab', format='ascii.tab',
@@ -692,7 +695,9 @@ The [S II] lines show a strong peak in the S60 spectrum
   slitx = fulltab['x0_s']
   islit = np.array([int(s[1]) for s in fulltab['Section']])
 
-  x = fulltab[fn + '_s']
+  d = np.hypot(fulltab['dRA'], fulltab['dDEC'])
+
+  x = (fulltab[fn + '_s'] - offset)*norm
   y = fulltab[fn + '_w']
   m = np.isfinite(x) & np.isfinite(y)
   m = m & find_sweetspot_mask(fn, fulltab['dRA'], fulltab['dDEC']) 
@@ -700,18 +705,27 @@ The [S II] lines show a strong peak in the S60 spectrum
   # Eliminate some spurious points
   m = m & (y < 4*x) & (x < maxcount)
   gradient = y[m].sum()/x[m].sum()
-  plt.scatter(x[m], y[m], c=slitx[m], s=100.0/(islit[m]-4), alpha=0.6)
-  plt.colorbar()
-  plt.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '-',
+  order = np.random.permutation(len(x[m]))
+  fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
+  scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=100.0/(islit[m][order]-4), vmin=0.0, vmax=150.0, alpha=0.8, cmap=cmap)
+  cb = fig.colorbar(scat, ax=ax)
+  cb.set_label('Radius, arcsec')
+  ax.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '--',
            label="gradient: {:.2f}".format(gradient))
-  plt.plot([0.0, x[m].max()], [0.0, x[m].max()], 'r-',
-           label="gradient: 1.0")
-  plt.xlabel("Adal spectra predicted count rate per pixel / s$^{-1}$")
-  plt.ylabel("WFC3 image count rate per pixel / s$^{-1}$")
-  plt.title(fn)
-  plt.xlim(0.0, None)
-  plt.ylim(0.0, None)
-  plt.legend()
+  ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
+           label="gradient: {:.2f}".format(1.0))
+  ax.set_xlabel("Adal spectra predicted count rate per pixel / s$^{-1}$")
+  ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  ax.set_title(fn)
+  plotmax = 1.1*max(x[m].max(), y[m].max())
+  ax.set_xlim(0.0, plotmax)
+  ax.set_ylim(0.0, plotmax)
+  ax.xaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.yaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.legend(loc='upper left')
+  ax.set_aspect('equal', adjustable='box')
+  ax.grid(ls='-', c='w', alpha=0.3)
+  ax.set_axisbelow(True)
   plt.tight_layout()
   pltfile = 'adal-{}-absolute.pdf'.format(fn)
   plt.savefig(pltfile)
@@ -751,7 +765,7 @@ The [S II] lines show a strong peak in the S60 spectrum
 #+RESULTS:
 [[file:adal-F487N-absolute.pdf]]
 
-#+call: adal-absolute("F547M", "red", maxcount=20) :results file 
+#+call: adal-absolute("F547M", "red", maxcount=6) :results file 
 
 #+RESULTS:
 [[file:adal-F547M-absolute.pdf]]
@@ -1316,7 +1330,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
   gradient = y[m].sum()/x[m].sum()
   order = np.random.permutation(len(x[m]))
   fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
-  scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=3000.0/np.abs(dec[m][order]), vmin=0.0, vmax=120.0, alpha=0.8, cmap=cmap)
+  scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=3000.0/np.abs(dec[m][order]), vmin=0.0, vmax=150.0, alpha=0.8, cmap=cmap)
   cb = fig.colorbar(scat, ax=ax)
   cb.set_label('Radius, arcsec')
   ax.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '--',
@@ -1341,6 +1355,9 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
   return pltfile
 
 #+END_SRC
+
+#+RESULTS: odh-absolute
+[[file:odh-F547M-absolute.pdf]]
 
 #+call: odh-absolute("F547M", offset=0.3) :results file
 
