@@ -4,6 +4,7 @@
 !*.ipynb
 !*.pdf
 !*.py
+!*.tex
 /manu-fits-blue-BIG.pdf
 /manu-fits-green-BIG.pdf
 /manu-fits-red-BIG.pdf

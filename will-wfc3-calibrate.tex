@@ -1,4 +1,4 @@
-\documentclass[preprint, 12pt]{aastex}
+\documentclass[preprint, 10pt]{aastex}
 \usepackage{newtxtext, newtxmath}
 \usepackage{graphicx}
 \graphicspath{
@@ -18,35 +18,17 @@
 \newcommand\Wav[1]{\ensuremath{\lambda #1}}
 
 \usepackage{geometry}
-\geometry{hmargin=0.3cm, vmargin=1.5cm}
+% \geometry{hmargin=0.3cm, vmargin=1.5cm}
+\geometry{hmargin=2cm, vmargin=2.5cm}
 \setkeys{Gin}{width=0.6\linewidth, keepaspectratio}  
 \usepackage{natbib}
 \usepackage{microtype}
 \bibliographystyle{apj}
+
+\input{wfc3-macros.tex}
+
 \begin{document}
 
-\newcommand\Pixel{\ensuremath{\Omega_{\mathrm{pix}}}}
-\newcommand\Area{\ensuremath{A_{\mathrm{HST}}}}
-\newcommand\T[2]{\ensuremath{T_{#1}^{#2}}}
-\newcommand\Tlam[1]{\T{\lambda}{#1}}
-\newcommand\Tmax[1]{\T{\mathrm{m}}{#1}}
-\newcommand\Mean[1]{\ensuremath{\bigl\langle \lambda I_\lambda \bigr\rangle_{#1}}}
-\newcommand\MeanC[1]{\ensuremath{\bigl\langle \lambda
-    I_\lambda^{\mathrm{cont}} \bigr\rangle_{#1}}}
-\newcommand\Color[2]{\ensuremath{k_{#1, #2}}}
-\newcommand\COLOR[2]{\ensuremath{\widetilde{k}_{#1, #2}}}
-\newcommand\Weff[2]{\ensuremath{\widetilde{W}_{#1, #2}}}
-\newcommand\U[1]{\ensuremath{\mathrm{#1}}}
-\newcommand\E[1]{\ensuremath{\times 10^{#1}}}
-\newcommand\Elam{\ensuremath{\varepsilon_\lambda}}
-\newcommand\Constant{\ensuremath{C_{\mathrm{WFC3}}}}
-% \newcommand\Narrow{\mathrm{L}}
-% \newcommand\Wide{\mathrm{C}}
-% \newcommand\Narrow{\mathrm{a}}
-% \newcommand\Wide{\mathrm{b}}
-\newcommand\Narrow{\mathrm{N}}
-\newcommand\Wide{\mathrm{W}}
-\newcommand\Contam{\ensuremath{{i'}}} %extra braces are on purpose
 
 \section{Calibration of the WFC3 filters}
 
