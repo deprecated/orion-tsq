@@ -1,4 +1,4 @@
-\documentclass[preprint, 10pt]{aastex}
+\documentclass[preprint]{aastex}
 \usepackage{newtxtext, newtxmath}
 
 \usepackage{graphicx}
@@ -6,12 +6,6 @@
   {../},
 }
 
-\newcommand\oiii{[\ion{O}{3}]}
-\newcommand\nii{[\ion{N}{2}]}
-\newcommand\sii{[\ion{S}{2}]}
-\newcommand\elec{\ensuremath{_{\mathrm{e}}}}
-\newcommand\Te{\ensuremath{T\elec}}
-\newcommand\Ne{\ensuremath{n\elec}}
 
 \usepackage{geometry}
 \geometry{margin=1in}
@@ -24,8 +18,9 @@
 
 \input{wfc3-macros.tex}
 \begin{document}
-
-\section{Temperature and density fluctuations in the inner Orion Nebula}
+\title{Temperature and density fluctuations in the inner Orion Nebula}
+\author{W. J. Henney, C. R. O'Dell, G. J. Ferland, M. Peimbert}
+\section{Analysis}
 \label{sec:fluct}
 
 
@@ -41,7 +36,8 @@
 
 \textit{Note: this is similar to what I wrote in the the calibration
   draft, but specifically tailored to line ratios rather than
-  equivalent widths.}
+  equivalent widths.  We may in the end want to move some of it back
+  to the other paper.}
 
 The WFC3 camera is equipped with filters that effectively target
 important nebular diagnostic lines.  Each filter, with label \(j\), is
@@ -62,20 +58,52 @@ width'' of the profile is defined as
 
 
 Extensive and continuing on-orbit calibration of the filters has been
-carried out (\textit{citation of relevant ISRs}) using white dwarf
-standard stars.  However, since these are flat featureless continuum
-sources, the calibration is only sensitive to the product \(W_j
-\Tmax{j}\).  Emission lines from photoionized regions are
-intrinsically much narrower than even the narrowest WFC3 filters, so
-the transmission of such a line, with label \(i\), is independent of
-\Tlam{j} and depends instead on the throughput at the line wavelength:
-\(\T{i}{j} \equiv \Tlam{j}(\lambda\!=\!\lambda_i)\), which has only
-been measured pre-launch.   
+carried out \citep{Kalirai:2009a, Kalirai:2010a, Sabbi:2013b} using
+white dwarf standard stars.  However, since these are flat featureless
+continuum sources, the calibration is only sensitive to the integrated
+filter throughput, given by the product \(W_j \Tmax{j}\).  A general
+increase in the integrated throughput of 10--20\% with respect to
+pre-launch measurements was found for all filters, which was fitted by
+a low-order polynomial as a function of frequency.  Only the
+broad-band and medium-band filters were used in determining the fit,
+but the scatter of the narrow-band filters\footnote{Note, however,
+  that the quad filters were not included in these studies.} around
+the resulting curve is only a few percent (see Fig.~6 of
+\citealp{Kalirai:2009a}).
+
+Emission lines from photoionized regions are intrinsically much
+narrower than even the narrowest WFC3 filters, so the transmission of
+such a line, with label \(i\), is independent of \(W_j\) and depends
+instead solely on the throughput at the line wavelength: \(\T{i}{j}
+\equiv \Tlam{j}(\lambda\!=\!\lambda_i)\).  The detailed shape of the
+throughput curves was measured pre-launch \citep{Brown:2006a}, but
+direct on-orbit confirmation of these curves is impossible.  However,
+by comparing WFC3 images with ground-based spectrophotometry of
+emission line nebulae, it is possible to test the filter calibrations
+for the case where emission lines are the dominant component of the
+spectrum in the filter bandpass.  Just such a calibration is described
+in detail in a companion paper \citep{Henney:Calibration}, using
+multiple spectrophotometric datasets of the Orion Nebula (M42) and the
+evolved nearby planetary nebula NGC~6720 (the Ring Nebula), and
+building on an earlier study in \citet{ODell:2013b}.  The conclusion
+of this study is that the nominal filter parameters (that is, the
+pre-launch measurements of the shape of the throughput curve \Tlam{j},
+combined with the on-orbit re-calibration of \(W_j \Tmax{j}\)), are
+consistent to within \(\pm 5\%\) with the emission line
+spectrophotometry for all but a handful of filters.  The largest
+discrepancy is found for the F469N filter, which is found to have a
+sensitivity to the \ion{He}{2} \Wav{4696} line that is 35\% higher than the
+nominal value.  However, that line is absent in M42, due to the
+relatively low effective temperature of the ionizing star, and the
+filter is instead dominated by continuum and weak [\ion{Fe}{3}]
+lines.  In such circumstance the nominal F469N parameters are found to
+be accurate.  
+
+Smaller, but still significant, discrepancies are found for the F658N
+and FQ575N filters, which target the \nii{} lines \Wav{6583} and
+\Wav{5755}, respectively. 
 
 
-The calibration of these filters
-is discussed in detail in a companion paper \citep{Henney:Calib},
-where it is 
 
 For the strongest lines, such as
 \nii{6583} 
