@@ -101,15 +101,53 @@ be accurate.
 
 Smaller, but still significant, discrepancies are found for the F658N
 and FQ575N filters, which target the \nii{} lines \Wav{6583} and
-\Wav{5755}, respectively. 
+\Wav{5755}, respectively. \textit{Discuss inconsistency between Ring
+  and Orion calibration.  Ring has 5755 increased by 10\%.  Orion has
+  6583 decreased by 10\%.  But effects on ratio are similar.}
+
+We model the specific intensity, \Ilam (in \U{erg\ s^{-1}\ cm^{-2}\
+  sr^{-1}\ \AA^{-1}}), of a spatially resolved astrophysical source as
+the sum of several narrow emission lines \(i\), each with central
+wavelength \(\lambda_i\) and wavelength-integrated intensity \(I_i\),
+plus a slowly varying continuum \Icont:
+\begin{equation}
+  \label{eq:line-plus-cont}
+  \Ilam = \Icont + \sum_{i=1, n} I_i\, \delta(\lambda - \lambda_i)  ,
+\end{equation}
+where \(\delta\) denotes the Dirac delta function.   It is convenient
+to define an average continuum intensity over the passband of filter \(j\): 
+\begin{equation}
+  \label{eq:average}
+  \MeanC{j} = \int_0^\infty \!\!\lambda \Icont  \Tlam{j} \, d\lambda \,
+  \Bigg/\! \int_0^\infty \!\!\Tlam{j} \, d\lambda .
+\end{equation}
+The count rate (in \U{e^-/s}) in a single pixel of a pipeline-reduced
+(bias-subtracted, flat-fielded, drizzled) WFC3 image should then be
+\begin{equation}
+  \label{eq:R-line-plus-cont}
+  R_j 
+  = \Constant\,
+  \left(
+    \MeanC{j} \, \Tmax{j} W_j 
+    + \sum_{i=1,n} \lambda_i I_i \T{i}{j}
+  \right)
+\end{equation}
+where \(\Constant = 10^{-8} \Area\, \Pixel / (h c) = 0.0840241\
+\U{counts\ cm^2\ sr\ erg^{-1}\ \AA^{-1}\ pixel^{-1}}\) is a constant
+for the camera, depending on the telescope aperture area, \(\Area =
+\pi (120\ \U{cm})^2 = 45,239\ \U{cm^2}\), and the solid-angle
+subtended\footnote{Although geometric distorsions by the telescope
+  optics mean that the true pixel area varies across the field of
+  view, this is corrected for during the ``drizzle'' stage of the
+  pipeline reduction process, which yields images interpolated onto a
+  regular pixel grid.  If non-drizzled images are used, then a further
+  correction for the pixel area map must be applied to equation~(\ref{eq:R-line-plus-cont}).} by each pixel
+\(\Pixel = (0.03962'')^2 = 3.6895\E{-14}\ \U{sr}\).
 
 
 
-For the strongest lines, such as
-\nii{6583} 
-In order to accurately calculate emission line ratios from WFC3
-images, it is important to properly account for the contamination 
 
+\(R_{\scriptscriptstyle \mathrm{III}}\)
 
 \subsection{\boldmath Deriving \(\Te, \Ne\) from line ratios}
 \label{sec:derive}
