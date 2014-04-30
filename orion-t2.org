@@ -1,4 +1,3 @@
-
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
 * Messing around with the graphics
@@ -42,11 +41,93 @@ There are at least three sorts of shadows:
     + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
 * Final push to finish this - April 2014
 We have a lot of material that needs to be drawn together
+** Plan for the final paper
++ At the moment, I have three sections:
+  1. Deriving diagnostic line ratios from the WFC3 filter images
+  2. Deriving Te, ne from the line ratios
+  3. Fluctuations in Te, ne
++ Where I have been stuck for months on the first part, and still don't have firm conclusions
++ To this I could add a fourth section: maps of Te and correlation with other indicators (in particular, the [Fe III] and the excess [S II])
+*** TODO From filter ratios to line ratios
++ I had the following functions
+#+BEGIN_SRC python
+W547, W658, W575 = 169.0, 7.3, 4.7
+Tn, Ta = 0.26, 0.23
+k658 = 0.8  # We don't really know this one yet
+
+def EWa(R575, k575=0.938):
+    return (W547/(k575*R575) - W575)/Ta
+
+def EWn(R658):
+    return (W547/(k658*R658) - W658)/Tn
+
+def ratio_nii(R, R575, R658, k575=0.938):
+    """[N II] 5755/6584 ratio"""
+    return R * (Tn/Ta) * (1.0 - W575*k575*R575/W547) / (1.0 - W658*k658*R658/W547)
+#+END_SRC
++ Of course, some of this now needs modification - we should calculate the parameters directly from the filter bandpasses. 
+#+BEGIN_SRC python :return table
+from wfc3_utils import get_filter, Tm, Wj, Wtwid
+
+bands = ["F547M", "FQ575N", "F658N", "F673N", "FQ672N", "FQ674N"]
+wav0s = [5755, 5755, 6583, 6731, 6716, 6731]
+table = [["band", "Tm", "Wj Tm", "Wj", "Wtwid"], None]
+fmts = ['{:s}', '{:.4f}', '{:.2f}', '{:.2f}', '{:.2f}']
+for band, wav0 in zip(bands, wav0s):
+    wavs, T = get_filter(band, return_wavelength=True)
+    row = [band, Tm(T), Wj(wavs, T)*Tm(T), Wj(wavs, T), Wtwid(wav0, wavs, T)]
+    table.append([fmt.format(item) for item, fmt in zip(row, fmts)])
+#+END_SRC
+
+#+RESULTS:
+| band   |     Tm |  Wj Tm |     Wj |  Wtwid |
+|--------+--------+--------+--------+--------|
+| F547M  | 0.2675 | 173.89 | 650.19 | 899.79 |
+| FQ575N | 0.2297 |   4.22 |  18.37 |  18.45 |
+| F658N  | 0.2485 |   6.85 |  27.57 |  27.83 |
+| F673N  | 0.2468 |  29.07 | 117.78 | 137.49 |
+| FQ672N | 0.2460 |   4.77 |  19.38 |  19.46 |
+| FQ674N | 0.1881 |   3.32 |  17.65 |  17.66 |
+
+Now we have a nice equation for finding the ratios
+
+#+BEGIN_SRC python :return table
+from wfc3_utils import ratio_coefficients
+cols = ["alpha_1", "beta_1", "gamma_1", "alpha_2", "beta_2", "gamma_2"]
+
+table = [["Filters"] + cols, None]
+
+d = ratio_coefficients()
+table.append(["575, 658, 547"] + ["{:0.3g}".format(d[k]) for k in cols])
+d = ratio_coefficients(wav1=6716, wav2=6731, I="FQ672N", II="FQ674N", III="F673N")
+table.append(["672, 674, 673"] + ["{:0.3g}".format(d[k]) for k in cols])
+d = ratio_coefficients(wav1=6716, wav2=6731, I="FQ672N", II="FQ674N", III="F547M")
+table.append(["672, 674, 547"] + ["{:0.3g}".format(d[k]) for k in cols])
+d = ratio_coefficients(wav1=4363, wav2=4340, I="FQ437N", II="FQ436N", III="F547M")
+table.append(["437, 436, 547"] + ["{:0.3g}".format(d[k]) for k in cols])
+
+
+#+END_SRC
+
+#+RESULTS:
+| Filters       |  alpha_1 |   beta_1 | gamma_1 |  alpha_2 |   beta_2 | gamma_2 |
+|---------------+----------+----------+---------+----------+----------+---------|
+| 575, 658, 547 |    5e-09 | 3.08e-09 |  0.0243 |   0.0333 |   0.0205 |  0.0394 |
+| 672, 674, 673 |    0.128 |    0.184 |   0.164 |    0.114 |    0.163 |   0.114 |
+| 672, 674, 547 | 3.87e-09 | 5.56e-09 |  0.0274 | 2.04e-09 | 2.93e-09 |  0.0191 |
+| 437, 436, 547 | 2.56e-06 | 1.82e-06 |  0.0343 | 1.89e-07 | 1.34e-07 |  0.0482 |
+
+So for the [N II] ratio, the continuum contribution coefficients \gamma for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
+
+** Revisiting the Te, ne calculations and spatial variations
++ We want to migrate the relevant material from the ipynb files and check that it is using the correct calibration
++ How to calculate the 5755/6583 ratio from the filter 
 ** Applying the final calibrations of the WFC3 filters
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** TODO [6/7] Absolute calibration of the filters
+*** DONE [7/7] Absolute calibration of the filters
+CLOSED: [2014-04-28 Mon 09:34]
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
@@ -213,8 +294,6 @@ These should all be 1, but they ain't ...
 + The Ring should really be the best quality since highest EW and minimal contamination from H\alpha or continuum
   + But 0.56 might be a better choice than 0.51 for the F547M gradient, which would put F658N just a tad below unity
 + Manu's data shows a lot of variation between fields
-***** a
-
 **** Plotting some ratios
 #+BEGIN_SRC python
 
@@ -272,7 +351,8 @@ CLOSED: [2014-04-18 Fri 00:29]
 + Calculated by [[file:manu-fold-filters.py][file:~/Work/RubinWFC3/Tsquared/manu-fold-filters.py]]
 + Results in [[file:manu-filter-fluxes.tab][file:~/Work/RubinWFC3/Tsquared/manu-filter-fluxes.tab]]
 + [X] Need to check that we haven't subtracted the continuum
-**** TODO Plot the results
+**** DONE Plot the results
+CLOSED: [2014-04-28 Mon 09:34]
 ***** Common functionality
 
 #+name: aesthetics

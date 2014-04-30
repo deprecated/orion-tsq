@@ -38,10 +38,42 @@ def Wj(wavs, T):
     return np.trapz(T, wavs)/Tm(T)
 
 
-def Wtwid(wav0, wavs, T):
+def Ti(wav0, wavs, T):
+    "Filter transmission at wavelength of line i (wav0)"
+    return np.interp(wav0, wavs, T)
+
+
+def Wtwid(wav0, wavs, T, kji=1.0):
     """Find W-twiddle for a given line of wavelength wav0
     with respect to a filter transmission curve T(wavs)"""
-    Ti = np.interp(wav0, wavs, T)
     # We are still missing the k_{j,i} term 
-    return Tm(T)*Wj(wavs, T)/Ti
+    return kji*Tm(T)*Wj(wavs, T)/Ti(wav0, wavs, T)
 
+
+def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M", kI=1.0, kII=1.0):
+    wavs, T_I = get_filter(I, return_wavelength=True)
+    T_II = get_filter(II)
+    T_III = get_filter(III)
+
+    T_1_III = Ti(wav1, wavs, T_III)
+    T_2_III = Ti(wav2, wavs, T_III)
+    T_1_I = Ti(wav1, wavs, T_I)
+    T_2_II = Ti(wav2, wavs, T_II)
+
+    Tm_I = Tm(T_I)
+    Tm_II = Tm(T_II)
+    Tm_III = Tm(T_III)
+    
+    W_I = Wj(wavs, T_I)
+    W_II = Wj(wavs, T_II)
+    W_III = Wj(wavs, T_III)
+
+    return {
+        "alpha_1": kII*T_2_III*Tm_II*W_II/(T_2_II*Tm_III*W_III),
+        "beta_1": kI*T_2_III*Tm_I*W_I/(T_2_II*Tm_III*W_III),
+        "gamma_1": kI*Tm_I*W_I/(Tm_III*W_III),
+        "alpha_2": kII*T_1_III*Tm_II*W_II/(T_1_I*Tm_III*W_III),
+        "beta_2": kI*T_1_III*Tm_I*W_I/(T_1_I*Tm_III*W_III),
+        "gamma_2": kII*Tm_II*W_II/(Tm_III*W_III),
+    }
+    
