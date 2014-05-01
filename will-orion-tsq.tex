@@ -1,6 +1,7 @@
 \documentclass[preprint]{aastex}
+\usepackage{amsmath}
 \usepackage{newtxtext, newtxmath}
-
+\usepackage{booktabs}
 \usepackage{graphicx}
 \graphicspath{
   {../},
@@ -27,12 +28,12 @@
 
 \subsection{Deriving diagnostic line ratios from WFC3 filter images}
 \label{sec:filters}
-\begin{figure}
-  \centering
-  \includegraphics[width=\linewidth]{bivar_rsii_rnii_multifactor}
-  \caption{Distribution of line ratios}
-  \label{fig:line-ratios}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=\linewidth]{bivar_rsii_rnii_multifactor}
+%   \caption{Distribution of line ratios}
+%   \label{fig:line-ratios}
+% \end{figure}
 
 \textit{Note: this is similar to what I wrote in the the calibration
   draft, but specifically tailored to line ratios rather than
@@ -139,73 +140,207 @@ for the camera, depending on the telescope aperture area, \(\Area =
 subtended\footnote{Although geometric distorsions by the telescope
   optics mean that the true pixel area varies across the field of
   view, this is corrected for during the ``drizzle'' stage of the
-  pipeline reduction process, which yields images interpolated onto a
-  regular pixel grid.  If non-drizzled images are used, then a further
-  correction for the pixel area map must be applied to equation~(\ref{eq:R-line-plus-cont}).} by each pixel
-\(\Pixel = (0.03962'')^2 = 3.6895\E{-14}\ \U{sr}\).
+  pipeline reduction process, which yields images (extension
+  \texttt{drz}) interpolated onto a regular pixel grid.  If
+  non-drizzled (extension \texttt{flt}) images are used, then a
+  further correction for the pixel area map must be applied to
+  equation~(\ref{eq:R-line-plus-cont}).} by each pixel \(\Pixel =
+(0.03962'')^2 = 3.6895\E{-14}\ \U{sr}\).
+
+% \newcommand\F[1]{%
+%   \ifmmode{\scriptscriptstyle \mathrm{#1}}\else{\textsc{\lowercase{#1}}}\fi
+% }
+\newcommand\F[1]{%
+  % \ifmmode\scriptsize\fi\textsc{\lowercase{#1}}
+  \ifmmode\scriptscriptstyle\mathrm{#1}\else #1\fi
+}
+
+We now consider the particular application of deriving a diagnostic
+ratio between two emission lines: \(I_1/I_2\).  It is assumed that
+observations are made in three filters: Filter~\F{I}, which targets
+line~1, Filter~\F{II}, which targets line~2, and Filter~\F{III}, which
+targets the continuum.  For optimum results, filters \F{I} and \F{II}
+will be narrow-band in order to admit as little continuum as possible,
+while \F{III} will be medium-band so as to efficiently sample the
+continuum, while at the same time avoiding strong emission lines.
+However, in practice it is usually impossible to completely avoid
+emission line contamination of filter~\F{III}, either by one or both
+of the target lines (1 and 2), or by other lines that we denote
+\(i'\).  For given line and continuum intensities, \(I_1\), \(I_2\),
+\Icont, the predicted filter rates are:
+\begin{align}
+  R_{\F{I}} & = \Constant \left[  
+    \MeanC{\F{I}}\, \Tmax{\F{I}} W_{\F{I}} 
+    + \lambda_1 I_1 \T{1}{\F{I}}
+    + \sum_{i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{I}}
+  \right] \label{eq:RI}\\
+  R_{\F{II}} & = \Constant \left[  
+    \MeanC{\F{II}}\, \Tmax{\F{II}} W_{\F{II}} 
+    + \lambda_2 I_2 \T{2}{\F{II}}
+    + \sum_{i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{II}}
+  \right] \label{eq:RII}\\
+  R_{\F{III}} & = \Constant \left[ 
+    \MeanC{\F{III}}\, \Tmax{\F{III}} W_{\F{III}} 
+    + \lambda_1 I_1 \T{1}{\F{III}}
+    + \lambda_2 I_2 \T{2}{\F{III}}
+    + \sum_{i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{III}}
+   \right] \label{eq:RIII}
+\end{align}
+Note that these equations do not describe the most general case, since
+they assume that there is negligible contamination of the narrow-band
+filters by the ``other'' target line, such that \(\T{1}{\F{II}} =
+\T{2}{\F{I}} = 0\).\footnote{This is a good approximation for the line
+  ratios studied in this paper, but in other cases cannot always be
+  assumed.  The general case, which is rather more cumbersome, is
+  treated in \citet{Henney:Calibration}.}  
+The mean continuum intensity in the narrow filters can be related to
+that in the wider filter by defining color terms: 
+\begin{equation}
+  \label{eq:color}
+  \Color{j}{\F{III}} \equiv \frac{\MeanC{j}}{\MeanC{\F{III}}} \quad
+  \text{for \(j =\) \F{I}, \F{II}}
+\end{equation}
+The filter color terms can be formally extended to include the
+contribution of contaminating non-target emission lines:
+\begin{equation}
+  \label{eq:color-twiddle}
+  \COLOR{j}{\F{III}} \equiv 
+  \frac{\MeanC{j} + (\Tmax{j} W_j)^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{j}}
+  {\MeanC{\F{III}} + (\Tmax{\F{III}} W_{\F{III}})^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{III}}}
+= \Color{j}{\F{III}} 
+\frac{1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{j}{i'}}
+{1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{\F{III}}{i'}}
+\end{equation}
+where the \(E_{i'}\) are the equivalent width (in \AA) of each
+non-target line and we have also introduced an ``effective width'' of
+each filter with respect to a given emission line:
+\begin{equation}
+  \label{eq:effective}
+  \Weff{j}{i} \equiv \Color{j}{i} \frac{\Tmax{j}}{\T{i}{j}} W_j 
+  \quad \text{with} \quad
+  \Color{j}{i} \equiv \frac{\MeanC{j}}{\lambda_i I_\lambda^i} . 
+\end{equation}
+
+With these definitions, equations~(\ref{eq:RI}) to~(\ref{eq:RIII}) can
+be solved to give the line ratio in terms of the filter count rates:
+\begin{equation}
+  \label{eq:solve-ratio}
+  \frac{I_1}{I_2} = \frac{\lambda_2 \T{2}{\F{II}}}{\lambda_1 \T{1}{\F{I}}}
+  \frac{\left[(1 - \alpha_1 \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + \beta_1 \COLOR{\F{I}}{\F{III}}  R_{\F{II}} - \gamma_1 \COLOR{\F{I}}{\F{III}} R_{\F{III}}\right]}
+  {\left[\alpha_2 \COLOR{\F{II}}{\F{III}} R_{\F{I}} + (1 - \beta_2 \COLOR{\F{I}}{\F{III}}) R_{\F{II}} - \gamma_2 \COLOR{\F{II}}{\F{III}} R_{\F{III}}\right]}
+\end{equation}
+with coefficients
+\begin{xalignat}{3}
+  \alpha_1 & = 
+  \frac{\T{2}{\F{III}} \Tmax{\F{II}} W_{\F{II}}}
+  {\T{2}{\F{II}} \Tmax{\F{III}} W_{\F{III}}} & 
+  \beta_1 & = 
+  \frac{\T{2}{\F{III}} \Tmax{\F{I}} W_{\F{I}}}
+  {\T{2}{\F{II}} \Tmax{\F{III}} W_{\F{III}}} & 
+  \gamma_1 & = 
+  \frac{\Tmax{\F{I}} W_{\F{I}}}
+  {\Tmax{\F{III}} W_{\F{III}}} \nonumber \\[\medskipamount]
+  \alpha_2 & = 
+  \frac{\T{1}{\F{III}} \Tmax{\F{II}} W_{\F{II}}}
+  {\T{1}{\F{I}} \Tmax{\F{III}} W_{\F{III}}} & 
+  \beta_2 & = 
+   \frac{\T{1}{\F{III}} \Tmax{\F{I}} W_{\F{I}}}
+  {\T{1}{\F{I}} \Tmax{\F{III}} W_{\F{III}}} & 
+  \gamma_2 & = 
+  \frac{\Tmax{\F{II}} W_{\F{II}}}
+  {\Tmax{\F{III}} W_{\F{III}}} \nonumber
+\end{xalignat}
+In these expressions, the \(T\) and \(W\) factors are calibration
+constants of the filters and are henced fixed (so long as the filter
+is well calibrated).  The \(\widetilde{k}\) factors, on the other hand
+represent the continuum and non-target line contributions to the three
+filters, and are expected to show variations from object to object and
+from pixel to pixel within the same object. 
 
 
 
+\begin{table}
+  \caption{Coefficients for determining line ratios from filter sets,
+    eq.~(\ref{eq:solve-ratio})}
+  \label{tab:coefficients}
+  \medskip
+  \begin{tabular}{llrrrrrr}\toprule
+    Ratio & Filter Set & 
+    \(\alpha_1\) &
+    \(\beta_1 \) &
+    \(\gamma_1\) & 
+    \(\alpha_2\) & 
+    \(\beta_2 \) & 
+    \(\gamma_2\) \\
+    \midrule
+    \nii{} 5755/6583 & FQ575N, F658N, F547M & 
+    \(\sim 0\) & \(\sim 0\) & 0.0243 & 0.0333 & 0.0205 & 0.0394 \\
+    \sii{} 6716/6731 & FQ672N, FQ674N, F673N &
+    0.128 & 0.184 & 0.164 & 0.114 & 0.163 & 0.114 \\
+    \sii{} 6716/6731 & FQ672N, FQ674N, F547M &
+    \(\sim 0\) & \(\sim 0\) & 0.0274 & \(\sim 0\) & \(\sim 0\) & 0.0191 \\ \bottomrule
+  \end{tabular}
+  Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-8}\). 
+\end{table}
 
-\(R_{\scriptscriptstyle \mathrm{III}}\)
 
 \subsection{\boldmath Deriving \(\Te, \Ne\) from line ratios}
 \label{sec:derive}
 
-\begin{figure}
-  \centering
-  \begin{tabular}{ll}
-    (\textit{a}) & (\textit{b}) \\
-    \includegraphics[height=0.35\textheight]{Tnii-vs-radius-binning} &
-    \includegraphics[height=0.25\textheight]{sigma-Tnii-vs-radius-binning}
-  \end{tabular}
-  \caption{(\textit{a})~Temperature distribution as a function of
-    radius for different binnings.  (\textit{b})~Standard deviation of
-    temperatures as a function of radius for different binnings. 
-  }
-  \label{fig:tnii-vs-rad}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \begin{tabular}{ll}
+%     (\textit{a}) & (\textit{b}) \\
+%     \includegraphics[height=0.35\textheight]{Tnii-vs-radius-binning} &
+%     \includegraphics[height=0.25\textheight]{sigma-Tnii-vs-radius-binning}
+%   \end{tabular}
+%   \caption{(\textit{a})~Temperature distribution as a function of
+%     radius for different binnings.  (\textit{b})~Standard deviation of
+%     temperatures as a function of radius for different binnings. 
+%   }
+%   \label{fig:tnii-vs-rad}
+% \end{figure}
 
 
 \subsection{\boldmath Analysis of fluctuations in \(\Te, \Ne\)}
 \label{sec:fluct}
 
 
-\begin{figure}
-  \centering
+% \begin{figure}
+%   \centering
 
-  \begin{tabular}{ll}
-    (\textit{a}) & (\textit{b}) \\
-    \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-normal} &
-    \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-robust}
-  \end{tabular}
-  \caption{Scale-dependence of temperature fluctuations: \(t^2\) as a
-    function of binning. (\textit{a})~Variance of \(\Te/\bar{\Te}\)
-    for the entire image (black line) and two subsamples: an annulus
-    centered on the high-temperature region (blue line) and the more
-    distant, fainter regions (green line).  The magenta line is an
-    estimate of the noise contribution to the full sample, and the
-    dashed black line is the result of subtracting the noise from the
-    observed values.  (\textit{b})~Same as \textit{a} but using a
-    ``robust'' estimator of the variance, based on the interquartile range.}
-  \label{fig:tsq-nii-vs-binning}
-\end{figure}
+%   \begin{tabular}{ll}
+%     (\textit{a}) & (\textit{b}) \\
+%     \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-normal} &
+%     \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-robust}
+%   \end{tabular}
+%   \caption{Scale-dependence of temperature fluctuations: \(t^2\) as a
+%     function of binning. (\textit{a})~Variance of \(\Te/\bar{\Te}\)
+%     for the entire image (black line) and two subsamples: an annulus
+%     centered on the high-temperature region (blue line) and the more
+%     distant, fainter regions (green line).  The magenta line is an
+%     estimate of the noise contribution to the full sample, and the
+%     dashed black line is the result of subtracting the noise from the
+%     observed values.  (\textit{b})~Same as \textit{a} but using a
+%     ``robust'' estimator of the variance, based on the interquartile range.}
+%   \label{fig:tsq-nii-vs-binning}
+% \end{figure}
 
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\linewidth]{Te-versus-Ne}
-  \caption{Joint distribution of temperature and electron density for
-    low ionization regions.}
-  \label{fig:Te-Ne}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{Te-versus-Ne}
+%   \caption{Joint distribution of temperature and electron density for
+%     low ionization regions.}
+%   \label{fig:Te-Ne}
+% \end{figure}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\linewidth]{snii-versus-ne}
-  \caption{Correlation between \sii{} density and \nii{} surface brightness.}
-  \label{fig:Snii-ne}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{snii-versus-ne}
+%   \caption{Correlation between \sii{} density and \nii{} surface brightness.}
+%   \label{fig:Snii-ne}
+% \end{figure}
 
 
 \bibliography{BibdeskLibrary-slavoj}
