@@ -226,35 +226,22 @@ be solved to give the line ratio in terms of the filter count rates:
 \begin{equation}
   \label{eq:solve-ratio}
   \frac{I_1}{I_2} = \frac{\lambda_2 \T{2}{\F{II}}}{\lambda_1 \T{1}{\F{I}}}
-  \frac{\left[(1 - \alpha_1 \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + \beta_1 \COLOR{\F{I}}{\F{III}}  R_{\F{II}} - \gamma_1 \COLOR{\F{I}}{\F{III}} R_{\F{III}}\right]}
-  {\left[\alpha_2 \COLOR{\F{II}}{\F{III}} R_{\F{I}} + (1 - \beta_2 \COLOR{\F{I}}{\F{III}}) R_{\F{II}} - \gamma_2 \COLOR{\F{II}}{\F{III}} R_{\F{III}}\right]}
+  \frac{\left[(1 - \alpha_2 \beta_2 \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + \alpha_2 \beta_1 \COLOR{\F{I}}{\F{III}}  R_{\F{II}} - \beta_1 \COLOR{\F{I}}{\F{III}} R_{\F{III}}\right]}
+  {\left[\alpha_1 \beta_2 \COLOR{\F{II}}{\F{III}} R_{\F{I}} + (1 - \alpha_1 \beta_1 \COLOR{\F{I}}{\F{III}}) R_{\F{II}} - \beta_2 \COLOR{\F{II}}{\F{III}} R_{\F{III}}\right]}
 \end{equation}
-with coefficients
-\begin{xalignat}{3}
-  \alpha_1 & = 
-  \frac{\T{2}{\F{III}} \Tmax{\F{II}} W_{\F{II}}}
-  {\T{2}{\F{II}} \Tmax{\F{III}} W_{\F{III}}} & 
-  \beta_1 & = 
-  \frac{\T{2}{\F{III}} \Tmax{\F{I}} W_{\F{I}}}
-  {\T{2}{\F{II}} \Tmax{\F{III}} W_{\F{III}}} & 
-  \gamma_1 & = 
-  \frac{\Tmax{\F{I}} W_{\F{I}}}
-  {\Tmax{\F{III}} W_{\F{III}}} \nonumber \\[\medskipamount]
-  \alpha_2 & = 
-  \frac{\T{1}{\F{III}} \Tmax{\F{II}} W_{\F{II}}}
-  {\T{1}{\F{I}} \Tmax{\F{III}} W_{\F{III}}} & 
-  \beta_2 & = 
-   \frac{\T{1}{\F{III}} \Tmax{\F{I}} W_{\F{I}}}
-  {\T{1}{\F{I}} \Tmax{\F{III}} W_{\F{III}}} & 
-  \gamma_2 & = 
-  \frac{\Tmax{\F{II}} W_{\F{II}}}
-  {\Tmax{\F{III}} W_{\F{III}}} \nonumber
-\end{xalignat}
+with filter contamination coefficients
+\begin{displaymath}
+  \alpha_{\F{I}} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
+  \beta_1  = \frac{\Tmax{\F{I}} W_{\F{I}}}{\Tmax{\F{III}} W_{\F{III}}} ; \quad
+  \alpha_{\F{I}} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
+  \beta_1 - = \frac{\T{2}{\F{III}}}{\T{2}{\F{II}}} ; \quad
+  \beta_2  = \frac{\Tmax{\F{II}} W_{\F{II}}}{\Tmax{\F{III}} W_{\F{III}}}
+\end{displaymath}
 In these expressions, the \(T\) and \(W\) factors are calibration
 constants of the filters and are henced fixed (so long as the filter
 is well calibrated).  The \(\widetilde{k}\) factors, on the other hand
 represent the continuum and non-target line contributions to the three
-filters, and are expected to show variations from object to object and
+filters, and are expected to show variati1ons from object to object and
 from pixel to pixel within the same object. 
 
 
@@ -264,23 +251,26 @@ from pixel to pixel within the same object.
     eq.~(\ref{eq:solve-ratio})}
   \label{tab:coefficients}
   \medskip
-  \begin{tabular}{llrrrrrr}\toprule
+  \begin{tabular}{llrrrr}\toprule
     Ratio & Filter Set & 
-    \(\alpha_1\) &
+    \(\alpha_{\F{I}}\) &
+    \(\alpha_{\F{II}}\) & 
     \(\beta_1 \) &
-    \(\gamma_1\) & 
-    \(\alpha_2\) & 
-    \(\beta_2 \) & 
-    \(\gamma_2\) \\
+    \(\beta_2\) \\
     \midrule
     \nii{} 5755/6583 & FQ575N, F658N, F547M & 
-    \(\sim 0\) & \(\sim 0\) & 0.0243 & 0.0333 & 0.0205 & 0.0394 \\
+    0.845 & \(\sim 0\) & 0.0243 & 0.0394 \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F673N &
-    0.128 & 0.184 & 0.164 & 0.114 & 0.163 & 0.114 \\
+    0.994 & 1.12 & 0.164 & 0.114 \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F547M &
-    \(\sim 0\) & \(\sim 0\) & 0.0274 & \(\sim 0\) & \(\sim 0\) & 0.0191 \\ \bottomrule
+    \(\sim 0\) & \(\sim 0\) & 0.0274 & 0.0191 \\ 
+    \oiii{} 4363/5007 & FQ437N, F502N, FQ674N &
+    0.968 & \(\sim 0\) & 0.711 & 1.998 \\ 
+    \oiii{} 4363/5007 & FQ437N, F502N, F547M &
+    \(\sim 0\) & 0.00141 & 0.03426 & 0.09627 \\ 
+    \bottomrule
   \end{tabular}
-  Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-8}\). 
+  \par Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-5}\). 
 \end{table}
 
 

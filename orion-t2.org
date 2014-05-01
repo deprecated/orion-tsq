@@ -91,33 +91,36 @@ for band, wav0 in zip(bands, wav0s):
 
 Now we have a nice equation for finding the ratios
 
-#+BEGIN_SRC python :return table
-from wfc3_utils import ratio_coefficients
-cols = ["alpha_1", "beta_1", "gamma_1", "alpha_2", "beta_2", "gamma_2"]
+#+name: filter-sets
+| 5755 | 6584 | FQ575N | F658N  | F547M  |
+| 6716 | 6731 | FQ672N | FQ674N | F673N  |
+| 6716 | 6731 | FQ672N | FQ674N | F547M  |
+| 4363 | 5007 | FQ437N | F502N  | FQ436N |
+| 4363 | 5007 | FQ437N | F502N  | F547M  |
 
-table = [["Filters"] + cols, None]
+#+BEGIN_SRC python :return table :var intable=filter-sets
+  from wfc3_utils import ratio_coefficients
+  cols = ["alpha_1", "alpha_2", "beta_1", "beta_2"]
 
-d = ratio_coefficients()
-table.append(["575, 658, 547"] + ["{:0.3g}".format(d[k]) for k in cols])
-d = ratio_coefficients(wav1=6716, wav2=6731, I="FQ672N", II="FQ674N", III="F673N")
-table.append(["672, 674, 673"] + ["{:0.3g}".format(d[k]) for k in cols])
-d = ratio_coefficients(wav1=6716, wav2=6731, I="FQ672N", II="FQ674N", III="F547M")
-table.append(["672, 674, 547"] + ["{:0.3g}".format(d[k]) for k in cols])
-d = ratio_coefficients(wav1=4363, wav2=4340, I="FQ437N", II="FQ436N", III="F547M")
-table.append(["437, 436, 547"] + ["{:0.3g}".format(d[k]) for k in cols])
+  table = [["I", "II", "III"] + cols, None]
+
+  for wav1, wav2, FI, FII, FIII in intable:
+      d = ratio_coefficients(wav1=wav1, wav2=wav2, I=FI, II=FII, III=FIII)
+      table.append([FI, FII, FIII] + ["{:0.4g}".format(d[k]) for k in cols])
 
 
 #+END_SRC
 
 #+RESULTS:
-| Filters       |  alpha_1 |   beta_1 | gamma_1 |  alpha_2 |   beta_2 | gamma_2 |
-|---------------+----------+----------+---------+----------+----------+---------|
-| 575, 658, 547 |    5e-09 | 3.08e-09 |  0.0243 |   0.0333 |   0.0205 |  0.0394 |
-| 672, 674, 673 |    0.128 |    0.184 |   0.164 |    0.114 |    0.163 |   0.114 |
-| 672, 674, 547 | 3.87e-09 | 5.56e-09 |  0.0274 | 2.04e-09 | 2.93e-09 |  0.0191 |
-| 437, 436, 547 | 2.56e-06 | 1.82e-06 |  0.0343 | 1.89e-07 | 1.34e-07 |  0.0482 |
+| I      | II     | III    |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |
+|--------+--------+--------+-----------+-----------+---------+---------|
+| FQ575N | F658N  | F547M  |     0.845 | 1.269e-07 | 0.02426 | 0.03939 |
+| FQ672N | FQ674N | F673N  |    0.9942 |     1.125 |   0.164 |  0.1142 |
+| FQ672N | FQ674N | F547M  | 1.068e-07 | 2.027e-07 | 0.02742 | 0.01909 |
+| FQ437N | F502N  | FQ436N |    0.9679 |  1.24e-07 |  0.7111 |   1.998 |
+| FQ437N | F502N  | F547M  | 3.913e-06 |  0.001408 | 0.03426 | 0.09627 |
 
-So for the [N II] ratio, the continuum contribution coefficients \gamma for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
+So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
 
 ** Revisiting the Te, ne calculations and spatial variations
 + We want to migrate the relevant material from the ipynb files and check that it is using the correct calibration

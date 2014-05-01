@@ -50,7 +50,7 @@ def Wtwid(wav0, wavs, T, kji=1.0):
     return kji*Tm(T)*Wj(wavs, T)/Ti(wav0, wavs, T)
 
 
-def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M", kI=1.0, kII=1.0):
+def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M"):
     wavs, T_I = get_filter(I, return_wavelength=True)
     T_II = get_filter(II)
     T_III = get_filter(III)
@@ -69,11 +69,9 @@ def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M"
     W_III = Wj(wavs, T_III)
 
     return {
-        "alpha_1": kII*T_2_III*Tm_II*W_II/(T_2_II*Tm_III*W_III),
-        "beta_1": kI*T_2_III*Tm_I*W_I/(T_2_II*Tm_III*W_III),
-        "gamma_1": kI*Tm_I*W_I/(Tm_III*W_III),
-        "alpha_2": kII*T_1_III*Tm_II*W_II/(T_1_I*Tm_III*W_III),
-        "beta_2": kI*T_1_III*Tm_I*W_I/(T_1_I*Tm_III*W_III),
-        "gamma_2": kII*Tm_II*W_II/(Tm_III*W_III),
+        "alpha_1": T_1_III/T_1_I,
+        "alpha_2": T_2_III/T_2_II,
+        "beta_1": Tm_I*W_I/(Tm_III*W_III),
+        "beta_2": Tm_II*W_II/(Tm_III*W_III),
     }
     
