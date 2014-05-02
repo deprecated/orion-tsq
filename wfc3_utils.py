@@ -75,3 +75,33 @@ def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M"
         "beta_2": Tm_II*W_II/(Tm_III*W_III),
     }
     
+
+
+def find_line_ratio(filterset, R_I, R_II, R_III, k_I=1.0, k_II=1.0, naive=False):
+    """Find the line ratio from a 3-filter set
+
+If `naive` is True, then ignore the continuum and line contamination terms
+"""
+    wav1 = filterset["wav1"]
+    wav2 = filterset["wav2"]
+    wavs, T_I = get_filter(filterset['I'], return_wavelength=True)
+    T_II = get_filter(filterset['II'])
+    T_1_I = Ti(wav1, wavs, T_I)
+    T_2_II = Ti(wav2, wavs, T_II)
+
+    if naive:
+        ratio = R_I/R_II
+    else:
+        contam_coeffs = ratio_coefficients(**filterset)
+        alpha_I = contam_coeffs["alpha_1"]
+        alpha_II = contam_coeffs["alpha_2"]
+        beta_I = contam_coeffs["beta_1"]
+        beta_II = contam_coeffs["beta_2"]
+        
+        ratio = (1.0 - alpha_II*beta_II*k_II)*R_I \
+                + alpha_II*beta_I*k_I*R_II - beta_I*k_I*R_III
+        ratio /= alpha_I*beta_II*k_II*R_I \
+                 + (1.0 - alpha_I*beta_I*k_I)*R_II - beta_II*k_II*R_III 
+
+    ratio *= (wav2*T_2_II)/(wav1*T_1_I)
+    return ratio

@@ -97,6 +97,7 @@ Now we have a nice equation for finding the ratios
 | 6716 | 6731 | FQ672N | FQ674N | F547M  |
 | 4363 | 5007 | FQ437N | F502N  | FQ436N |
 | 4363 | 5007 | FQ437N | F502N  | F547M  |
+| 4861 | 6563 | F487N  | F656N  | F547M  |
 
 #+BEGIN_SRC python :return table :var intable=filter-sets
   from wfc3_utils import ratio_coefficients
@@ -119,8 +120,51 @@ Now we have a nice equation for finding the ratios
 | FQ672N | FQ674N | F547M  | 1.068e-07 | 2.027e-07 | 0.02742 | 0.01909 |
 | FQ437N | F502N  | FQ436N |    0.9679 |  1.24e-07 |  0.7111 |   1.998 |
 | FQ437N | F502N  | F547M  | 3.913e-06 |  0.001408 | 0.03426 | 0.09627 |
+| F487N  | F656N  | F547M  | 2.459e-06 | 9.577e-08 | 0.08711 | 0.02375 |
 
-So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
+So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1 re-show
+
+The following serves to test the new =find_line_ratio= function and
+compares the version with and without accounting for the line and
+continuum contamination terms.  We use median count rates from the
+spectrophotometry for each of the three filters, and assume that the k
+color factors are all 1.0.
+
+#+name: filter-set-fakes
+| Wav1 | Wav2 | I      | II     | III    |  R_I | R_II | R_III | k_I_III | k_II_III |
+|------+------+--------+--------+--------+------+------+-------+---------+----------|
+| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.14 |  3.0 |   2.5 |         |          |
+| 6716 | 6731 | FQ672N | FQ674N | F673N  | 0.34 |  0.4 |   1.0 |         |          |
+| 6716 | 6731 | FQ672N | FQ674N | F547M  | 0.34 |  0.4 |   2.5 |         |          |
+| 4363 | 5007 | FQ437N | F502N  | FQ436N | 0.18 |  8.0 |   0.4 |     1.0 |          |
+| 4363 | 5007 | FQ437N | F502N  | F547M  | 0.18 |  8.0 |   2.5 |     1.4 |          |
+| 4861 | 6563 | F487N  | F656N  | F547M  |  3.2 | 12.0 |   2.5 |         |          |
+
+#+BEGIN_SRC python :return table :var intable=filter-set-fakes
+  from wfc3_utils import find_line_ratio
+  table = [["I", "II", "III", "I_1/I_2", "Naive I_1/I_2"], None]
+  for wav1, wav2, FI, FII, FIII, RI, RII, RIII in intable[0:]:
+      filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
+      row = [FI, FII, FIII]
+      row.extend(["{:.3f}".format(find_line_ratio(filterset,
+                                                  RI, RII, RIII, naive=naive))
+                  for naive in (False, True)])
+      table.append(row)
+#+END_SRC
+
+#+RESULTS:
+| I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
+|--------+--------+--------+---------+---------------|
+| FQ575N | F658N  | F547M  |   0.034 |         0.057 |
+| FQ672N | FQ674N | F673N  |   0.612 |         0.654 |
+| FQ672N | FQ674N | F547M  |   0.593 |         0.654 |
+| FQ437N | F502N  | FQ436N |  -0.068 |         0.030 |
+| FQ437N | F502N  | F547M  |   0.016 |         0.030 |
+| F487N  | F656N  | F547M  |   0.308 |         0.329 |
+
++ So many of these change significantly from the naive value
++ The set that uses FQ436N produces a negative ratio, which can't be right
+  + Presumably this is due to neglecting the line contamination, which probably gives a large k value
 
 ** Revisiting the Te, ne calculations and spatial variations
 + We want to migrate the relevant material from the ipynb files and check that it is using the correct calibration

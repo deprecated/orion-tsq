@@ -154,6 +154,8 @@ subtended\footnote{Although geometric distorsions by the telescope
   % \ifmmode\scriptsize\fi\textsc{\lowercase{#1}}
   \ifmmode\scriptscriptstyle\mathrm{#1}\else #1\fi
 }
+\newcommand\Falpha[1]{\ensuremath{\alpha_{\F{#1}}}}
+\newcommand\Fbeta[1]{\ensuremath{\beta_{\F{#1}}}}
 
 We now consider the particular application of deriving a diagnostic
 ratio between two emission lines: \(I_1/I_2\).  It is assumed that
@@ -220,43 +222,16 @@ each filter with respect to a given emission line:
   \quad \text{with} \quad
   \Color{j}{i} \equiv \frac{\MeanC{j}}{\lambda_i I_\lambda^i} . 
 \end{equation}
-
-With these definitions, equations~(\ref{eq:RI}) to~(\ref{eq:RIII}) can
-be solved to give the line ratio in terms of the filter count rates:
-\begin{equation}
-  \label{eq:solve-ratio}
-  \frac{I_1}{I_2} = \frac{\lambda_2 \T{2}{\F{II}}}{\lambda_1 \T{1}{\F{I}}}
-  \frac{\left[(1 - \alpha_2 \beta_2 \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + \alpha_2 \beta_1 \COLOR{\F{I}}{\F{III}}  R_{\F{II}} - \beta_1 \COLOR{\F{I}}{\F{III}} R_{\F{III}}\right]}
-  {\left[\alpha_1 \beta_2 \COLOR{\F{II}}{\F{III}} R_{\F{I}} + (1 - \alpha_1 \beta_1 \COLOR{\F{I}}{\F{III}}) R_{\F{II}} - \beta_2 \COLOR{\F{II}}{\F{III}} R_{\F{III}}\right]}
-\end{equation}
-with filter contamination coefficients
-\begin{displaymath}
-  \alpha_{\F{I}} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
-  \beta_1  = \frac{\Tmax{\F{I}} W_{\F{I}}}{\Tmax{\F{III}} W_{\F{III}}} ; \quad
-  \alpha_{\F{I}} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
-  \beta_1 - = \frac{\T{2}{\F{III}}}{\T{2}{\F{II}}} ; \quad
-  \beta_2  = \frac{\Tmax{\F{II}} W_{\F{II}}}{\Tmax{\F{III}} W_{\F{III}}}
-\end{displaymath}
-In these expressions, the \(T\) and \(W\) factors are calibration
-constants of the filters and are henced fixed (so long as the filter
-is well calibrated).  The \(\widetilde{k}\) factors, on the other hand
-represent the continuum and non-target line contributions to the three
-filters, and are expected to show variati1ons from object to object and
-from pixel to pixel within the same object. 
-
-
-
-\begin{table}
-  \caption{Coefficients for determining line ratios from filter sets,
-    eq.~(\ref{eq:solve-ratio})}
+\begin{table}[t]
+  \caption{Filter contamination coefficients, see eq.~(\ref{eq:solve-ratio})}
   \label{tab:coefficients}
   \medskip
   \begin{tabular}{llrrrr}\toprule
     Ratio & Filter Set & 
-    \(\alpha_{\F{I}}\) &
-    \(\alpha_{\F{II}}\) & 
-    \(\beta_1 \) &
-    \(\beta_2\) \\
+    \(\Falpha{I}\) &
+    \(\Falpha{II}\) & 
+    \(\Fbeta{I} \) &
+    \(\Fbeta{II}\) \\
     \midrule
     \nii{} 5755/6583 & FQ575N, F658N, F547M & 
     0.845 & \(\sim 0\) & 0.0243 & 0.0394 \\
@@ -264,14 +239,48 @@ from pixel to pixel within the same object.
     0.994 & 1.12 & 0.164 & 0.114 \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F547M &
     \(\sim 0\) & \(\sim 0\) & 0.0274 & 0.0191 \\ 
-    \oiii{} 4363/5007 & FQ437N, F502N, FQ674N &
+    \oiii{} 4363/5007 & FQ437N, F502N, FQ436N &
     0.968 & \(\sim 0\) & 0.711 & 1.998 \\ 
     \oiii{} 4363/5007 & FQ437N, F502N, F547M &
     \(\sim 0\) & 0.00141 & 0.03426 & 0.09627 \\ 
     \bottomrule
   \end{tabular}
-  \par Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-5}\). 
+  \par\smallskip Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-5}\). 
 \end{table}
+
+With these definitions, equations~(\ref{eq:RI}) to~(\ref{eq:RIII}) can
+be solved to give the line ratio in terms of the filter count rates:
+\begin{equation}
+  \label{eq:solve-ratio}
+  \frac{I_1}{I_2} = \frac{\lambda_2 \T{2}{\F{II}}}{\lambda_1 \T{1}{\F{I}}}
+  \frac{\left[(1 - \Falpha{II} \Fbeta{II} \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + \Falpha{II} \Fbeta{I} \COLOR{\F{I}}{\F{III}}  R_{\F{II}} - \Fbeta{I} \COLOR{\F{I}}{\F{III}} R_{\F{III}}\right]}
+  {\left[\Falpha{I} \Fbeta{II} \COLOR{\F{II}}{\F{III}} R_{\F{I}} + (1 - \Falpha{I} \Fbeta{I} \COLOR{\F{I}}{\F{III}}) R_{\F{II}} - \Fbeta{II} \COLOR{\F{II}}{\F{III}} R_{\F{III}}\right]}
+\end{equation}
+with filter contamination coefficients
+\begin{displaymath}
+  \Falpha{I} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
+  \Falpha{II} = \frac{\T{2}{\F{III}}}{\T{2}{\F{II}}} ; \quad
+  \Fbeta{I}  = \frac{\Tmax{\F{I}} W_{\F{I}}}{\Tmax{\F{III}} W_{\F{III}}} ; \quad
+  \Fbeta{II}  = \frac{\Tmax{\F{II}} W_{\F{II}}}{\Tmax{\F{III}} W_{\F{III}}}
+\end{displaymath}
+The \(\alpha\) contamination coefficents give the throughput of each
+target emission line in the continuum filter \F{III} relative to the
+throughput in its respective narrow-band filter, and will tend to be
+either \(\sim 1\) for lines that fall in the continuum bandpass, or
+\(\sim 0\) for those that do not.  The \(beta\) contamination
+coefficients give the integrated continuum throughput in each narrow
+band filter relative to the continuum filter.  Since repeated
+calibration programs have shown that the WFC3 filter characteristics
+are stable with time, all these purely instrumental coefficients are
+constants, albeit with a small systematic uncertainty in their true value.
+The \(\widetilde{k}\) factors, on the other hand, represent the
+relative strengths of the continuum and non-target lines in the
+bandpasses of the three filters, and are expected to show variations
+from object to object and from pixel to pixel within the same object,
+due to changes in the physical conditions. 
+
+
+
 
 
 \subsection{\boldmath Deriving \(\Te, \Ne\) from line ratios}
