@@ -127,27 +127,29 @@ So for the [N II] ratio, the continuum contribution coefficients \beta for 575 a
 The following serves to test the new =find_line_ratio= function and
 compares the version with and without accounting for the line and
 continuum contamination terms.  We use median count rates from the
-spectrophotometry for each of the three filters, and assume that the k
-color factors are all 1.0.
+spectrophotometry for each of the three filters. 
+
+Now also grabbing suitable k values from the odh files
 
 #+name: filter-set-fakes
 | Wav1 | Wav2 | I      | II     | III    |  R_I | R_II | R_III | k_I_III | k_II_III |
 |------+------+--------+--------+--------+------+------+-------+---------+----------|
-| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.14 |  3.0 |   2.5 |         |          |
-| 6716 | 6731 | FQ672N | FQ674N | F673N  | 0.34 |  0.4 |   1.0 |         |          |
-| 6716 | 6731 | FQ672N | FQ674N | F547M  | 0.34 |  0.4 |   2.5 |         |          |
-| 4363 | 5007 | FQ437N | F502N  | FQ436N | 0.18 |  8.0 |   0.4 |     1.0 |          |
-| 4363 | 5007 | FQ437N | F502N  | F547M  | 0.18 |  8.0 |   2.5 |     1.4 |          |
-| 4861 | 6563 | F487N  | F656N  | F547M  |  3.2 | 12.0 |   2.5 |         |          |
+| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.14 |  3.0 |   2.5 |    0.94 |     1.01 |
+| 6716 | 6731 | FQ672N | FQ674N | F673N  | 0.34 |  0.4 |   1.0 |    1.07 |     1.02 |
+| 6716 | 6731 | FQ672N | FQ674N | F547M  | 0.34 |  0.4 |   2.5 |    1.04 |     0.99 |
+| 4363 | 5007 | FQ437N | F502N  | FQ436N | 0.18 |  8.0 |   0.4 |    0.75 |     0.59 |
+| 4363 | 5007 | FQ437N | F502N  | F547M  | 0.18 |  8.0 |   2.5 |    1.37 |     1.07 |
+| 4861 | 6563 | F487N  | F656N  | F547M  |  3.2 | 12.0 |   2.5 |     1.1 |     1.01 |
 
 #+BEGIN_SRC python :return table :var intable=filter-set-fakes
   from wfc3_utils import find_line_ratio
   table = [["I", "II", "III", "I_1/I_2", "Naive I_1/I_2"], None]
-  for wav1, wav2, FI, FII, FIII, RI, RII, RIII in intable[0:]:
+  for wav1, wav2, FI, FII, FIII, RI, RII, RIII, kI, kII in intable[0:]:
       filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
       row = [FI, FII, FIII]
       row.extend(["{:.3f}".format(find_line_ratio(filterset,
-                                                  RI, RII, RIII, naive=naive))
+                                                  RI, RII, RIII,
+                                                  k_I=kI, k_II=kII, naive=naive))
                   for naive in (False, True)])
       table.append(row)
 #+END_SRC
@@ -155,16 +157,141 @@ color factors are all 1.0.
 #+RESULTS:
 | I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
 |--------+--------+--------+---------+---------------|
-| FQ575N | F658N  | F547M  |   0.034 |         0.057 |
-| FQ672N | FQ674N | F673N  |   0.612 |         0.654 |
-| FQ672N | FQ674N | F547M  |   0.593 |         0.654 |
-| FQ437N | F502N  | FQ436N |  -0.068 |         0.030 |
-| FQ437N | F502N  | F547M  |   0.016 |         0.030 |
-| F487N  | F656N  | F547M  |   0.308 |         0.329 |
+| FQ575N | F658N  | F547M  |   0.036 |         0.057 |
+| FQ672N | FQ674N | F673N  |   0.604 |         0.654 |
+| FQ672N | FQ674N | F547M  |   0.586 |         0.654 |
+| FQ437N | F502N  | FQ436N |  -0.013 |         0.030 |
+| FQ437N | F502N  | F547M  |   0.011 |         0.030 |
+| F487N  | F656N  | F547M  |   0.306 |         0.329 |
 
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
-  + Presumably this is due to neglecting the line contamination, which probably gives a large k value
+  + Presumably this is due to neglecting the line contamination, which probably gives a large k value - adjusting the k value does at least stop it from going negative, but it still disagrees with the F547M version.  And doing the ktwiddle values more carefully actually gives a negative value again
+*** Histograms of the continuum color
+With correction for non-target lines
+
+
+The first version is just for the continuum
+#+name: filters-and-lines
+| FQ672N | 6716 |
+| F673N  | 6716 |
+| FQ674N | 6731 |
+| F656N  | 6563 |
+| F658N  | 6583 |
+| FQ575N | 5755 |
+| F547M  | 5755 |
+| F502N  | 5007 |
+| F487N  | 4861 |
+| FQ436N | 4340 |
+| FQ437N | 4363 |
+#+BEGIN_SRC python :var intab=filters-and-lines :return outtab :results verbatim
+  from astropy.table import Table
+  from matplotlib import pyplot as plt
+  import numpy as np
+
+  outtab = []
+  kmin, kmax = 0.5, 2.5
+  for filt, wav in intab:
+      dataset = "odh"
+      kay = "k"
+      swav = str(wav)
+      spectabfile = "{}-spectra-data-{}.tab".format(dataset, filt)
+      spectab = Table.read(spectabfile, format="ascii.tab",
+                           fill_values=('--', 0.0))
+      fig = plt.figure(figsize=(3,3))
+      plt.hist(spectab[kay+swav], bins=50, range=(kmin, kmax))
+      if filt == "F547M":
+          ktwid = (1.0 + spectab['Sum(E/W)'])
+      elif filt == "FQ436N":
+          ktwid = spectab[kay+swav]*(1.0 + spectab['E/W 4340'])
+      elif filt == "F673N":
+          # Correct for 6731 line, which is a target line
+          frac = np.array([(1.0 - 0.01*int(s[-3:-1])) for s in spectab['Strongest']])
+          ktwid = spectab[kay+swav]*(1.0 + frac*spectab['Sum(E/W)'])
+      else:
+          ktwid = spectab[kay+swav]*(1.0 + spectab['Sum(E/W)'])
+      plt.hist(ktwid, bins=50, range=(kmin, kmax))
+      plt.xlim(kmin, kmax)
+      plt.title("{} {:.2f} +/- {:.2f}".format(filt, ktwid.mean(), ktwid.std()))
+      pltfile = "color-hist-{}-{}.png".format(kay, filt)
+      fig.savefig(pltfile, dpi=50)
+      outtab.append("[[file:{}]]".format(pltfile))
+  outtab = ' '.join(outtab)
+
+#+END_SRC
+
+#+RESULTS:
+: [[file:color-hist-k-FQ672N.png]] [[file:color-hist-k-F673N.png]] [[file:color-hist-k-FQ674N.png]] [[file:color-hist-k-F656N.png]] [[file:color-hist-k-F658N.png]] [[file:color-hist-k-FQ575N.png]] [[file:color-hist-k-F547M.png]] [[file:color-hist-k-F502N.png]] [[file:color-hist-k-F487N.png]] [[file:color-hist-k-FQ436N.png]] [[file:color-hist-k-FQ437N.png]]
+*** Now apply to the WFC3 maps
+#+name: ratio-limits
+| FQ575N |   0.0 | 0.15 |
+| FQ672N |   0.0 |  1.5 |
+| FQ437N | -0.01 | 0.03 |
+| F487N  |   0.2 |  0.4 |
+#+header: :var intable=filter-set-fakes limits=ratio-limits
+#+BEGIN_SRC python :return plotlinks :results list
+  import numpy as np
+  from wfc3_utils import find_line_ratio
+  from astropy.io import fits
+  from matplotlib import pyplot as plt
+  import matplotlib
+  fitsfilenames = {
+      "FQ436N": "full_FQ436N_north_pad.fits",
+      "FQ575N": "full_FQ575N_north_pad.fits",
+      "FQ672N": "full_FQ672N_north_pad.fits",
+      "FQ674N": "full_FQ674N_north_pad.fits",
+      "F673N": "full_F673N_north_pad.fits",
+      "F469N": "full_F469N_north_pad.fits",
+      "F487N": "full_F487N_north_pad.fits",
+      "F656N": "full_F656N_north_pad.fits",
+      "F658N": "full_F658N_north_pad.fits",
+      "F547M": "full_F547M_north_pad.fits",
+      "F502N": "full_F502N_north_pad.fits",
+      "FQ437N": "full_FQ437N_north_pad.fits"
+  }
+
+  minmax_dict = dict([(row[0], row[1:]) for row in limits])
+
+  def get_fits_data(fn='FQ575N'):
+      return fits.open(fitsfilenames[fn])[0].data
+
+  plotlinks = []
+  for wav1, wav2, FI, FII, FIII, _, _, _, kI, kII in intable[0:]:
+      filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
+      RI = get_fits_data(FI)
+      RII = get_fits_data(FII)
+      RIII = get_fits_data(FIII)
+      x = find_line_ratio(filterset, RI, RII, RIII, k_I=kI, k_II=kII, naive=True)
+      y = find_line_ratio(filterset, RI, RII, RIII, k_I=kI, k_II=kII, naive=False)
+      hdu = fits.PrimaryHDU(y, header=fits.open(fitsfilenames[FI])[0].header)
+      hdu.writeto("ratio-contam-correct-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
+      hdu = fits.PrimaryHDU(x, header=fits.open(fitsfilenames[FI])[0].header)
+      hdu.writeto("ratio-naive-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
+      xmin, xmax = minmax_dict[FI]
+      ymin, ymax = xmin, xmax
+      fig = plt.figure(figsize=(6,6))
+      m = np.isfinite(x) & np.isfinite(y) & ( xmin < x ) & (x < xmax) & (ymin < y) & (y < ymax)
+      x, y = x[m], y[m]
+      pltfile = "contam-correct-{}-{}-{}.pdf".format(FI, FII, FIII)
+      plt.hist2d(x.ravel(), y.ravel(), bins=200, range=[[xmin, xmax], [ymin, ymax]], cmap=plt.cm.gray_r)
+      plt.plot([xmin, ymin], [xmax, ymax], '--k', zorder=100)
+      plt.xlabel("({} / {})*".format(wav1, wav2))
+      plt.ylabel("({} / {})".format(wav1, wav2))
+      fig.savefig(pltfile)
+      plotlinks.append("[[file:{}]]".format(pltfile))
+
+
+
+#+END_SRC
+
+#+RESULTS:
+- [[file:contam-correct-FQ575N-F658N-F547M.pdf]]
+- [[file:contam-correct-FQ672N-FQ674N-F673N.pdf]]
+- [[file:contam-correct-FQ672N-FQ674N-F547M.pdf]]
+- [[file:contam-correct-FQ437N-F502N-FQ436N.pdf]]
+- [[file:contam-correct-FQ437N-F502N-F547M.pdf]]
+- [[file:contam-correct-F487N-F656N-F547M.pdf]]
+
 
 ** Revisiting the Te, ne calculations and spatial variations
 + We want to migrate the relevant material from the ipynb files and check that it is using the correct calibration
