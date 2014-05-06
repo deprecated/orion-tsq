@@ -267,7 +267,7 @@ The \(\alpha\) contamination coefficents give the throughput of each
 target emission line in the continuum filter \F{III} relative to the
 throughput in its respective narrow-band filter, and will tend to be
 either \(\sim 1\) for lines that fall in the continuum bandpass, or
-\(\sim 0\) for those that do not.  The \(beta\) contamination
+\(\sim 0\) for those that do not.  The \(\beta\) contamination
 coefficients give the integrated continuum throughput in each narrow
 band filter relative to the continuum filter.  Since repeated
 calibration programs have shown that the WFC3 filter characteristics
@@ -279,6 +279,29 @@ bandpasses of the three filters, and are expected to show variations
 from object to object and from pixel to pixel within the same object,
 due to changes in the physical conditions. 
 
+\begin{figure}
+  \centering
+  \begin{tabular}{ll}
+    (\textit{a}) & (\textit{b}) \\
+    \includegraphics[width=0.45\linewidth]{contam-correct-FQ672N-FQ674N-F673N}
+    &
+    \includegraphics[width=0.45\linewidth]{contam-correct-FQ672N-FQ674N-F547M} \\
+    (\textit{c}) & (\textit{d}) \\
+    \includegraphics[width=0.45\linewidth]{contam-correct-FQ575N-F658N-F547M}
+    &
+    \includegraphics[width=0.45\linewidth]{contam-correct-F487N-F656N-F547M}
+  \end{tabular}
+  \caption{Effects on derived line ratios of contamination by
+    continuum and non-target lines.  In each panel, the \(x\) axis
+    shows the ``naive'' line ratio, while the \(y\) axis shows the
+    corrected line ratio.  (\textit{a})~\sii{} 6716/6731 ratio
+    caclulated from FQ672N, FQ674N, F673N; (\textit{b})~\sii{} 6716/6731 ratio
+    caclulated from FQ672N, FQ674N, F547M; (\textit{c})~\nii{} 5755/6583 ratio
+    caclulated from  FQ575N, F658N, F547M;
+    (\textit{d})~H\(\beta\)/H\(\alpha\) ratio calculated from F487N,
+    F656N, F547M.}
+  \label{fig:contam}
+\end{figure}
 
 
 

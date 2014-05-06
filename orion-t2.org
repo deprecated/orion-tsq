@@ -224,10 +224,10 @@ The first version is just for the continuum
 : [[file:color-hist-k-FQ672N.png]] [[file:color-hist-k-F673N.png]] [[file:color-hist-k-FQ674N.png]] [[file:color-hist-k-F656N.png]] [[file:color-hist-k-F658N.png]] [[file:color-hist-k-FQ575N.png]] [[file:color-hist-k-F547M.png]] [[file:color-hist-k-F502N.png]] [[file:color-hist-k-F487N.png]] [[file:color-hist-k-FQ436N.png]] [[file:color-hist-k-FQ437N.png]]
 *** Now apply to the WFC3 maps
 #+name: ratio-limits
-| FQ575N |   0.0 | 0.15 |
-| FQ672N |   0.0 |  1.5 |
+| FQ575N |   0.0 | 0.09 |
+| FQ672N |   0.4 |  1.0 |
 | FQ437N | -0.01 | 0.03 |
-| F487N  |   0.2 |  0.4 |
+| F487N  |  0.22 | 0.33 |
 #+header: :var intable=filter-set-fakes limits=ratio-limits
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
@@ -235,6 +235,7 @@ The first version is just for the continuum
   from astropy.io import fits
   from matplotlib import pyplot as plt
   import matplotlib
+  import pyregion
   fitsfilenames = {
       "FQ436N": "full_FQ436N_north_pad.fits",
       "FQ575N": "full_FQ575N_north_pad.fits",
@@ -267,16 +268,19 @@ The first version is just for the continuum
       hdu.writeto("ratio-contam-correct-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
       hdu = fits.PrimaryHDU(x, header=fits.open(fitsfilenames[FI])[0].header)
       hdu.writeto("ratio-naive-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
+      region = pyregion.open("will-extended-sweet-spot.reg")
+      ssmask = region.get_mask(hdu=hdu)
       xmin, xmax = minmax_dict[FI]
       ymin, ymax = xmin, xmax
       fig = plt.figure(figsize=(6,6))
-      m = np.isfinite(x) & np.isfinite(y) & ( xmin < x ) & (x < xmax) & (ymin < y) & (y < ymax)
+      m = ssmask & np.isfinite(x) & np.isfinite(y) & ( xmin < x ) & (x < xmax) & (ymin < y) & (y < ymax)
       x, y = x[m], y[m]
       pltfile = "contam-correct-{}-{}-{}.pdf".format(FI, FII, FIII)
       plt.hist2d(x.ravel(), y.ravel(), bins=200, range=[[xmin, xmax], [ymin, ymax]], cmap=plt.cm.gray_r)
       plt.plot([xmin, ymin], [xmax, ymax], '--k', zorder=100)
       plt.xlabel("({} / {})*".format(wav1, wav2))
       plt.ylabel("({} / {})".format(wav1, wav2))
+      plt.grid()
       fig.savefig(pltfile)
       plotlinks.append("[[file:{}]]".format(pltfile))
 
@@ -291,7 +295,19 @@ The first version is just for the continuum
 - [[file:contam-correct-FQ437N-F502N-FQ436N.pdf]]
 - [[file:contam-correct-FQ437N-F502N-F547M.pdf]]
 - [[file:contam-correct-F487N-F656N-F547M.pdf]]
-
+=
+=*** Applying the sweet spot
+:PROPERTIES:
+:ID:       4D18B76C-DA2B-4E8A-9E2F-336A793B9C35
+:END:
++ For the time being we will use [[file:will-extended-sweet-spot.reg]]
++ But that elminates some interesting parts of the [N II] ratio map
+  + The base of HH 528
++ So eventually I want to use a separate mask for each line ratio
+  + Currently I have [[file:FQ672N-good-box.reg]]
+  + [ ] Need to do the others
+#+BEGIN_SRC python
+#+END_SRC
 
 ** Revisiting the Te, ne calculations and spatial variations
 + We want to migrate the relevant material from the ipynb files and check that it is using the correct calibration
