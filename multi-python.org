@@ -8,7 +8,7 @@ return sys.version
 #+END_SRC
 
 #+RESULTS: check-python-version
-: 3.3.5 |Anaconda 1.9.1 (x86_64)| (default, Mar 10 2014, 11:22:25) 
+: 3.3.5 |Anaconda 2.0.0 (x86_64)| (default, Mar 10 2014, 11:22:25) 
 : [GCC 4.0.1 (Apple Inc. build 5493)]
 
 This is the control experiment. 

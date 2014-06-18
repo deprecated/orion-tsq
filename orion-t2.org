@@ -17,6 +17,9 @@ import seaborn as sn
 * Notes on particular objects
 
 ** Shadows 
+:PROPERTIES:
+:ID:       8D522091-DF9C-4446-8BA7-FBC707A126C7
+:END:
 There are at least three sorts of shadows: 
 1. Observer shadows, such as foreground disks and clouds
    + Where we are in the shadow of the object
@@ -39,9 +42,35 @@ There are at least three sorts of shadows:
     + Although you can do it by doing =json.dumps= on the sub-objects to convert them to a string
   + It is also necessary to be careful with concurrent connections, although I think I have that just about sorted
     + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
-* Final push to finish this - April 2014
+* Final push to finish this - April/June 2014
+:PROPERTIES:
+:exports:  both
+:END:
+
 We have a lot of material that needs to be drawn together
 ** Plan for the final paper
+*** TODO Short term priorities
+DEADLINE: <2014-06-18 Wed>
++ [X] Do de-reddening
+  + Pixel-by-pixel, or with a constant value?
++ [-] Make maps of the region of interest
+  + [X] RGB image
+  + [ ] [N II] and [S II] ratio images
+    + [ ] multiscale?
+  + [ ] Overlays of contours
+    + [ ] scattered continuum
+    + [ ] 469 excess
+    + [ ] [S II] excess
+  + [ ] Write these up
+
+*** TODO Longer term
++ [ ] sensitivity to continuum color term
++ [ ] Generate the full-field images of the strong lines
+  + [ ] Make images of each quadrant with suitable scaling in [S II] [N II] [O III] and also in scattered continuum
+  + [ ] Draw attention to interesting features
+    + Narrow sattering filaments in the south
+    + Dark tendrils - which sort of [[id:8D522091-DF9C-4446-8BA7-FBC707A126C7][shadow]] are these?
+*** Global plan
 + At the moment, I have three sections:
   1. Deriving diagnostic line ratios from the WFC3 filter images
   2. Deriving Te, ne from the line ratios
@@ -66,7 +95,7 @@ def ratio_nii(R, R575, R658, k575=0.938):
     return R * (Tn/Ta) * (1.0 - W575*k575*R575/W547) / (1.0 - W658*k658*R658/W547)
 #+END_SRC
 + Of course, some of this now needs modification - we should calculate the parameters directly from the filter bandpasses. 
-#+BEGIN_SRC python :return table
+#+BEGIN_SRC python :return table 
 from wfc3_utils import get_filter, Tm, Wj, Wtwid
 
 bands = ["F547M", "FQ575N", "F658N", "F673N", "FQ672N", "FQ674N"]
@@ -91,6 +120,7 @@ for band, wav0 in zip(bands, wav0s):
 
 Now we have a nice equation for finding the ratios
 
+#+caption: Filter sets
 #+name: filter-sets
 | 5755 | 6584 | FQ575N | F658N  | F547M  |
 | 6716 | 6731 | FQ672N | FQ674N | F673N  |
@@ -132,14 +162,14 @@ spectrophotometry for each of the three filters.
 Now also grabbing suitable k values from the odh files
 
 #+name: filter-set-fakes
-| Wav1 | Wav2 | I      | II     | III    |  R_I | R_II | R_III | k_I_III | k_II_III |
-|------+------+--------+--------+--------+------+------+-------+---------+----------|
-| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.14 |  3.0 |   2.5 |    0.94 |     1.01 |
-| 6716 | 6731 | FQ672N | FQ674N | F673N  | 0.34 |  0.4 |   1.0 |    1.07 |     1.02 |
-| 6716 | 6731 | FQ672N | FQ674N | F547M  | 0.34 |  0.4 |   2.5 |    1.04 |     0.99 |
-| 4363 | 5007 | FQ437N | F502N  | FQ436N | 0.18 |  8.0 |   0.4 |    0.75 |     0.59 |
-| 4363 | 5007 | FQ437N | F502N  | F547M  | 0.18 |  8.0 |   2.5 |    1.37 |     1.07 |
-| 4861 | 6563 | F487N  | F656N  | F547M  |  3.2 | 12.0 |   2.5 |     1.1 |     1.01 |
+| Wav1 | Wav2 | I      | II     | III    |   R_I | R_II | R_III | k_I_III | k_II_III |
+|------+------+--------+--------+--------+-------+------+-------+---------+----------|
+| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.295 |  7.8 |   4.6 |    0.94 |     1.01 |
+| 6716 | 6731 | FQ672N | FQ674N | F673N  |  0.34 |  0.4 |   1.0 |    1.07 |     1.02 |
+| 6716 | 6731 | FQ672N | FQ674N | F547M  |  0.34 |  0.4 |   2.5 |    1.04 |     0.99 |
+| 4363 | 5007 | FQ437N | F502N  | FQ436N |  0.18 |  8.0 |   0.4 |    0.75 |     0.59 |
+| 4363 | 5007 | FQ437N | F502N  | F547M  |  0.18 |  8.0 |   2.5 |    1.37 |     1.07 |
+| 4861 | 6563 | F487N  | F656N  | F547M  |   3.2 | 12.0 |   2.5 |     1.1 |     1.01 |
 
 #+BEGIN_SRC python :return table :var intable=filter-set-fakes
   from wfc3_utils import find_line_ratio
@@ -157,10 +187,10 @@ Now also grabbing suitable k values from the odh files
 #+RESULTS:
 | I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
 |--------+--------+--------+---------+---------------|
-| FQ575N | F658N  | F547M  |   0.036 |         0.057 |
+| FQ575N | F658N  | F547M  |   0.031 |         0.046 |
 | FQ672N | FQ674N | F673N  |   0.604 |         0.654 |
 | FQ672N | FQ674N | F547M  |   0.586 |         0.654 |
-| FQ437N | F502N  | FQ436N |  -0.013 |         0.030 |
+| FQ437N | F502N  | FQ436N |  -0.012 |         0.030 |
 | FQ437N | F502N  | F547M  |   0.011 |         0.030 |
 | F487N  | F656N  | F547M  |   0.306 |         0.329 |
 
@@ -224,10 +254,10 @@ The first version is just for the continuum
 : [[file:color-hist-k-FQ672N.png]] [[file:color-hist-k-F673N.png]] [[file:color-hist-k-FQ674N.png]] [[file:color-hist-k-F656N.png]] [[file:color-hist-k-F658N.png]] [[file:color-hist-k-FQ575N.png]] [[file:color-hist-k-F547M.png]] [[file:color-hist-k-F502N.png]] [[file:color-hist-k-F487N.png]] [[file:color-hist-k-FQ436N.png]] [[file:color-hist-k-FQ437N.png]]
 *** Now apply to the WFC3 maps
 #+name: ratio-limits
-| FQ575N |   0.0 | 0.09 |
+| FQ575N | 0.005 | 0.07 |
 | FQ672N |   0.4 |  1.0 |
 | FQ437N | -0.01 | 0.03 |
-| F487N  |  0.22 | 0.33 |
+| F487N  |  0.20 | 0.33 |
 #+header: :var intable=filter-set-fakes limits=ratio-limits
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
@@ -268,19 +298,31 @@ The first version is just for the continuum
       hdu.writeto("ratio-contam-correct-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
       hdu = fits.PrimaryHDU(x, header=fits.open(fitsfilenames[FI])[0].header)
       hdu.writeto("ratio-naive-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
-      region = pyregion.open("will-extended-sweet-spot.reg")
-      ssmask = region.get_mask(hdu=hdu)
+      if '575' in FI:
+          include = pyregion.open("will-nii-sweet-spot.reg")
+          exclude = pyregion.open("will-nii-exclude.reg")
+          ssmask = include.get_mask(hdu=hdu) & (~exclude.get_mask(hdu=hdu))
+      else:
+          region = pyregion.open("will-extended-sweet-spot.reg")
+          ssmask = region.get_mask(hdu=hdu)
       xmin, xmax = minmax_dict[FI]
       ymin, ymax = xmin, xmax
       fig = plt.figure(figsize=(6,6))
-      m = ssmask & np.isfinite(x) & np.isfinite(y) & ( xmin < x ) & (x < xmax) & (ymin < y) & (y < ymax)
+      m = ssmask & np.isfinite(x) & np.isfinite(y) & ( xmin < x ) & (x < xmax) & (ymin < y) & (y < ymax) & (y <= x)
       x, y = x[m], y[m]
       pltfile = "contam-correct-{}-{}-{}.pdf".format(FI, FII, FIII)
-      plt.hist2d(x.ravel(), y.ravel(), bins=200, range=[[xmin, xmax], [ymin, ymax]], cmap=plt.cm.gray_r)
-      plt.plot([xmin, ymin], [xmax, ymax], '--k', zorder=100)
+      w = RII[m]
+      H, xedges, yedges = np.histogram2d(x, y, 100,
+                                         [[xmin, xmax], [ymin, ymax]],
+                                         weights=w)
+      plt.imshow(H.T, extent=[xmin, xmax, ymin, ymax],
+                 interpolation='none', aspect='auto', origin='lower', 
+                 cmap=plt.cm.gray_r, alpha=1.0)
       plt.xlabel("({} / {})*".format(wav1, wav2))
       plt.ylabel("({} / {})".format(wav1, wav2))
       plt.grid()
+      plt.plot([xmin, xmax], [ymin, ymax], '--k')
+      plt.axis([xmin, xmax, ymin, ymax])
       fig.savefig(pltfile)
       plotlinks.append("[[file:{}]]".format(pltfile))
 
@@ -295,8 +337,531 @@ The first version is just for the continuum
 - [[file:contam-correct-FQ437N-F502N-FQ436N.pdf]]
 - [[file:contam-correct-FQ437N-F502N-F547M.pdf]]
 - [[file:contam-correct-F487N-F656N-F547M.pdf]]
-=
-=*** Applying the sweet spot
+**** Correlations between ratios
+Look at the following:
+- The two ways of finding 6716/6731
+- The [N II] ratio versus extinction
+- The [N II] ratio versus [S II] ratio
+
+In all cases, we weight by the nii brightness
+#+name: interesting-ratios
+| nii-red  | F487N-F656N-F547M   | 0.2 | 0.3 | FQ575N-F658N-F547M  | 0.00 | 0.04 |
+| nii-sii  | FQ672N-FQ674N-F547M | 0.4 | 0.8 | FQ575N-F658N-F547M  | 0.00 | 0.04 |
+| nii-sii2 | FQ672N-FQ674N-F673N | 0.4 | 0.8 | FQ575N-F658N-F547M  | 0.00 | 0.04 |
+| sii-sii  | FQ672N-FQ674N-F547M | 0.4 | 0.8 | FQ672N-FQ674N-F673N |  0.4 |  0.8 |
+#+header: :var tab=interesting-ratios
+#+BEGIN_SRC python :return plotlinks :results list
+  import numpy as np
+  from astropy.io import fits
+  from matplotlib import pyplot as plt
+  import pyregion
+  plotlinks = []
+  snii = fits.open("full_F658N_north_pad.fits")[0].data
+  for descrip, ratA, xmin, xmax, ratB, ymin, ymax in tab:
+      hduA = fits.open("ratio-contam-correct-{}.fits".format(ratA))[0]
+      hduB = fits.open("ratio-contam-correct-{}.fits".format(ratB))[0]
+      region =  pyregion.open("will-extended-sweet-spot.reg")
+      m = region.get_mask(hdu=hduA)
+      x = hduA.data[m]
+      y = hduB.data[m]
+      w = snii[m]
+      fig = plt.figure(figsize=(6,6))
+      pltfile = "ratio-correl-{}.pdf".format(descrip)
+      H, xedges, yedges = np.histogram2d(x, y, 100,
+                                         [[xmin, xmax], [ymin, ymax]],
+                                         weights=w)
+      plt.imshow(H.T, extent=[xmin, xmax, ymin, ymax],
+                 interpolation='none', aspect='auto', origin='lower', 
+                 cmap=plt.cm.gray_r, alpha=1.0)
+      plt.xlabel(ratA)
+      plt.ylabel(ratB)
+      plt.grid()
+      if descrip == "sii-sii":
+          plt.plot([xmin, xmax], [ymin, ymax], '--k')
+      fig.savefig(pltfile)
+      plotlinks.append("[[file:{}]]".format(pltfile))
+#+END_SRC  
+
+#+RESULTS:
+- [[file:ratio-correl-nii-red.pdf]]
+- [[file:ratio-correl-nii-sii.pdf]]
+- [[file:ratio-correl-nii-sii2.pdf]]
+- [[file:ratio-correl-sii-sii.pdf]]
+**** Curves for T,n diagnostics
+#+name: pyneb-setup
+#+header: :python /Users/will/anaconda/envs/py27/bin/python
+#+BEGIN_SRC python
+import pyneb
+sii = pyneb.Atom('S', 2)
+nii = pyneb.Atom('N', 2)
+#+END_SRC
+
+#+name: T-n-curves
+#+BEGIN_SRC python
+
+denrange = np.linspace(0.0, 3.e4, 100)
+for tem in [9e3, 1e4, 1.1e4, 1.2e4, 1.3e4]:
+    As = sii.getEmissivity(tem, denrange, wave=6716)
+    Bs = sii.getEmissivity(tem, denrange, wave=6731)
+    An = nii.getEmissivity(tem, denrange, wave=5755)
+    Bn = nii.getEmissivity(tem, denrange, wave=6583)
+    plt.plot(As/Bs, An/Bn, label="T = {:.0f} K".format(tem))
+
+temrange = np.linspace(5000.0, 20000.0, 100)
+for den in [1000, 2000, 4000, 8000, 16000]:
+    As = sii.getEmissivity(temrange, den, wave=6716)
+    Bs = sii.getEmissivity(temrange, den, wave=6731)
+    An = nii.getEmissivity(temrange, den, wave=5755)
+    Bn = nii.getEmissivity(temrange, den, wave=6583)
+    plt.plot(As/Bs, An/Bn, '--', label="n = {:.0f} pcc".format(den))
+#+END_SRC
+
+#+name: two-phase-func
+#+BEGIN_SRC python
+def two_phase_rsii_rnii(den_hi, f_hi, den_lo=1000.0, T0=8000.0, T_hi=None):
+    """Calculate [S II] and [N II] ratios from mixture of 2 densities"""
+    if T_hi is None:
+        T_hi = T0
+    As_hi = sii.getEmissivity(T_hi, den_hi, wave=6716) 
+    As_lo = sii.getEmissivity(T0, den_lo, wave=6716) 
+    Bs_hi = sii.getEmissivity(T_hi, den_hi, wave=6731)
+    Bs_lo = sii.getEmissivity(T0, den_lo, wave=6731)
+    rsii = (f_hi*As_hi + (1.-f_hi)*As_lo)/(f_hi*Bs_hi + (1.-f_hi)*Bs_lo)
+    
+    An_hi = nii.getEmissivity(T_hi, den_hi, wave=5755) 
+    An_lo = nii.getEmissivity(T0, den_lo, wave=5755) 
+    Bn_hi = nii.getEmissivity(T_hi, den_hi, wave=6583)
+    Bn_lo = nii.getEmissivity(T0, den_lo, wave=6583)
+    rnii = (f_hi*An_hi + (1.-f_hi)*An_lo)/(f_hi*Bn_hi + (1.-f_hi)*Bn_lo)
+    return rsii, rnii
+#+END_SRC
+
+**** Corrected [N II] versus [S II] ratio map
+
+Adal's measurements corrected for reddening
+#+name: adal-ratios
+#+BEGIN_SRC python
+from astropy.table import Table
+adaltab = Table.read("adal-slit6-extract.dat", format="ascii.tab")
+adal_rnii_raw = adaltab["5755"]/adaltab["6583"]
+adal_rsii = adaltab["6716"]/adaltab["6731"]
+# correct for reddening
+adal_rnii = adal_rnii_raw * 10**0.06
+
+bob_rsii = np.array([0.5953, 0.6133, 0.5316])
+bob_rnii = np.array([0.0215, 0.0172, 0.0221])
+cesar_rsii = np.array([3.303/6.023, 2.59/4.71])
+cesar_rnii_raw = np.array([0.858/61.589, 0.962/52.5])
+cesar_rnii = cesar_rnii_raw * 10**0.06
+
+plt.plot(adal_rsii, adal_rnii, "co", 
+         alpha=0.6, label="Mesa-Delgado et al. (2008)")
+plt.plot(cesar_rsii, cesar_rnii, "mo", label="Esteban et al. (1998, 2004)")
+plt.plot(bob_rsii, bob_rnii, "yo", label="O'Dell & Harris (2010)")
+
+#+END_SRC
+
+The 2d histogram plot itself
+#+name: rnii-rsii-histogram
+#+BEGIN_SRC python
+  snii = fits.open("full_F658N_north_pad.fits")[0].data
+  hduA = fits.open("ratio-contam-correct-FQ672N-FQ674N-F547M.fits")[0]
+  hduB = fits.open("ratio-FQ575N-F658N-deredden-2874.fits")[0]
+
+  xmin, xmax, ymin, ymax = 0.4, 0.8, 0.0, 0.05
+  include = pyregion.open("will-nii-sweet-spot.reg")
+  exclude = pyregion.open("will-nii-exclude.reg")
+  m = include.get_mask(hdu=hduA) & (~exclude.get_mask(hdu=hduA))
+
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  m = m & include.get_mask(hdu=hduA) & (~exclude.get_mask(hdu=hduA))
+
+  m = m & np.isfinite(hduA.data) & np.isfinite(hduB.data)
+  x = hduA.data[m]
+  y = hduB.data[m]
+  w = snii[m]
+  fig = plt.figure(figsize=(7,7))
+  H, xedges, yedges = np.histogram2d(x, y, 100,
+                                     [[xmin, xmax], [ymin, ymax]],
+                                     weights=w)
+  plt.imshow((H.T)**(1.0/gamma), extent=[xmin, xmax, ymin, ymax],
+             interpolation='none', aspect='auto', origin='lower', 
+             cmap=plt.cm.gray_r, alpha=1.0)
+#+END_SRC
+
+Putting it all together with the 1-phase curves
+#+header: :python /Users/will/anaconda/envs/py27/bin/python
+#+header: :var gamma=1.5 :noweb yes
+#+BEGIN_SRC python :return pltfile :results file
+  import numpy as np
+  from astropy.io import fits
+  from matplotlib import pyplot as plt
+  import pyregion
+  <<rnii-rsii-histogram>>
+  <<pyneb-setup>>
+  <<T-n-curves>>
+  <<adal-ratios>>
+  pltfile = "nii-deredden-vs-sii-ratios.pdf"
+  plt.legend(ncol=2, fontsize='x-small', handlelength=2.2, numpoints=1)
+  plt.xlabel("[S II] 6716 / 6731")
+  plt.ylabel("Dereddened [N II] 5755 / 6584")
+  plt.grid()
+  plt.axis([xmin, xmax, ymin, ymax])
+  fig.savefig(pltfile)
+
+#+END_SRC
+
+#+RESULTS:
+[[file:nii-deredden-vs-sii-ratios.pdf]]
+
+And now try with the 2-phase curves
+
+#+header: :python /Users/will/anaconda/envs/py27/bin/python
+#+header: :var gamma=1.5 :noweb yes
+#+BEGIN_SRC python :return pltfile :results file
+  import numpy as np
+  from astropy.io import fits
+  from matplotlib import pyplot as plt
+  import pyregion
+  <<rnii-rsii-histogram>>
+  <<pyneb-setup>>
+  <<two-phase-func>>
+  T_lo, T_hi, f0 = 10000, 10000, 0.5
+  for den_hi in [1.e4, 4e4, 1.e5, 2e5, 4.e5]:
+      denrange = np.logspace(2.0, np.log10(den_hi), 100)
+      rsii, rnii = two_phase_rsii_rnii(den_hi, f0, denrange, T_lo, T_hi)
+      plt.plot(rsii, (10**(-0.6*0.095))*rnii, 
+              label="den(hi) = {:.0e} pcc".format(den_hi))
+  for den_lo in [1000.0, 2000.0, 4000.0, 8000.0, 16000.0]:
+      denrange = np.linspace(den_lo, 1.e6, 100)
+      rsii, rnii = two_phase_rsii_rnii(denrange, f0, den_lo, T_lo, T_hi)
+      plt.plot(rsii, (10**(-0.6*0.095))*rnii, 
+              '--', label="den(lo) = {:.0e} pcc".format(den_lo))
+  pltfile = "nii-sii-ratios-two-phase.pdf"
+  plt.legend(ncol=2, fontsize='x-small',
+             title="f(hi) = f(lo) = 0.5; T(lo) = T(hi) = 1e4 K",
+             handlelength=2.2, numpoints=1)
+  plt.xlabel("[S II] 6716 / 6731")
+  plt.ylabel("Dereddened [N II] 5755 / 6584")
+  plt.grid()
+  plt.title('Two-density models')
+  plt.axis([xmin, xmax, ymin, ymax])
+  fig.savefig(pltfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:nii-sii-ratios-two-phase.pdf]]
+
+***** 
+**** The excess line maps
+We have several of these: 
++ Excess (scattered) continuum:
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+s547 = fits.open("full_F547M_north_pad.fits")[0]
+s487 = fits.open("full_F487N_north_pad.fits")[0]
+s656 = fits.open("full_F656N_north_pad.fits")[0]
+shii = (2*s487.data + s656.data/2.874)/3
+r547 = s547.data/shii
+xs547 = s547.data - 0.45*shii
+s547.data = xs547
+s547.writeto("scattered_continuum_045.fits")
+#+END_SRC 
+
+#+RESULTS:
+
++ Excess [S II] emission
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+s672 = fits.open("full_F673N_north_pad.fits")[0]
+s658 = fits.open("full_F658N_north_pad.fits")[0]
+siix = s672.data - 0.07*s658.data
+s672.data = siix
+s672.writeto("excess_sii_007.fits")
+#+END_SRC 
+
+#+RESULTS:
+
++ Excess 469 emission ([Fe III])
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+s469 = fits.open("full_F469N_north_pad.fits")[0]
+s547 = fits.open("full_F547M_north_pad.fits")[0]
+s469.data -= 0.047*s547.data
+s469.writeto("excess_469_047.fits")
+#+END_SRC 
+
+#+RESULTS:
+
+
+
+**** DONE Effects of extinction
+CLOSED: [2014-06-17 Tue 12:02]
++ F(\lambda) values are 
+| H\beta 4861     |    0.0 |
+| [N II] 5755 | -0.123 |
+| H\alpha 6563     | -0.220 |
+| [N II] 6584 | -0.222 |
+
++ Calculate CHB from observed Balmer decrement R = Ha/Hb
+  - I'(Ha) = I(Ha) 10**(-(1+F) CHB)
+  - I'(Hb) = I(Hb) 10**(-CHB)
+  - => R' = R 10**(-(1+F) CHB  + CHB) = R 10**(-F CHB)
+  - => CHB = log10(R'/R) / (-F) = 4.5454 log10(R'/R)
+
++ Calculate correction to 5755/6584
+  - I'(6584) = I(6584) 10**(-(1+Fn) CHB)
+  - I'(5755) = I(5755) 10**(-(1+Fa) CHB)
+  - => R' = R 10**((Fa - Fn) CHB) = R 10**(0.099 CHB)
+
+
+#+header: :var balmer0=2.874
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+import numpy as np
+hdu = fits.open("ratio-contam-correct-F487N-F656N-F547M.fits")[0]
+chb = -np.log10(balmer0*hdu.data) / 0.220
+hdu.data = chb
+b0string = str(int(1000*balmer0))
+hdu.writeto("new-chb-{}.fits".format(b0string), clobber=True)
+
+hdu = fits.open("ratio-contam-correct-FQ575N-F658N-F547M.fits")[0]
+hdu.data *= 10**(0.099*chb)
+hdu.writeto("ratio-FQ575N-F658N-deredden-{}.fits".format(b0string), clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: WARNING: Overwriting existing file 'new-chb-2874.fits'. [astropy.io.fits.file]
+: WARNING: Overwriting existing file 'ratio-FQ575N-F658N-deredden-2874.fits'. [astropy.io.fits.file]
+
+This means that the
+***** Variation of Balmer decrement with density and temperature
+#+header: :python /Users/will/anaconda/envs/py27/bin/python
+#+BEGIN_SRC python :return table
+import pyneb
+h1 = pyneb.RecAtom('H', 1)
+tem = [7000, 8000, 9000, 10000, 11000]
+den = [1e3, 3e3, 1e4, 3e4]
+bdec = h1.getEmissivity(tem, den, label='3_2')/h1.getEmissivity(tem, den, label='4_2')
+table = []
+table.append(['density'] + ['T = {} K'.format(t) for t in tem])
+table.append(None)
+for d, results in zip(den, bdec):
+    table.append([d] + ['{:.3f}'.format(x) for x in results])
+#+END_SRC
+
+#+RESULTS:
+| density | T = 7000 K | T = 8000 K | T = 9000 K | T = 10000 K | T = 11000 K |
+|---------+------------+------------+------------+-------------+-------------|
+|  1000.0 |      2.947 |      2.909 |      2.886 |       2.857 |       2.842 |
+|  3000.0 |      2.937 |      2.904 |      2.881 |       2.852 |       2.837 |
+| 10000.0 |      2.930 |      2.895 |      2.874 |       2.847 |       2.833 |
+| 30000.0 |      2.919 |      2.884 |      2.862 |       2.839 |       2.826 |
+
+
+**** Mask out the bad areas in the ratio maps
+#+name: files-to-mask
+| nii | ratio-FQ575N-F658N-deredden-2874.fits         | ratio-FQ575N-F658N-masked.fits  |
+| sii | ratio-contam-correct-FQ672N-FQ674N-F547M.fits | ratio-FQ672N-FQ674N-masked.fits |
+#+BEGIN_SRC python :var tab=files-to-mask :results output
+  from astropy.io import fits
+  import numpy as np
+  import pyregion
+  f547 = fits.open("full_F547M_north_pad.fits")[0].data
+  mm = np.isfinite(f547) & (f547 > 0.0)
+  for name, infile, outfile in tab:
+      hdu = fits.open(infile)[0]
+      include = pyregion.open("will-{}-sweet-spot.reg".format(name))
+      exclude = pyregion.open("will-{}-exclude.reg".format(name))
+      m = include.get_mask(hdu=hdu) & (~exclude.get_mask(hdu=hdu))
+      hdu.data[~m | ~mm] = np.nan
+      hdu.writeto(outfile, clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: WARNING: AstropyDeprecationWarning: The ascard function is deprecated and may be removed in a future version.
+:         Use the `.cards` attribute instead. [pyregion.wcs_helper]
+: WARNING: AstropyDeprecationWarning: The CardList class has been deprecated; all its former functionality has been subsumed by the Header class, so CardList objects should not be directly created.  See the PyFITS 3.1.0 CHANGELOG for more details. [astropy.io.fits.card]
+: WARNING: AstropyDeprecationWarning: The ascard function is deprecated and may be removed in a future version.
+:         Use the `.cards` attribute instead. [pyregion.wcs_helper]
+: WARNING: Overwriting existing file 'ratio-FQ575N-F658N-masked.fits'. [astropy.io.fits.file]
+: WARNING: Overwriting existing file 'ratio-FQ672N-FQ674N-masked.fits'. [astropy.io.fits.file]
+
+*** Making some nice images
+**** Three-color imageof entire field: [S II], [N II], [O III]
++ Note that this doesn't work in python3
+#+header: :python /Users/will/anaconda/envs/py27/bin/python
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  r_file = "full_F673N_north_pad.fits"
+  g_file = "full_F658N_north_pad.fits"
+  b_file = "full_F502N_north_pad.fits"
+  aplpy.make_rgb_image([r_file, g_file, b_file], "full_RGB.jpg",
+                       vmin_r=0.0, vmax_r=2.5,
+                       vmin_g=0.1, vmax_g=15.0, stretch_g='sqrt',
+                       vmin_b=0.3, vmax_b=20.0)
+  f = aplpy.FITSFigure("full_RGB.jpg")
+  f.show_rgb(interpolation='none')
+  figfile = "full_RGB_test.pdf"
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:full_RGB_test.pdf]]
+
+**** COMMENT Field of interest
+The general region of the jet sources, including nearly as far as th1C
+#+name: jet-region
+| 83.80716 | -5.3976835 | 0.02 | 0.015 |
+It turns out that we need to pass the width,height in pixels but the center coords in degrees
+#+header: :python /Users/will/anaconda/envs/py27/bin/python
+#+header: :var recenter_box=jet-region
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  f = aplpy.FITSFigure("full_RGB.jpg")
+  f.show_rgb(interpolation='none')
+  [ra0, dec0, dra, ddec], = recenter_box
+  f.recenter(ra0, dec0, width=dra*3600/0.04, height=ddec*3600/0.04)
+  f.show_colorbar()
+  f.colorbar.hide()
+  f.add_grid()
+  f.grid.set_alpha(0.2)
+  figfile = "jet_region_RGB.pdf"
+  plt.gcf().set_size_inches(12, 9)
+  plt.gcf().tight_layout()
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:jet_region_RGB.pdf]]
+
+Now the ratios
+#+header: :var recenter_box=jet-region
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  f = aplpy.FITSFigure("ratio-FQ575N-F658N-masked.fits")
+  f.show_grayscale(interpolation='none', vmin=0.01, vmax=0.055)
+  [ra0, dec0, dra, ddec], = recenter_box
+  f.recenter(ra0, dec0, width=dra, height=ddec)
+  f.add_colorbar()
+  f.add_label(0.8, 0.9, '[N II] 5755 / 6583', relative=True, size='x-large')
+  f.add_grid()
+  f.grid.set_alpha(0.2)
+  f.ticks.set_color('black')
+  figfile = "jet_region_niiratio.pdf"
+  plt.gcf().set_size_inches(12, 9)
+  plt.gcf().tight_layout()
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:jet_region_niiratio.pdf]]
+
+#+header: :var recenter_box=jet-region
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  f = aplpy.FITSFigure("ratio-FQ672N-FQ674N-masked.fits")
+  f.show_grayscale(interpolation='none', stretch='sqrt', vmin=0.42, vmax=0.8, invert=True)
+  [ra0, dec0, dra, ddec], = recenter_box
+  f.recenter(ra0, dec0, width=dra, height=ddec)
+  f.add_colorbar()
+  f.add_label(0.8, 0.9, '[S II] 6716 / 6731', relative=True, size='x-large')
+  f.add_grid()
+  f.grid.set_alpha(0.2)
+  f.ticks.set_color('black')
+  figfile = "jet_region_siiratio.pdf"
+  plt.gcf().set_size_inches(12, 9)
+  plt.gcf().tight_layout()
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:jet_region_siiratio.pdf]]
+
+Now the excess emissions:
+
+#+header: :var recenter_box=jet-region
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  f = aplpy.FITSFigure("scattered_continuum_045.fits")
+  f.show_grayscale(interpolation='none', stretch='linear', vmin=0.5, vmax=2.7, invert=True)
+  [ra0, dec0, dra, ddec], = recenter_box
+  f.recenter(ra0, dec0, width=dra, height=ddec)
+  f.add_colorbar()
+  f.add_label(0.8, 0.9, 'Dust-scattered continuum', relative=True, size='x-large')
+  f.add_grid()
+  f.grid.set_alpha(0.2)
+  figfile = "jet_region_scattered.pdf"
+  f.ticks.set_color('black')
+  plt.gcf().set_size_inches(12, 9)
+  plt.gcf().tight_layout()
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:jet_region_scattered.pdf]]
+
+#+header: :var recenter_box=jet-region
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  f = aplpy.FITSFigure("excess_sii_007.fits")
+  f.show_grayscale(interpolation='none', stretch='linear', vmin=0.2, vmax=2.3, invert=True)
+  [ra0, dec0, dra, ddec], = recenter_box
+  f.recenter(ra0, dec0, width=dra, height=ddec)
+  f.add_colorbar()
+  f.add_label(0.8, 0.9, 'Excess [S II] (partially ionized)', relative=True, size='x-large')
+  f.add_grid()
+  f.grid.set_alpha(0.2)
+  f.ticks.set_color('black')
+  figfile = "jet_region_excess-sii.pdf"
+  plt.gcf().set_size_inches(12, 9)
+  plt.gcf().tight_layout()
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:jet_region_excess-sii.pdf]]
+
+#+header: :var recenter_box=jet-region
+#+BEGIN_SRC python :return figfile :results file
+  import aplpy
+  from astropy.io import fits
+  import matplotlib.pyplot as plt
+  f = aplpy.FITSFigure("excess_469_047.fits")
+  f.show_grayscale(interpolation='none', stretch='linear', vmin=0.02, vmax=0.12, invert=True)
+  [ra0, dec0, dra, ddec], = recenter_box
+  f.recenter(ra0, dec0, width=dra, height=ddec)
+  f.add_colorbar()
+  f.add_label(0.5, 0.1, 'Excess F469N emission: [Fe III] + He I + blue continuum', relative=True, size='x-large')
+  f.add_grid()
+  f.grid.set_alpha(0.4)
+  f.ticks.set_color('black')
+  figfile = "jet_region_excess-feiii.pdf"
+  plt.gcf().set_size_inches(12, 9)
+  plt.gcf().tight_layout()
+  plt.gcf().savefig(figfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:jet_region_excess-feiii.pdf]]
+
+
+
+
+*** Applying the sweet spot
 :PROPERTIES:
 :ID:       4D18B76C-DA2B-4E8A-9E2F-336A793B9C35
 :END:
@@ -305,7 +870,7 @@ The first version is just for the continuum
   + The base of HH 528
 + So eventually I want to use a separate mask for each line ratio
   + Currently I have [[file:FQ672N-good-box.reg]]
-  + [ ] Need to do the others
+  + [X] Need to do the others
 #+BEGIN_SRC python
 #+END_SRC
 
@@ -1402,7 +1967,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 #+name: fq575n-exclude
 |  60 | -60.0 |  10.0 |
 | 150 | -50.0 | -15.0 |
-| 150 |  -4.0 | 4.0   |
+| 150 |  -4.0 |   4.0 |
 
 #+call: ring-absolute("FQ575N", exclude=fq575n-exclude) :results file
 
@@ -1423,7 +1988,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 #+name: fq437n-exclude
 |  60 | -60.0 |  10.0 |
 | 150 | -50.0 | -15.0 |
-| 150 |  -4.0 | 4.0   |
+| 150 |  -4.0 |   4.0 |
 
 #+call: ring-absolute("FQ437N", exclude=fq437n-exclude) :results file
 
@@ -1444,7 +2009,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 #+name: fq436n-exclude
 |  60 | -60.0 |  10.0 |
 | 150 | -50.0 | -15.0 |
-| 150 |  -4.0 | 4.0   |
+| 150 |  -4.0 |   4.0 |
 
 #+call: ring-absolute("FQ436N", exclude=fq436n-exclude) :results file
 
@@ -1508,8 +2073,8 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 
 ******* F487N Ring profiles
 #+name: f487n-exclude
-|  60 |  -5.0 |   5.0 |
-| 150 |  -5.0 |   5.0 |
+|  60 | -5.0 | 5.0 |
+| 150 | -5.0 | 5.0 |
 
 #+call: ring-absolute("F487N", exclude=f487n-exclude) :results file
 
@@ -1548,8 +2113,8 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 
 ******* F469N Ring profiles
 #+name: f469n-exclude
-|  60 |  -5.0 |   5.0 |
-| 150 |  -5.0 |   5.0 |
+|  60 | -5.0 | 5.0 |
+| 150 | -5.0 | 5.0 |
 
 #+call: ring-absolute("F469N", exclude=f469n-exclude) :results file
 
@@ -1779,7 +2344,7 @@ From the Manu spectra we can measure various useful ratios:
     | 15000 |                0.5 |               3.16 |  3.17 |    25.9 |      9.065 |      2.869 |      1.38 |
     | 20000 |                    |                  1 |  3.04 |    21.9 |      7.665 |      7.665 |      4.04 |
     #+TBLFM: $3=10**$-1;f2::$4=2.85 + 0.7 ($1/1e4)**-1.9 ; f2::$6=0.35 $-1::$7=$6/$3;f3::$8=100 (0.1037 (1e4/$1) - 0.2657 + 0.2045 ($1/1e4) - 0.0028 ($1/1e4)**2) exp(-3.03 1e4 / $1) ; f2
-v  + So it looks like the 4591 line intensity is relatively insensitive to T
+  + So it looks like the 4591 line intensity is relatively insensitive to T
   + Dielectronic recombination rates:
     + Nusbaumer et al use an equation of the form:
     + 1e-12 [(a/t) + b + c t + d t^{2}] \times t^{-3/2} \times e^{-f/t } cm^{3} s^{-1}
@@ -3625,6 +4190,7 @@ r_{\mathrm{pred}} = 1 + \left[50.44 k^{-1} \frac{R_{\mathrm{F575N}}}{R_{\mathrm{
 #+DESCRIPTION:
 #+KEYWORDS:
 #+LANGUAGE:  en
+#+PROPERTY: header-args    :exports both
 #+OPTIONS:   H:5 num:nil toc:t \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
 #+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
 #+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js

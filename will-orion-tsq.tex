@@ -227,7 +227,7 @@ each filter with respect to a given emission line:
   \label{tab:coefficients}
   \medskip
   \begin{tabular}{llrrrr}\toprule
-    Ratio & Filter Set & 
+    Ratio: \(I_1/I_2\)& Filter Set: \F{I}, \F{II}, \F{III} & 
     \(\Falpha{I}\) &
     \(\Falpha{II}\) & 
     \(\Fbeta{I} \) &
@@ -309,44 +309,208 @@ due to changes in the physical conditions.
 \subsection{\boldmath Deriving \(\Te, \Ne\) from line ratios}
 \label{sec:derive}
 
-% \begin{figure}
-%   \centering
-%   \begin{tabular}{ll}
-%     (\textit{a}) & (\textit{b}) \\
-%     \includegraphics[height=0.35\textheight]{Tnii-vs-radius-binning} &
-%     \includegraphics[height=0.25\textheight]{sigma-Tnii-vs-radius-binning}
-%   \end{tabular}
-%   \caption{(\textit{a})~Temperature distribution as a function of
-%     radius for different binnings.  (\textit{b})~Standard deviation of
-%     temperatures as a function of radius for different binnings. 
-%   }
-%   \label{fig:tnii-vs-rad}
-% \end{figure}
+Figure~\ref{fig:deredden} compares our line ratios with selected
+measurements from the literature and with the predictions of one-zone
+emission models with a unique temperature and density.  Agreement with
+previous measurements is good in the bright regions (left of the
+diagram), but we deviate from Mesa-Delgado for the fainter regions.
+Part of the increase in 5755/6583 to the left of the diagram is due to
+higher densities, but there is evidence for an additional temperature
+increase over and above that.
+
+However, as can be seen from Figure~\ref{fig:two-phase}, a model with
+two different density components along the line of sight can also
+explain the top-left of the diagram.  The particular model shown has
+two components of equal temperature (\(10,000\)~K), each with the same
+emission measure: \(\int n_{\mathrm{e}} n(\mathrm{N^+}) \, dz\).  Over
+a wide range of parameter space, the \sii{} ratio is only sensitive to
+the density of the lower-density component, while the \nii{} ratio is
+only sensitive to the density of the higher-density component.  A
+density contrast of a factor of 20 (\(10^4~\mathrm{cm^{-3}}\) and
+\(2 \times 10^5~\mathrm{cm^{-3}}\)) is sufficient to mimic a temperature
+increase of \(3000\)~K.\@   If this compression were due to a
+radiative shock, then it would need a Mach number of \(\sqrt{20}
+\simeq 4.5\), corresponding to a velocity of \(50~\mathrm{km\
+  s^{-1}}\), which is typical of the jets observed in Orion. 
+
+Although the bi-density mechanism can explain small knots and
+filaments with elevated 5755/6583, it cannot readily explain the
+general increase in the ratio over a \(10'' \times 10''\) area, as we
+see in Orion~S.\@  A real increase in temperature seems a more likely
+explanation.  
+
+\begin{figure}
+  \centering
+  \includegraphics{nii-deredden-vs-sii-ratios}
+  \caption{Reddening corrected line ratios for \sii{} and \nii{}}
+  \label{fig:deredden}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics{nii-sii-ratios-two-phase}
+  \caption{Same as Fig.~\ref{fig:deredden} but comparing the observed
+    ratios with constant-temperature, bi-density models.}
+  \label{fig:two-phase}
+\end{figure}
+
+
+
+\subsection{Strong auroral \nii{} associated with jet filaments}
+\label{sec:jets}
+
+See Figures~\ref{fig:rgb-jet} to~\ref{fig:feiii-excess-jet}.  I will
+also do another figure that zooms in on the optical outflow source
+region.  
+
+Most of the regions with high 5755/6584 ratio are associated with the
+bases of stellar outflows. 
+
+Estimate density in HH529 jet from the \ha{} brightness and observed
+width.  Compare this with the density required in order to explain the
+5755/6583 ratio without invoking higher temperature (see
+Fig.~\ref{fig:two-phase}).
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{jet_region_rgb}
+  \caption{Three-color WFC3 image of Orion~S region, immediately to
+    the south west of the Trapezium stars, in the light of \sii{}
+    6716+31 (F673N; red), \nii{} 6583 (F658N; green) and \oiii{} 5007
+    (F502N; blue).  The region shown has a size of \(1.2 \times 0.9\)
+    arcminutes.  The filters have not been continuum-subtracted, and
+    the F673N filter is the most affected by continuum contamination,
+    so all stars show as red, irrespective of their true colors.}
+  \label{fig:rgb-jet}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{jet_region_niiratio}
+  \caption{Positive grayscale image of the diagnostic \nii{} 5755/6583
+    ratio for the same Orion~S region as shown in
+    Fig.~\ref{fig:rgb-jet}.  Lighter shades imply higher temperatures
+    and/or densities.  The positions of bright stars are masked out in
+    the image, as are regions that are badly affected by scattered
+    light from the Trapezium stars, which are just outside the fild of
+    view.  The ratio is corrected for reddening and calculated
+    according to the procedure outlined in \S~\ref{sec:filters}.}
+  \label{fig:nii-jet}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{jet_region_siiratio}
+  \caption{Negative grayscale image of the diagnostic \sii{} 6716/6731
+    ratio for the same Orion~S region as shown in
+    Fig.~\ref{fig:rgb-jet}.  Lighter shades imply higher
+    densities.}
+  \label{fig:sii-jet}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{jet_region_scattered}
+  \caption{Negative grayscale image of dust-scattered continuum for
+    the same Orion~S region as shown in Fig.~\ref{fig:rgb-jet}.  The
+    image was calculated by subtracting an estimate of the atomic
+    recombination continuum from the signal in the F547M filter (see
+    text for details).  Darker shades correspond to higher surface
+    brightness.}
+  \label{fig:scatter-jet}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{jet_region_excess-sii}
+  \caption{Negative grayscale image of ``excess'' \sii{} emission for
+    the same Orion~S region as shown in Fig.~\ref{fig:rgb-jet}.  The
+    image was calculated by subtracting a scaled version of the F658N
+    image from the F673N image.  This largely cancels out the portion
+    of the \sii{} emission that comes from fully ionized gas, leaving
+    only the emission from partially ionized gas.  The resulting thin
+    filaments trace the positions of ionization fronts and
+    low-velocity shocks.  Darker shades correspond to higher surface
+    brightness.}
+  \label{fig:sii-excess-jet}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{jet_region_excess-feiii}
+  \caption{Negative grayscale image of ``excess'' emission in the
+    F469N filter for the same Orion~S region as shown in
+    Fig.~\ref{fig:rgb-jet}.  The image was calculated by subtracting a
+    scaled version of the F547M continuum image from the F469N image.
+    The scaling factor was chosen so as to exactly cancel out the
+    continuum contribution to F469N filter for the average spectrum of
+    the nebula.  The residual emission is either bluer-than-average
+    continuum or due to weak emission lines that fall in the filter
+    bandpass (the filter's ostensible target line, \ion{He}{2} 4686,
+    is not observed in the Orion Nebula).  The line contribution is
+    likely to be due to [\ion{Fe}{3}] 4667+4702, which are extremely
+    weak in usual circumstances, but may be considerably enhanced when
+    silicate dust grains are destroyed in \(\sim 100~\mathrm{km\
+      s^{-1}}\) shocks.}
+  \label{fig:feiii-excess-jet}
+\end{figure}
 
 
 \subsection{\boldmath Analysis of fluctuations in \(\Te, \Ne\)}
 \label{sec:fluct}
 
+See Figures~\ref{fig:tnii-vs-rad} and~\ref{fig:tsq-nii-vs-binning},
+which I need to redo.  Also need to consider density fluctuations.
+Provisional conclusion is that the main contribution to true
+temperature fluctuations is on rather large scales: 100 linear pixels
+or larger (\(> 4''\), \(> 2000\)~AU).  The fluctuations at these
+scales are modest: \(t^2 = 0.005\)--\(0.010\).  For the bright inner
+regions, there is power in smaller scales, but their global
+contribution is small (\(t^2 < 0.003\)) because only a small fraction
+of the nebula has small-scale fluctuations, and they may be mainly due
+to density fluctuations instead.  For the faint outer regions, there
+are essentially zero fluctuations on scales of \(0.4''\)--\(4.0''\),
+while the data for scales \(< 0.4''\) are dominated by noise.
 
-% \begin{figure}
-%   \centering
+\begin{figure}
+  \centering
+  \begin{tabular}{ll}
+    (\textit{a}) & (\textit{b}) \\
+    \includegraphics[height=0.35\textheight]{Tnii-vs-radius-binning} &
+    \includegraphics[height=0.25\textheight]{sigma-Tnii-vs-radius-binning}
+  \end{tabular}
+  \caption{\textit{This still has an old version of the figure.  I
+      need to redo it with the new ratios, but the results will likely
+      not change.}  (\textit{a})~Temperature distribution as a function of
+    radius for different binnings.  (\textit{b})~Standard deviation of
+    temperatures as a function of radius for different binnings. 
+  }
+  \label{fig:tnii-vs-rad}
+\end{figure}
 
-%   \begin{tabular}{ll}
-%     (\textit{a}) & (\textit{b}) \\
-%     \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-normal} &
-%     \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-robust}
-%   \end{tabular}
-%   \caption{Scale-dependence of temperature fluctuations: \(t^2\) as a
-%     function of binning. (\textit{a})~Variance of \(\Te/\bar{\Te}\)
-%     for the entire image (black line) and two subsamples: an annulus
-%     centered on the high-temperature region (blue line) and the more
-%     distant, fainter regions (green line).  The magenta line is an
-%     estimate of the noise contribution to the full sample, and the
-%     dashed black line is the result of subtracting the noise from the
-%     observed values.  (\textit{b})~Same as \textit{a} but using a
-%     ``robust'' estimator of the variance, based on the interquartile range.}
-%   \label{fig:tsq-nii-vs-binning}
-% \end{figure}
+
+\begin{figure}
+  \centering
+
+  \begin{tabular}{ll}
+    (\textit{a}) & (\textit{b}) \\
+    \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-normal} &
+    \includegraphics[width=0.45\linewidth]{Tsq-nii-vs-binning-robust}
+  \end{tabular}
+  \caption{\textit{This still has an old version of the figure.  I
+      need to redo it with the new ratios, but the results will likely
+      not change.}  Scale-dependence of temperature fluctuations:
+    \(t^2\) as a function of binning. (\textit{a})~Variance of
+    \(\Te/\bar{\Te}\) for the entire image (black line) and two
+    subsamples: an annulus centered on the high-temperature region
+    (blue line) and the more distant, fainter regions (green line).
+    The magenta line is an estimate of the noise contribution to the
+    full sample, and the dashed black line is the result of
+    subtracting the noise from the observed values.  (\textit{b})~Same
+    as \textit{a} but using a ``robust'' estimator of the variance,
+    based on the interquartile range.}
+  \label{fig:tsq-nii-vs-binning}
+\end{figure}
 
 
 % \begin{figure}
