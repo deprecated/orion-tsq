@@ -711,8 +711,128 @@ for d, results in zip(den, bdec):
 
 #+RESULTS:
 [[file:full_RGB_test.pdf]]
+**** Positions of embedded stars
+#+name: embedded-sources
+|      ID | RA | Dec |
+|---------+----+-----|
+| 143-353 |    |     |
+| 144-351 |    |     |
+| 136-355 |    |     |
+| 136-400 |    |     |
 
-**** COMMENT Field of interest
+#+name: embedded-markers
+#+BEGIN_SRC python
+
+#+END_SRC
+**** Fix coordinates
+Turns out there is a displacement between WFC3 and ACS
+|-----------+-----------+----------|
+| 83.805445 | 83.805524 |  -7.9e-5 |
+| 83.811726 | 83.811802 |  -7.6e-5 |
+|-----------+-----------+----------|
+|           |           | -7.75e-5 |
+#+TBLFM: @3$3=vmean(@I..@II)
+
+|------------+------------+---------|
+|  -5.398054 | -5.3980803 | 2.63e-5 |
+| -5.3962191 | -5.3962342 | 1.51e-5 |
+|------------+------------+---------|
+|            |            | 2.07e-5 |
+#+TBLFM: $3=$1 - $2::@3$3=vmean(@I..@II)
+
+Alignment of Robberto ACS for the Western side of the field (e.g., LL1)
+#+BEGIN_SRC sh
+xpaset -p ds9 pan -6.25e-5 3.07e-5 wcs
+#+END_SRC
+
+Alignment of Robberto ACS for the Eastern side of the field (e.g., Orion S). 
+Callibrated with the following sources: 
+| 5:35:14.816 | -5:23:46.39 |
+| 5:35:15.152 | -5:23:46.61 |
+| 5:35:15.756 | -5:23:38.33 |
+|             |             |
+#+BEGIN_SRC sh
+xpaset -p ds9 pan -6.75e-5 2.57e-5 wcs
+#+END_SRC
+
+#+RESULTS:
+
+Extra alignment for Bally ACS image
+#+BEGIN_SRC sh
+xpaset -p ds9 pan 0e-5 -0.75e-5 wcs
+#+END_SRC
+
+#+RESULTS:
+
+Apply the alignment directly to the images
+#+BEGIN_SRC python :results output
+from astropy.io import fits
+import os
+data_dir = "/Users/will/Work/OrionTreasury"
+bally_file = os.path.join(data_dir, "Bally-ACS/j8oc01010_wcs.fits")
+robb_file = os.path.join(data_dir, "acs/hlsp_orion_hst_acs_strip0l_f658n_v1_drz.fits")
+
+def shift_header(hdr, dx, dy):
+    """Shift the reference coordinate in a FITS header by dx, dy (in degrees)"""
+    x = hdr.get('CRVAL1')
+    y = hdr.get('CRVAL2')
+    hdr['CRVAL1'] = x + dx
+    hdr['CRVAL2'] = y + dy
+
+hdulist = fits.open(bally_file)
+shift_header(hdulist['SCI'].header, 6.75e-5, -1.82e-5)
+hdulist.writeto("f658n-acs-bally-quadalign.fits", clobber=True)
+
+hdulist = fits.open(robb_file)
+shift_header(hdulist['SCI'].header, 6.75e-5, -2.57e-5)
+hdulist.writeto("f658n-acs-robberto-quadalign.fits", clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: WARNING: Overwriting existing file 'f658n-acs-bally-quadalign.fits'. [astropy.io.fits.file]
+**** Proper motions
+Add together the F658N and F656N wfc3 filters so as to better compare with the ACS f658n filter.
+
+#+BEGIN_SRC python :results none
+from astropy.io import fits
+hdu656 = fits.open("F656N_quadalign.fits")[1]
+hdu658 = fits.open("ibrd01070_quadalign.fits")[1]
+hdu656.data += hdu658.data
+hdu656.writeto("F656N_plus_F658N_quadalign.fits", clobber=True)
+#+END_SRC
+
+#+RESULTS:
+
+***** Epochs
++ Bally ACS : 2004-01
++ Robberto ACS : 2004-10
++ WFC3 : 2012-04
+***** Make a GIF movie
+#+BEGIN_SRC sh
+ls *epoch*.jpg
+#+END_SRC
+
+#+RESULTS:
+| proper-motion-orion-s-epoch01.jpg |
+| proper-motion-orion-s-epoch02.jpg |
+| proper-motion-orion-s-epoch03.jpg |
+
+#+BEGIN_SRC sh
+ORDER="\
+   proper-motion-orion-s-epoch01.jpg   \
+   proper-motion-orion-s-epoch02.jpg   \
+   proper-motion-orion-s-epoch03.jpg"
+convert $(for a in "$ORDER"; do printf -- "-delay 100 %s " $a; done; ) proper-motion-orion-s-vslow.gif
+#+END_SRC
+
+
+Animation for Bob that shows why sub-pixel alignment is necessary for the Ha/Hb ratio
+#+BEGIN_SRC sh :results none
+convert $(for a in 01 02; do printf -- "-delay 100 screenshot-ha-hb-%s.jpg " $a; done; ) screenshot-ha-hb.gif
+#+END_SRC
+
+
+**** Field of interest
 The general region of the jet sources, including nearly as far as th1C
 #+name: jet-region
 | 83.80716 | -5.3976835 | 0.02 | 0.015 |
@@ -2312,6 +2432,7 @@ From the Manu spectra we can measure various useful ratios:
       + If there were similar dilution of the Si IV feature, then this would be about a 2% absorption with a width of about 2 Angstrom.  EW ~= 0.04 \AA
       + But there may be less dilution since the later-type OB stars will contribute more than in the case of the He II lines.  Say that the continuum is 50% atomic, 25% th1C and 25% th1A/D, then the absorption will be 7%, with an EW of 0.15 \AA
       + But in that case, the high-resolution Esteban spectra should show a broad absorption trough with a narrower emission line
+        + Even Adal's spectra should show that, and they don't
       + The 4089.29 emission line should have an EW of about -0.1 \AA
       + For comparison, the 4649 line has an EW of about -0.5 \AA
   + Try to find quantitative data on the lines from Storey (1994).  These are effective recombination coefficients in units of (1e-14 cm^{3} s^{-1}) for the whole multiplet as a function of T, and for n = 1e4
@@ -2371,6 +2492,10 @@ CLOCK: [2014-04-18 Fri 17:05]--[2014-04-18 Fri 17:24] =>  0:19
   + 6678/5876 is N_{e}-sensitive, almost insensitive to T_{e}
     + But only 10% variation between 10^{3} and 10^{4} pcc so high-precision required
     + And also in same  waveband (red)
+    + [2014-06-21 Sat] This seems to work for the Adal spectra
+      + at least I get ratios that are well-correlated with the O II density ratios
+      + but they need to be corrected for extinction
+    + 
 * Final calibration of WFC3 filters
 ** Doing the combined calibration for FQ575N
 + This is the filter that we need most
