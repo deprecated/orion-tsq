@@ -32,7 +32,7 @@ There are at least three sorts of shadows:
 
 
 
-
+     
 * Learning to use a proper database
 + The main thing I want from a database is the ability to simultaneously update records from multiple programs running at the same time, without having
 + However, after spending an entire morning looking into this, it seems to be far more trouble than it is worth
@@ -2384,6 +2384,10 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 
 ** Redoing the spatial scale calculation
 * Recombination line temperatures and densities
+** Revisiting ORL diagnostics with Adal
+   DEADLINE: <2014-06-27 Fri>
+
+** Original notes on ORL diagnostics
 From the Manu spectra we can measure various useful ratios:
 + O II 4649/(4639+51+62) is density sensitive
   + We have it in the blue and green spectra but the green spectra are
