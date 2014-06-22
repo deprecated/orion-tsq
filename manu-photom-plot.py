@@ -5,6 +5,9 @@ from pathlib import Path
 import lmfit
 import argh
 from astropy.table import Table
+import matplotlib
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import sys
 sys.path.insert(0, '../../RingNebula/WFC3/2013-Geometry')
