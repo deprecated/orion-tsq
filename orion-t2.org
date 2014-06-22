@@ -1858,7 +1858,7 @@ The next ones have problems with the zero level, but it is unclear whether this 
 
 ***** Results for the Ring spectra
 :LOGBOOK:
-CLOCK: [2014-04-19 Sat 14:05]
+CLOCK: [2014-04-19 Sat 14:05]--[2014-04-19 Sat 15:05] =>  1:00
 :END:
 
 ****** Ring correlation graph
@@ -2386,7 +2386,27 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 * Recombination line temperatures and densities
 ** Revisiting ORL diagnostics with Adal
    DEADLINE: <2014-06-27 Fri>
-
+   :LOGBOOK:
+   CLOCK: [2014-06-21 Sat 14:49]
+   :END:
+*** TODO [1/5] Plan of action for ORLs
++ [ ] Fit Gaussians to Adal's lines
++ [X] Redo the fitting to Manu's lines, but now including the entire map
+  + [X] Make sure python installation is up to scratch on nil
+    + Installed Anaconda3 2.01 in /fs/nil/other0/anaconda3
+    + The default version is Python 3.4, but I have also added an enviroment with Python 2.7
+      + Switch between them with =source activate py27= and =source deactivate=
+  + [X] Transfer the original Manu data files to nil
+#+BEGIN_EXAMPLE
+will@nil:orion-tsq(master)$ mkdir -p Manu-Data
+will@nil:orion-tsq(master)$ cd Manu-Data/
+will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_blue .
+will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_green .
+will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_red .
+#+END_EXAMPLE
+  + [ ] Add option to manu-photom-select.py to not restrict area to Orion S
+  + [ ] Check what extra lines we might want to add to the fitting
+  + [ ] Do the fits on nil
 ** Original notes on ORL diagnostics
 From the Manu spectra we can measure various useful ratios:
 + O II 4649/(4639+51+62) is density sensitive
