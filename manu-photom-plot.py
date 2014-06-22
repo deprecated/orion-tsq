@@ -64,11 +64,11 @@ def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False, only=N
     positions_paths = positions_dir.glob(pattern + ".json")
     with open('Manu-Data/wavrange-{}.json'.format(rangelist)) as f:
         wavranges = json.load(f)
-    for path in positions_paths:
+    for i, path in enumerate(positions_paths):
         with path.open() as f:
             data = json.load(f)
         position_id = path.stem
-        print(position_id)
+        print("{}/{}:".format(i+1, len(positions_paths)), position_id)
         fit_subdir = fit_dir / position_id
         plot_subdir = plot_dir / position_id
         if not plot_subdir.is_dir():
