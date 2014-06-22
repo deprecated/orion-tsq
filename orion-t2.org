@@ -599,10 +599,10 @@ s469.writeto("excess_469_047.fits")
 **** DONE Effects of extinction
 CLOSED: [2014-06-17 Tue 12:02]
 + F(\lambda) values are 
-| H\beta 4861     |    0.0 |
-| [N II] 5755 | -0.123 |
-| H\alpha 6563     | -0.220 |
-| [N II] 6584 | -0.222 |
+| H\beta 4861  |    0.0 |
+| [N II] 5755  | -0.123 |
+| H\alpha 6563 | -0.220 |
+| [N II] 6584  | -0.222 |
 
 + Calculate CHB from observed Balmer decrement R = Ha/Hb
   - I'(Ha) = I(Ha) 10**(-(1+F) CHB)
@@ -2387,9 +2387,11 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 ** Revisiting ORL diagnostics with Adal
    DEADLINE: <2014-06-27 Fri>
    :LOGBOOK:
-   CLOCK: [2014-06-21 Sat 14:49]
+   CLOCK: [2014-06-22 Sun 13:25]--[2014-06-22 Sun 13:44] =>  0:19
+   CLOCK: [2014-06-21 Sat 23:10]--[2014-06-22 Sun 01:43] =>  2:33
+   CLOCK: [2014-06-21 Sat 14:49]--[2014-06-21 Sat 23:09] =>  8:20
    :END:
-*** TODO [1/5] Plan of action for ORLs
+*** TODO [3/6] Plan of action for ORLs
 + [ ] Fit Gaussians to Adal's lines
 + [X] Redo the fitting to Manu's lines, but now including the entire map
   + [X] Make sure python installation is up to scratch on nil
@@ -2404,9 +2406,34 @@ will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_blue .
 will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_green .
 will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_red .
 #+END_EXAMPLE
-  + [ ] Add option to manu-photom-select.py to not restrict area to Orion S
+  + [X] Add option to manu-photom-select.py to not restrict area to Orion S
   + [ ] Check what extra lines we might want to add to the fitting
-  + [ ] Do the fits on nil
+    + Next to He I 4388: 4391.94 Ne II, 4409.30 NeII
+    + [ ] He I lines that were missing: 5016, 5048
+      + Plus accompanying Si II 5041, 5056
+  + [X] Check that everything works on nil
+    + [X] manu-photom-select.py
+    + [X] manu-photom-fit.py
+      + [X] need to get the tolerance parameters right
+        + looks like 1e-5 is necessary for both --xtol and --ftol
+    + [X] manu-photom-plot.py
+    + [X] Look at the output
+      + Put the new fits in =Manu-Nil/=
+
+  + [ ] Production fits on nil
+    + Example for blue 4651 line
+      #+BEGIN_EXAMPLE
+  time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e-5
+      #+END_EXAMPLE
+      | blue  | 4650_O_II_Fe_III | x |
+      | blue  | 4610_O_II_Fe_III | x |
+      | blue  | 4350             |   |
+      | green | 4960_O_III       | x |
+      | green | 5550_Cl_III      |   |
+      | red   | 5880_He_I        | x |
+      | red   | 6680_He_I        | x |
+
+
 ** Original notes on ORL diagnostics
 From the Manu spectra we can measure various useful ratios:
 + O II 4649/(4639+51+62) is density sensitive
@@ -2612,6 +2639,9 @@ CLOCK: [2014-04-18 Fri 17:05]--[2014-04-18 Fri 17:24] =>  0:19
 | [O III]       |   4958.91 |
 | [O III]       |   5006.84 |
 | He I          |   5015.68 |
+| Si II         |   5041.03 |
+| He I          |   5047.74 |
+| Si II         |   5055.98 |
 | O I           |   5146.61 |
 | [Fe II]       |   5158.81 |
 | [Ar III]      |   5191.82 |
