@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 import argh
 import sys 
-sys.path.insert(0, '../../RingNebula/WFC3/2013-Geometry')
 from photom_utils import model, \
     model_minus_data, \
     init_gauss_component, \
