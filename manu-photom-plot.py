@@ -61,7 +61,7 @@ plot_dir = Path("Manu-Data") / "Plots"
 
 def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False, only=None):
     """Plot graphs of fits to PPAK spectra"""
-    positions_paths = positions_dir.glob(pattern + ".json")
+    positions_paths = list(positions_dir.glob(pattern + ".json"))
     with open('Manu-Data/wavrange-{}.json'.format(rangelist)) as f:
         wavranges = json.load(f)
     for i, path in enumerate(positions_paths):
