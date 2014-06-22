@@ -63,7 +63,7 @@ def main(full: "Compute full dataset"=False):
                (np.abs(thdu["long"].data.dDEC - box_y) <= box_h/2)
         if full:
             # Cancel the mask if `full` argument used
-            mask = True
+            mask = np.ones_like(mask).astype(bool)
         # Collect only the masked fibers
         tabdata = thdu["long"].data[mask]
         specdata = hdu["long"].data[mask]
@@ -84,11 +84,13 @@ def main(full: "Compute full dataset"=False):
         for wav1, wav2 in cont_table:
             cmask[band] = cmask[band] | ((wavs[band] > wav1) & (wavs[band] < wav2))
 
+
         # Create one section for each fiber position in each of the three bands
         for spectrum, spectrum_s, metadata in zip(specdata, specdata_s, tabdata):
             # Key is formed from the band and the position, in 1/10 of
             # arcsec: e.g., green-0013-0104 for (dRA, dDEC) = (-1.3,
             # -10.4)
+            print(metadata)
             key = "{:s}{:+05d}{:+05d}".format(longband,
                                               int(10*metadata["dRA"]),
                                               int(10*metadata["dDEC"]))
