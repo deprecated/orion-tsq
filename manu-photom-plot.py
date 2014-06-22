@@ -90,7 +90,13 @@ def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False, only=N
             m = (wavs > wavmin) & (wavs < wavmax)
             wavrange_subdir = wavrange_dir / position_id
             loadpath = wavrange_subdir / (sanitize_string(wav_id) + ".json")
-            params = load_params_values(loadpath)
+            try:
+                params = load_params_values(loadpath)
+            except FileNotFoundError:
+                # Missing files are to be expected if
+                # manu-photom-fit.py is running at the same time.
+                # Just skip it
+                continue
             gauss_components = [p.split('_')[-1] for p in params 
                                 if p.startswith('area_gauss')]
 
