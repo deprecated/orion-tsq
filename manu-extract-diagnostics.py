@@ -31,7 +31,7 @@ def main(dbname="manu_spectral_fit_db.json"):
     for posdata in db.values():
         for name, lines in linesets.items():
             try:
-                rowdata = [posdata[line]["Flux"] for line in lines]
+                rowdata = [posdata.get(line, {"Flux": 0.0})["Flux"] for line in lines]
                 tabs[name].add_row([posdata['x'], posdata['y']] + rowdata)
             except KeyError:
                 pass
