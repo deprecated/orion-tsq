@@ -2387,11 +2387,13 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 ** Revisiting ORL diagnostics with Adal
    DEADLINE: <2014-06-27 Fri>
    :LOGBOOK:
+   CLOCK: [2014-06-22 Sun 21:46]--[2014-06-22 Sun 22:49] =>  1:03
+   CLOCK: [2014-06-22 Sun 17:12]--[2014-06-22 Sun 18:12] =>  1:00
    CLOCK: [2014-06-22 Sun 13:25]--[2014-06-22 Sun 13:44] =>  0:19
    CLOCK: [2014-06-21 Sat 23:10]--[2014-06-22 Sun 01:43] =>  2:33
    CLOCK: [2014-06-21 Sat 14:49]--[2014-06-21 Sat 23:09] =>  8:20
    :END:
-*** TODO [3/6] Plan of action for ORLs
+*** TODO [4/6] Plan of action for ORLs
 + [ ] Fit Gaussians to Adal's lines
 + [X] Redo the fitting to Manu's lines, but now including the entire map
   + [X] Make sure python installation is up to scratch on nil
@@ -2407,10 +2409,18 @@ will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_green .
 will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_red .
 #+END_EXAMPLE
   + [X] Add option to manu-photom-select.py to not restrict area to Orion S
-  + [ ] Check what extra lines we might want to add to the fitting
-    + Next to He I 4388: 4391.94 Ne II, 4409.30 NeII
-    + [ ] He I lines that were missing: 5016, 5048
+  + [X] Check what extra lines we might want to add to the fitting
+    + [X] Next to He I 4388: 4391.94 Ne II, 4409.30 NeII
+      + CANCELLED: not really visible
+    + [X] Next to O II 4591:
+      1) O II 4596 (4595.95 + 4596.18), [Ni III] 4596.83
+      2) N II + O II 4602 (4601.48 + 4602.11)
+      3) N II 4613.87
+    + [X] He I lines that were missing: 5016, 5048
       + Plus accompanying Si II 5041, 5056
+      + There are problems with these:
+        1. 5016 is in the flank of 5007 and is not fit very well
+        2. 5048 is in the far flank, where the local quadratic continuum picks up most of the slack, but there are still problems.  The precision will not be very high, especially since the line is so weak.  It also seems to be affected by an inordinate number of cosmic rays.  Finally, we are going to have to take the ratio with 5876, which is in the red 
   + [X] Check that everything works on nil
     + [X] manu-photom-select.py
     + [X] manu-photom-fit.py
@@ -2420,16 +2430,17 @@ will@nil:Manu-Data(master)$ ln -s ~/Dropbox/Manuel-2014/M42_red .
     + [X] Look at the output
       + Put the new fits in =Manu-Nil/=
 
-  + [ ] Production fits on nil
+  + [-] Production runs on nil
     + Example for blue 4651 line
       #+BEGIN_EXAMPLE
   time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e-5
       #+END_EXAMPLE
       | blue  | 4650_O_II_Fe_III | x |
-      | blue  | 4610_O_II_Fe_III | x |
+      | blue  | 4610_O_II_Fe_III | - |
       | blue  | 4350             |   |
       | green | 4960_O_III       | x |
-      | green | 5550_Cl_III      |   |
+      | green | 5550_Cl_III      | x |
+      | green | 5050_He_I_Si_II  |   |
       | red   | 5880_He_I        | x |
       | red   | 6680_He_I        | x |
 
@@ -2553,6 +2564,7 @@ CLOCK: [2014-04-18 Fri 17:05]--[2014-04-18 Fri 17:24] =>  0:19
 ** Data to use
 #+name: absorption-wavelengths
 | He II | 4199.83 |
+| He I  |    4388 |
 | He II |    4541 |
 | He II |    4686 |
 | He II |    5411 |
@@ -2611,6 +2623,9 @@ CLOCK: [2014-04-18 Fri 17:05]--[2014-04-18 Fri 17:24] =>  0:19
 | [Mg I]        | 4562.6017 |
 | Mg I]         | 4571.0956 |
 | O II          |   4590.97 |
+| O II/[Ni III] |   4596.18 |
+| N II/O II     |   4601.48 |
+| N II          |   4613.87 |
 | N II/[Fe III] |   4607.16 |
 | O II          |    4610.2 |
 | N II/C II?    |   4621.39 |
