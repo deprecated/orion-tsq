@@ -28,8 +28,11 @@ def main(dbname="manu_spectral_fit_db.json"):
         dtypes = [float]*len(colnames)
         tabs[name] = Table(names=colnames, dtypes=dtypes)
 
-    for posdata in db.values():
+    for posname, posdata in db.items():
         for name, lines in linesets.items():
+            wavband = name.split('-')[-1]
+            if not posname.startswith(wavband):
+                continue
             try:
                 rowdata = [posdata.get(line, {"Flux": 0.0})["Flux"] for line in lines]
                 tabs[name].add_row([posdata['x'], posdata['y']] + rowdata)
@@ -41,3 +44,12 @@ def main(dbname="manu_spectral_fit_db.json"):
 
 if __name__ == "__main__":
     argh.dispatch_command(main)
+
+
+
+
+
+
+
+
+
