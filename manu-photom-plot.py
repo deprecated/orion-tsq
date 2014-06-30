@@ -5,6 +5,9 @@ from pathlib import Path
 import lmfit
 import argh
 from astropy.table import Table
+import matplotlib
+# Force matplotlib to not use any Xwindows backend.
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import sys
 sys.path.insert(0, '../../RingNebula/WFC3/2013-Geometry')
@@ -58,14 +61,14 @@ plot_dir = Path("Manu-Data") / "Plots"
 
 def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False, only=None):
     """Plot graphs of fits to PPAK spectra"""
-    positions_paths = positions_dir.glob(pattern + ".json")
+    positions_paths = list(positions_dir.glob(pattern + ".json"))
     with open('Manu-Data/wavrange-{}.json'.format(rangelist)) as f:
         wavranges = json.load(f)
-    for path in positions_paths:
+    for i, path in enumerate(positions_paths):
         with path.open() as f:
             data = json.load(f)
         position_id = path.stem
-        print(position_id)
+        print("{}/{}:".format(i+1, len(positions_paths)), position_id)
         fit_subdir = fit_dir / position_id
         plot_subdir = plot_dir / position_id
         if not plot_subdir.is_dir():
@@ -87,7 +90,13 @@ def main(pattern="*", line_pattern="*", rangelist="narrow", remake=False, only=N
             m = (wavs > wavmin) & (wavs < wavmax)
             wavrange_subdir = wavrange_dir / position_id
             loadpath = wavrange_subdir / (sanitize_string(wav_id) + ".json")
-            params = load_params_values(loadpath)
+            try:
+                params = load_params_values(loadpath)
+            except FileNotFoundError:
+                # Missing files are to be expected if
+                # manu-photom-fit.py is running at the same time.
+                # Just skip it
+                continue
             gauss_components = [p.split('_')[-1] for p in params 
                                 if p.startswith('area_gauss')]
 

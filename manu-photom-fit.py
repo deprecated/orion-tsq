@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 import argh
 import sys 
-sys.path.insert(0, '../../RingNebula/WFC3/2013-Geometry')
 from photom_utils import model, \
     model_minus_data, \
     init_gauss_component, \
@@ -122,13 +121,15 @@ tied_lines = {
     "4641": "4634",
     # N II lines
     "4643": "4631",
+    # [Ar IV] lines
+    "4711": "4740"
 }
 
 # Sky
 drop_these = ["6398"]
 # For Orion, we also drop He II and Mg I
 drop_these += ["4542", "4563", "4571"]
-# These N II and N III lines are right underneath the O III V1 multiplet
+# These N II and N III lines are right underneath the O II V1 multiplet
 # Unfortunately, they make the line fitting be too degenerate
 drop_these += ["4641", "4643"]
 
