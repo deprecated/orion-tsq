@@ -2384,6 +2384,10 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 
 ** Redoing the spatial scale calculation
 * Recombination line temperatures and densities
+:PROPERTIES:
+:EXPORT_FILE_NAME: recomb-lines
+:END:
+
 ** Revisiting ORL diagnostics with Adal
    DEADLINE: <2014-06-27 Fri>
    :LOGBOOK:
@@ -2394,14 +2398,15 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
    CLOCK: [2014-06-21 Sat 23:10]--[2014-06-22 Sun 01:43] =>  2:33
    CLOCK: [2014-06-21 Sat 14:49]--[2014-06-21 Sat 23:09] =>  8:20
    :END:
-*** TODO [1/4] Plan of action for ORLs
+*** TODO [2/4] Plan of action for ORLs
 **** TODO Fit Gaussians to Adal's lines
 + Get other slits from Adal
 **** TODO Do some sort of spatial averaging on the Manu data
 + It would be better to average before fitting
 + But we need some criterion for eliminating bad positions
 
-**** TODO Make maps of the full-resolution, full-field Manu maps
+**** DONE Make maps of the full-resolution, full-field Manu maps
+CLOSED: [2014-06-29 Sun 21:25]
 + New program [[file:manu-extract-line.py]]
   + Writes a table for each line: x, y, Flux, dFlux, etc
 ***** Plots of the Manu maps
@@ -2915,6 +2920,10 @@ time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e
 *** Fluorescence vs recombination for the permitted lines
 
 **** Arguments in favor of recombination
++ Density diagnostics from V1 multiplet are
+  1. Consistent between themselves
+  2. Well correlated with forbidden line densities: [Cl III] at least
+     - need to check [Ar IV]
 
 **** Arguments in favor of fluorescence
 + The N II 4631 line looks very much like the O II 4651 line
@@ -2929,6 +2938,8 @@ time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e
     + For N II they say that fluorescence is more important in Orion than in IC418
       + Is the same true of O II?
     + Anyway, for IC418 they have 70 - 80% recombination contribution to the V1 multiplet
++ If we were to measure the ADF using the 4591 line, would we get a value of 0?
+  + If so, this would argue that there must be some other process contributing to the brightness of the V1 multiplet. 
 ***** Selected O II lines
 :PROPERTIES:
 :ID:       C66F4EB0-5E9B-499F-93D1-B7865EA6B3D9
