@@ -1,5 +1,38 @@
 Test of Eric Schulte's patch to allow specifying the python interpreter via the =:python= header command. 
 
+* New version of =org-babel-execute:python=
++ This supposedly is in the trunk of org-mode, but my version does not have it
++ If things don't work, try executing the following first:
+#+BEGIN_SRC emacs-lisp
+  (defun org-babel-execute:python (body params)
+    "Execute a block of Python code with Babel.
+  This function is called by `org-babel-execute-src-block'."
+    (let* ((session (org-babel-python-initiate-session
+                     (cdr (assoc :session params))))
+           (result-params (cdr (assoc :result-params params)))
+           (result-type (cdr (assoc :result-type params)))
+           (return-val (when (and (eq result-type 'value) (not session))
+                         (cdr (assoc :return params))))
+           (preamble (cdr (assoc :preamble params)))
+           (org-babel-python-command
+            (or (cdr (assoc :python params)) org-babel-python-command))
+           (full-body
+            (org-babel-expand-body:generic
+             (concat body (if return-val (format "\nreturn %s" return-val) ""))
+             params (org-babel-variable-assignments:python params)))
+           (result (org-babel-python-evaluate
+                    session full-body result-type result-params preamble)))
+      (org-babel-reassemble-table
+       result
+       (org-babel-pick-name (cdr (assoc :colname-names params))
+                            (cdr (assoc :colnames params)))
+       (org-babel-pick-name (cdr (assoc :rowname-names params))
+                            (cdr (assoc :rownames params))))))
+#+END_SRC
+
+#+RESULTS:
+: org-babel-execute:python
+
 * Default python version
 #+name: check-python-version
 #+BEGIN_SRC python

@@ -77,7 +77,12 @@ DEADLINE: <2014-06-18 Wed>
   3. Fluctuations in Te, ne
 + Where I have been stuck for months on the first part, and still don't have firm conclusions
 + To this I could add a fourth section: maps of Te and correlation with other indicators (in particular, the [Fe III] and the excess [S II])
-*** TODO From filter ratios to line ratios
+*** DONE From filter ratios to line ratios
+CLOSED: [2014-06-29 Sun 22:21]
+:LOGBOOK:
+CLOCK: [2014-06-30 Mon 13:34]--[2014-06-30 Mon 16:35] =>  3:01
+CLOCK: [2014-06-30 Mon 09:41]--[2014-06-30 Mon 11:28] =>  1:47
+:END:
 + I had the following functions
 #+BEGIN_SRC python
 W547, W658, W575 = 169.0, 7.3, 4.7
@@ -131,7 +136,7 @@ Now we have a nice equation for finding the ratios
 
 #+BEGIN_SRC python :return table :var intable=filter-sets
   from wfc3_utils import ratio_coefficients
-  cols = ["alpha_1", "alpha_2", "beta_1", "beta_2"]
+  cols = ["alpha_1", "alpha_2", "beta_1", "beta_2", "gamma_1", "gamma_2"]
 
   table = [["I", "II", "III"] + cols, None]
 
@@ -143,14 +148,14 @@ Now we have a nice equation for finding the ratios
 #+END_SRC
 
 #+RESULTS:
-| I      | II     | III    |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |
-|--------+--------+--------+-----------+-----------+---------+---------|
-| FQ575N | F658N  | F547M  |     0.845 | 1.269e-07 | 0.02426 | 0.03939 |
-| FQ672N | FQ674N | F673N  |    0.9942 |     1.125 |   0.164 |  0.1142 |
-| FQ672N | FQ674N | F547M  | 1.068e-07 | 2.027e-07 | 0.02742 | 0.01909 |
-| FQ437N | F502N  | FQ436N |    0.9679 |  1.24e-07 |  0.7111 |   1.998 |
-| FQ437N | F502N  | F547M  | 3.913e-06 |  0.001408 | 0.03426 | 0.09627 |
-| F487N  | F656N  | F547M  | 2.459e-06 | 9.577e-08 | 0.08711 | 0.02375 |
+| I      | II     | III    |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |    0.8412 | 1.284e-07 | 0.02426 | 0.03939 | 2.492e-07 | 2.121e-08 |
+| FQ672N | FQ674N | F673N  |    0.9791 |     1.148 |   0.164 |  0.1142 |   0.02586 |  0.005629 |
+| FQ672N | FQ674N | F547M  | 1.035e-07 | 2.083e-07 | 0.02742 | 0.01909 |   0.02586 |  0.005629 |
+| FQ437N | F502N  | FQ436N |     0.972 | 1.258e-07 |  0.7111 |   1.998 | 1.459e-07 | 3.057e-08 |
+| FQ437N | F502N  | F547M  | 3.912e-06 |  0.001523 | 0.03426 | 0.09627 | 1.459e-07 | 3.057e-08 |
+| F487N  | F656N  | F547M  | 2.504e-06 | 1.092e-07 | 0.08711 | 0.02375 | 5.715e-07 | 6.359e-08 |
 
 So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1 re-show
 
@@ -161,25 +166,29 @@ spectrophotometry for each of the three filters.
 
 Now also grabbing suitable k values from the odh files
 
+[2014-06-30 Mon] Change the [S II] color terms a little.  There is no reason for them to be different between the two quad filters.  We do need to divide by the line contamination term though. 
+
++ For F547M we have E/W = 0.02 - 0.04 for non-target lines and 0.002 - 0.01 for 5755, 
++ For F658N we have E/W = 0.07 from Ha
 #+name: filter-set-fakes
-| Wav1 | Wav2 | I      | II     | III    |   R_I | R_II | R_III | k_I_III | k_II_III |
-|------+------+--------+--------+--------+-------+------+-------+---------+----------|
-| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.295 |  7.8 |   4.6 |    0.94 |     1.01 |
-| 6716 | 6731 | FQ672N | FQ674N | F673N  |  0.34 |  0.4 |   1.0 |    1.07 |     1.02 |
-| 6716 | 6731 | FQ672N | FQ674N | F547M  |  0.34 |  0.4 |   2.5 |    1.04 |     0.99 |
-| 4363 | 5007 | FQ437N | F502N  | FQ436N |  0.18 |  8.0 |   0.4 |    0.75 |     0.59 |
-| 4363 | 5007 | FQ437N | F502N  | F547M  |  0.18 |  8.0 |   2.5 |    1.37 |     1.07 |
-| 4861 | 6563 | F487N  | F656N  | F547M  |   3.2 | 12.0 |   2.5 |     1.1 |     1.01 |
+| Wav1 | Wav2 | I      | II     | III    |   R_I | R_II | R_III |  k_I | k_II | k_III |
+|------+------+--------+--------+--------+-------+------+-------+------+------+-------|
+| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.295 |  7.8 |   4.6 | 0.97 | 1.04 |  1.03 |
+| 6716 | 6731 | FQ672N | FQ674N | F673N  |   0.3 |  0.4 |   1.0 | 0.99 |  1.0 |   1.0 |
+| 6716 | 6731 | FQ672N | FQ674N | F547M  |   0.3 |  0.4 |   2.5 | 0.99 |  1.0 |  1.03 |
+| 4363 | 5007 | FQ437N | F502N  | FQ436N |  0.18 |  8.0 |   0.4 | 1.41 | 1.10 |  1.87 |
+| 4363 | 5007 | FQ437N | F502N  | F547M  |  0.18 |  8.0 |   2.5 | 1.28 | 1.10 |  1.03 |
+| 4861 | 6563 | F487N  | F656N  | F547M  |   3.2 | 12.0 |   2.5 | 1.13 | 1.04 |  1.03 |
 
 #+BEGIN_SRC python :return table :var intable=filter-set-fakes
   from wfc3_utils import find_line_ratio
   table = [["I", "II", "III", "I_1/I_2", "Naive I_1/I_2"], None]
-  for wav1, wav2, FI, FII, FIII, RI, RII, RIII, kI, kII in intable[0:]:
+  for wav1, wav2, FI, FII, FIII, RI, RII, RIII, kI, kII, kIII in intable[0:]:
       filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
       row = [FI, FII, FIII]
       row.extend(["{:.3f}".format(find_line_ratio(filterset,
                                                   RI, RII, RIII,
-                                                  k_I=kI, k_II=kII, naive=naive))
+                                                  k_I=kI/kIII, k_II=kII/kIII, naive=naive))
                   for naive in (False, True)])
       table.append(row)
 #+END_SRC
@@ -188,16 +197,21 @@ Now also grabbing suitable k values from the odh files
 | I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
 |--------+--------+--------+---------+---------------|
 | FQ575N | F658N  | F547M  |   0.031 |         0.046 |
-| FQ672N | FQ674N | F673N  |   0.604 |         0.654 |
-| FQ672N | FQ674N | F547M  |   0.586 |         0.654 |
-| FQ437N | F502N  | FQ436N |  -0.012 |         0.030 |
-| FQ437N | F502N  | F547M  |   0.011 |         0.030 |
-| F487N  | F656N  | F547M  |   0.306 |         0.329 |
+| FQ672N | FQ674N | F673N  |   0.520 |         0.574 |
+| FQ672N | FQ674N | F547M  |   0.511 |         0.574 |
+| FQ437N | F502N  | FQ436N |  -0.013 |         0.030 |
+| FQ437N | F502N  | F547M  |   0.013 |         0.030 |
+| F487N  | F656N  | F547M  |   0.304 |         0.327 |
 
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
   + Presumably this is due to neglecting the line contamination, which probably gives a large k value - adjusting the k value does at least stop it from going negative, but it still disagrees with the F547M version.  And doing the ktwiddle values more carefully actually gives a negative value again
 *** Histograms of the continuum color
+:LOGBOOK:
+CLOCK: [2014-07-05 Sat 15:35]
+CLOCK: [2014-07-01 Tue 09:51]--[2014-07-01 Tue 09:51] =>  0:00
+CLOCK: [2014-06-30 Mon 16:35]--[2014-06-30 Mon 19:38] =>  3:03
+:END:
 With correction for non-target lines
 
 
@@ -214,45 +228,202 @@ The first version is just for the continuum
 | F487N  | 4861 |
 | FQ436N | 4340 |
 | FQ437N | 4363 |
-#+BEGIN_SRC python :var intab=filters-and-lines :return outtab :results verbatim
+
+#+name: color-histograms
+#+header: :var intab=filters-and-lines dataset="odh" kay="k"
+#+BEGIN_SRC python :return pltfile :results file
   from astropy.table import Table
   from matplotlib import pyplot as plt
   import numpy as np
 
-  outtab = []
   kmin, kmax = 0.5, 2.5
-  for filt, wav in intab:
-      dataset = "odh"
-      kay = "k"
+
+  fig, axes = plt.subplots(3, 4)
+  colorA, colorB = "#204080", "#d0d040"
+  for j, (filt, wav) in enumerate(intab):
+      ax = axes.ravel()[j]
       swav = str(wav)
       spectabfile = "{}-spectra-data-{}.tab".format(dataset, filt)
       spectab = Table.read(spectabfile, format="ascii.tab",
                            fill_values=('--', 0.0))
-      fig = plt.figure(figsize=(3,3))
-      plt.hist(spectab[kay+swav], bins=50, range=(kmin, kmax))
+      if filt == "F547M":
+          kcolor = np.ones_like(spectab[kay+swav])
+      else:
+          kcolor = spectab[kay+swav]
+      histA = ax.hist(kcolor, bins=50, range=(kmin, kmax), normed=False, color=colorA)
       if filt == "F547M":
           ktwid = (1.0 + spectab['Sum(E/W)'])
       elif filt == "FQ436N":
           ktwid = spectab[kay+swav]*(1.0 + spectab['E/W 4340'])
-      elif filt == "F673N":
-          # Correct for 6731 line, which is a target line
-          frac = np.array([(1.0 - 0.01*int(s[-3:-1])) for s in spectab['Strongest']])
+      elif filt in ["F673N", "FQ672N", "FQ674N"]:
+          # Remove 6731+16 lines, which is a target line
+          frac = np.array([(1.0 - 0.01*int(s.split()[-1][:-1])) for s in spectab['Strongest']])
+          print(frac[:10])
+          print(spectab['Strongest'][:10]) 
           ktwid = spectab[kay+swav]*(1.0 + frac*spectab['Sum(E/W)'])
       else:
           ktwid = spectab[kay+swav]*(1.0 + spectab['Sum(E/W)'])
-      plt.hist(ktwid, bins=50, range=(kmin, kmax))
-      plt.xlim(kmin, kmax)
-      plt.title("{} {:.2f} +/- {:.2f}".format(filt, ktwid.mean(), ktwid.std()))
-      pltfile = "color-hist-{}-{}.png".format(kay, filt)
-      fig.savefig(pltfile, dpi=50)
-      outtab.append("[[file:{}]]".format(pltfile))
-  outtab = ' '.join(outtab)
-
+      histB = ax.hist(ktwid, bins=50, range=(kmin, kmax), normed=False, color=colorB, alpha=0.8)
+      ax.set_xlim(kmin, kmax)
+      title = "{} {:.2f}, {:.2f} +/- {:.2f}".format(filt, kcolor.mean(), ktwid.mean(), ktwid.std())
+      ax.set_title(title, fontsize='small')
+  for ax in axes[-1,:]:
+      ax.set_xlabel("Color term, " + kay)
+  for ax in axes[:,0]:
+      ax.set_ylabel("Relative frequency")
+  ax0 = axes[-1,-1]
+  ax0.axis('off')
+  ax0.hist([0], label='continuum only: $\\mathdefault{k_{j,III}}$', color=colorA)
+  ax0.hist([0], label='continuum + lines: $\\mathdefault{\\widetilde{k}_{j,III}}$', color=colorB, alpha=0.8)
+  ax0.axis([-100, -10, -100, -10])
+  ax0.legend(loc='center', mode='expand', frameon=False, bbox_to_anchor=(-0.4, 0.5))
+  pltfile = "{}-{}-color-histograms.pdf".format(dataset, kay)
+  fig.set_size_inches(3*4, 3*3)
+  fig.tight_layout()
+  fig.savefig(pltfile)
 #+END_SRC
 
 #+RESULTS:
-: [[file:color-hist-k-FQ672N.png]] [[file:color-hist-k-F673N.png]] [[file:color-hist-k-FQ674N.png]] [[file:color-hist-k-F656N.png]] [[file:color-hist-k-F658N.png]] [[file:color-hist-k-FQ575N.png]] [[file:color-hist-k-F547M.png]] [[file:color-hist-k-F502N.png]] [[file:color-hist-k-F487N.png]] [[file:color-hist-k-FQ436N.png]] [[file:color-hist-k-FQ437N.png]]
+[[file:odh-k-color-histograms.pdf]]
+
+This now calculates the results for only the global continuum.  In all cases, we should use the global continuum because the local is often contaminated by nearby strong lines (H\alpha, [O III], etc).  And when it isn't, there is hardly any difference between the two. 
+
+#+call: color-histograms(dataset="manu") :results file
+
+#+RESULTS:
+[[file:manu-k-color-histograms.pdf]]
+
+#+call: color-histograms(dataset="manu", kay="kk") :results file
+
+#+RESULTS:
+[[file:manu-kk-color-histograms.pdf]]
+
+
+**** DONE Check why the FQ672N filter is different from FQ674N
+CLOSED: [2014-06-30 Mon 19:37]
+
+| Section |        Sum(E/W) |              dSum |                |          E6716 |         dE6716 |      E/W 6716 |          k6716 |         kk6716 |          F6716 |         |
+|---------+-----------------+-------------------+----------------+----------------+----------------+---------------+----------------+----------------+----------------+---------|
+| S30-12  | 0.0585488131555 | 0.000721911365955 |             99 |  33.0391867868 | 0.618129284847 | 1.69488303472 |  1.07018779275 |  1.37310714951 |  55.2069781663 | 0.00059 |
+| S30-13  | 0.0568763526816 | 0.000655959600216 |             99 |  32.3268542393 | 0.561090998981 | 1.65834096249 |  1.05575594928 |  1.39213777578 |  47.5789000698 | 0.00057 |
+| S30-10  | 0.0427424035244 | 0.000512028491433 |             99 |   25.797550225 | 0.440200755773 | 1.32339305128 |  1.06597439033 |  1.35257605209 |  41.2935459445 | 0.00043 |
+| S30-11  | 0.0525311857192 | 0.000584296181584 |             99 |  31.9281061219 | 0.491282193816 | 1.63788551292 |  1.01531733446 |  1.29780165637 |  47.8792211813 | 0.00053 |
+| S30-16  | 0.0491020068108 | 0.000666982206166 |             99 |  22.6863670023 | 0.542341933327 | 1.16379191775 |   1.1966462859 |  1.51186192338 |  46.0776618667 | 0.00049 |
+| S30-17  | 0.0693646392335 | 0.000829204622629 |             99 |  29.2326563081 | 0.678117044189 | 1.49961116041 |  1.18298341246 |  1.42780647831 |  70.4444357386 | 0.00069 |
+| S30-14  | 0.0494672255022 | 0.000776368517998 |             99 |  26.9559657046 | 0.654787870014 | 1.38281881004 |  1.09522426005 |  1.41340938083 |  45.8250889673 | 0.00049 |
+| S30-15  | 0.0502600578574 | 0.000724942835798 |             99 |  25.4822183837 | 0.619714200078 | 1.30721678788 |   1.1327216403 |  1.44008992208 |   50.466998767 | 0.00050 |
+| S30-18  | 0.0926544124036 |  0.00081398598075 |            100 |  37.3180552878 |  0.69128771094 | 1.91438546004 |  1.15523591957 |  1.38015891931 |  107.580586199 | 0.00000 |
+| S30-19  | 0.0965295890553 | 0.000797618947024 |            100 |  38.3388557778 | 0.669186663209 | 1.96675168332 |  1.13201770754 |  1.39250133355 |  118.921668335 | 0.00000 |
+| S60-04  |  0.103937328806 | 0.000712922828707 |            100 |  71.6480709172 | 0.607585004335 | 3.67548694984 | 0.869477977672 |  1.15919620424 |  68.3568816474 | 0.00000 |
+| S30-23  | 0.0762084082914 | 0.000585921823059 |            100 |  41.3837953635 | 0.495382407684 |  2.1229545729 |  1.07439408519 |  1.40126048434 |  50.2871276159 | 0.00000 |
+| S60-06  |  0.152352645899 | 0.000797468258833 |            100 |  82.3575312966 | 0.655807008028 |  4.2248734352 | 0.893199657857 |  1.21267718133 |  97.3447192415 | 0.00000 |
+| S90-08  | 0.0840803530677 | 0.000424928131048 |            100 |  49.9690951206 | 0.356769211007 | 2.56337337014 | 0.822914200485 |  1.03623635022 |  65.0191199978 | 0.00000 |
+| S60-00  | 0.0825649343211 |   0.0019707660084 |            100 |  66.8954370885 |  1.77958908766 | 3.43168075393 | 0.827381226635 | 0.965325218404 |  39.4782704067 | 0.00000 |
+| S60-01  | 0.0903141930972 |   0.0015653185352 |            100 |  67.8383721093 |  1.34303091111 | 3.48005254285 | 0.962616091476 |  1.43023254042 |  49.7571314481 | 0.00000 |
+| S60-02  | 0.0936564890867 |   0.0012916491533 |            100 |  70.8630077299 |  1.12046031895 | 3.63521385577 | 0.956988747346 |  1.27578752536 |  55.8750683454 | 0.00000 |
+| S60-30  | 0.0660420450208 |  0.00198509346081 |            100 |  49.0737104893 |   1.4427319063 | 2.51744087698 | 0.872729101303 |  1.15780268505 |  15.8997575756 | 0.00000 |
+| S90-03  | 0.0860889528287 | 0.000784362045986 |            100 |    61.98868859 |  0.64946492735 | 3.17996860255 |   0.8010447455 |  1.07966114458 |  45.4795389149 | 0.00000 |
+| S90-02  |  0.093122224302 | 0.000798217179163 |            100 |  69.4435942115 | 0.656261888806 | 3.56239911287 | 0.825367805121 |  1.11358100337 |  45.1053685251 | 0.00000 |
+| S90-01  | 0.0987537829934 | 0.000989490084269 |            100 |  74.4831529619 | 0.848602695651 | 3.82092432064 | 0.887554533012 |  1.18354235831 |  49.6578588008 | 0.00000 |
+| S90-00  | 0.0852408981439 |  0.00154348537351 |            100 |  67.6977295117 |   1.3261366174 | 3.47283769358 | 0.754123834623 | 0.975124058907 |   35.512933153 | 0.00000 |
+| S90-07  | 0.0961677986108 | 0.000473643382962 |            100 |   59.550476555 | 0.386827051441 | 3.05489033595 | 0.807415935577 |  1.04038661279 |  60.7734287901 | 0.00000 |
+| S60-09  |  0.126721696871 | 0.000575339156004 |            100 |  63.7581135455 | 0.479070949106 | 3.27073864352 |  1.06810348151 |  1.32820385176 |   138.02737959 | 0.00000 |
+| S90-05  |  0.100670023926 | 0.000547416232558 |            100 |  68.6743392293 | 0.459087505532 | 3.52293696668 | 0.728662187766 | 0.920658669266 |  62.3216059449 | 0.00000 |
+| S90-04  | 0.0690255507823 | 0.000574060568851 |            100 |  48.1182854131 | 0.479670923612 | 2.46842835851 | 0.760486445197 | 0.966757124294 |  40.3294419941 | 0.00000 |
+| S60-32  | 0.0532141290323 |  0.00331006745342 |            100 |  42.5220084025 |  2.75375320983 | 2.18134396312 | 0.855237737843 |  1.05913237907 |   11.465858664 | 0.00000 |
+| S30-27  | 0.0580157086832 | 0.000822156710661 |            100 |  38.1643775677 | 0.654159754743 | 1.95780109503 |  1.03867447745 |  1.34599195828 |  21.1776417671 | 0.00000 |
+| S90-11  |  0.194662869869 |  0.00109428242642 |            100 |  95.2219403502 | 0.916072010161 | 4.88480701036 | 0.945976902315 |  1.21526433375 |  175.173217984 | 0.00000 |
+| S90-12  | 0.0988810072821 | 0.000660973217179 |            100 |  50.1021158806 | 0.554429577058 | 2.57019722542 |  1.00683350157 |  1.23952025976 |  94.6710045708 | 0.00000 |
+| S90-13  | 0.0991374661763 | 0.000885440371731 |            100 |   50.625103125 | 0.755533246211 | 2.59702603975 |   1.0443317862 |  1.31922331165 |  84.8899472168 | 0.00000 |
+| S90-15  | 0.0763218623162 | 0.000616806627271 |            100 |  37.5998851343 | 0.510110679571 | 1.92884309874 |   1.0305769007 |  1.30347640091 |  64.5516156305 | 0.00000 |
+| S30-29  | 0.0643289984074 |  0.00106606006711 |            100 |   43.115115483 | 0.861320343168 | 2.21176986721 |  1.07122356652 |    1.363718195 |  20.2594494029 | 0.00000 |
+| S30-28  | 0.0573062912965 | 0.000800844937001 |            100 |  41.4873392165 | 0.704400235062 | 2.12826628717 |  1.09298623988 |  1.35637352298 |  22.1723247445 | 0.00000 |
+| S90-18  | 0.0552337634069 | 0.000584818283794 |             99 |  28.9635229556 | 0.486676324978 | 1.48580484138 |  1.09389394408 |   1.3467002502 |  44.7065647181 | 0.00055 |
+| S90-19  | 0.0558059859535 | 0.000536533387462 |             99 |  28.9436800027 | 0.434736111398 | 1.48478691426 |  1.09569438066 |  1.33116157033 |  50.7407809567 | 0.00056 |
+| S90-14  | 0.0925095921743 | 0.000821631837792 |            100 |  45.3600291561 | 0.682394056116 | 2.32693208726 |  1.01807229881 |   1.3237047268 |  75.4854443375 | 0.00000 |
+| S30-22  | 0.0681635213384 | 0.000603616125712 |             99 |  33.4419008813 | 0.501032442338 | 1.71554193565 |  1.06799143966 |   1.3549373327 |  54.3000423111 | 0.00068 |
+| S30-21  |  0.075331127929 | 0.000633454878534 |            100 |  34.1286772324 | 0.526489344565 | 1.75077299608 |  1.02451143297 |  1.30144490164 |  60.5629256602 | 0.00000 |
+| S30-20  |  0.091047974506 | 0.000815620885019 |            100 |  38.2526091391 | 0.675794439437 | 1.96232730188 |  1.05841283061 |  1.34109898689 |  82.4654436877 | 0.00000 |
+| S90-10  |  0.166957271547 | 0.000939135060289 |            100 |  83.8987294451 | 0.788747915064 | 4.30393562919 | 0.914106578632 |  1.16107426038 |  140.504950374 | 0.00000 |
+| S30-26  | 0.0811761231126 | 0.000925349316302 |            100 |  50.7222425378 | 0.767015236536 | 2.60200921152 |  1.04652382045 |  1.40920829725 |  30.6430611334 | 0.00000 |
+| S30-25  | 0.0838944019808 | 0.000794945669816 |            100 |  49.8709537652 | 0.639990868689 | 2.55833879954 |  1.00464715613 |  1.33871824744 |  33.5215706657 | 0.00000 |
+| S30-24  | 0.0785287948256 | 0.000600063675817 |            100 |  44.5610567581 | 0.511980757728 | 2.28594546215 |  1.01409224474 |  1.36345371179 |  40.8776940653 | 0.00000 |
+| S90-16  | 0.0758043146119 | 0.000917450841336 |            100 |  36.2620705189 | 0.765104892101 | 1.86021431227 |   1.0769128875 |  1.35516451024 |  66.3785397757 | 0.00000 |
+| S60-05  |  0.136530682537 | 0.000785364644153 |            100 |  87.4532166942 | 0.639799125964 | 4.48627789368 | 0.878952098036 |  1.14990494616 |  88.3132129704 | 0.00000 |
+| S90-09  |  0.128403088753 | 0.000648561514627 |            100 |  68.0041243322 | 0.547464753267 | 3.48855549519 | 0.877073759943 |  1.09957802419 |  102.855190132 | 0.00000 |
+| S60-29  | 0.0666487946202 |  0.00155041665155 |            100 |  53.4174156489 |  1.27669040961 | 2.74026936941 | 0.937743159023 |  1.21203683837 |  20.9461715181 | 0.00000 |
+| S60-07  |  0.120852021316 |  0.00057099640826 |            100 |  66.3637180776 | 0.469898536436 | 3.40440400718 | 0.915865751791 |  1.18828360675 |  96.4765502699 | 0.00000 |
+| S90-21  | 0.0476633158279 | 0.000461407032028 |            100 |  27.6831894128 | 0.375911706765 | 1.42012478653 |  1.08293092072 |  1.46554201105 |   20.972752662 | 0.00000 |
+| S90-20  | 0.0570769424515 | 0.000525782047892 |             99 |   30.993640456 | 0.441598029794 | 1.58994819491 |  1.09511917336 |  1.31624196719 |  43.5657713931 | 0.00057 |
+| S90-23  | 0.0479625275688 |  0.00064550330082 |             99 |  28.6300732739 | 0.506228376218 | 1.46869914771 |  1.10391608927 |  1.42876033722 |  17.0466844314 | 0.00048 |
+| S90-22  |  0.044910631751 | 0.000640027987034 |            100 |  27.0715270685 | 0.487601819659 | 1.38874701271 |  1.07534361208 |  1.49430695562 |  14.8941890842 | 0.00000 |
+| S90-25  | 0.0543425221107 |  0.00063762062851 |             99 |   37.093452455 | 0.509641203328 | 1.90286351995 |  1.01931205569 |  1.28554331234 |  25.7147771545 | 0.00054 |
+| S90-24  | 0.0531360674667 | 0.000455991936629 |             99 |  35.0388877906 | 0.380537964064 | 1.79746604706 |  1.02561040627 |   1.2897489476 |  25.3798324021 | 0.00053 |
+| S90-27  | 0.0557759173811 |  0.00060181060645 |             99 |  41.3011267124 | 0.502239398653 | 2.11871373928 |  1.00917698544 |  1.27498347341 |  22.6604163371 | 0.00056 |
+| S90-26  | 0.0500361696222 | 0.000605807268482 |             99 |  37.0005850151 |  0.48626952696 | 1.89809949687 |  1.01081763189 |   1.3205688033 |  22.2453517964 | 0.00050 |
+| S90-29  | 0.0550070160539 | 0.000729304088976 |             99 |  43.7005523197 | 0.610243351431 | 2.24180229412 | 0.975913715503 |  1.25036012527 |  18.0426387853 | 0.00055 |
+| S90-28  | 0.0546572875395 | 0.000598783817944 |             99 |  40.0704835847 |  0.50355180528 | 2.05558276174 | 0.974814249942 |  1.23058021222 |  18.9590313244 | 0.00055 |
+| S60-03  | 0.0953253089623 | 0.000727426866717 |            100 |  65.7959835437 | 0.597915709725 |  3.3752796938 | 0.870872545449 |  1.17874283807 |  55.5983050981 | 0.00000 |
+| S90-30  | 0.0549382613663 | 0.000767269936318 |            100 |  45.0079359896 | 0.618285063053 | 2.30886999819 | 0.927159759912 |   1.1770673945 |   15.937156328 | 0.00000 |
+| S60-08  |  0.173454846393 | 0.000734705186966 |            100 |  88.2461299634 | 0.613683954131 | 4.52695369048 |  1.00396874752 |  1.29047846488 |   167.49815771 | 0.00000 |
+| S60-28  | 0.0636566135055 |  0.00169929949628 |            100 |  47.2515323041 |   1.3635678049 | 2.42396463883 | 0.976045334699 |  1.25266614152 |  19.7330126933 | 0.00000 |
+| S90-31  | 0.0503151284842 |  0.00104772418651 |            100 |  43.4559142635 | 0.890725043413 | 2.22925256359 | 0.932980090748 |  1.19922059295 |  13.6365436443 | 0.00000 |
+| S60-22  | 0.0711020828358 | 0.000840471285723 |            100 |  38.6511296569 | 0.707687438913 | 1.98277107578 |  1.03199518773 |  1.33610159523 |  38.1041011091 | 0.00000 |
+| S60-23  | 0.0712895222597 | 0.000715286583466 |            100 |  42.5469292179 | 0.600845957092 |  2.1826223804 |  1.03085774666 |  1.37306053587 |   36.803280128 | 0.00000 |
+| S60-20  | 0.0707626498193 | 0.000742038501792 |            100 |  33.8561270734 | 0.621226828423 | 1.73679139769 |   1.0562329564 |  1.35611616122 |  42.4261687819 | 0.00000 |
+| S60-21  | 0.0654982718096 | 0.000584187603642 |            100 |  34.8787428399 | 0.491141773698 | 1.78925074316 |  1.06889330562 |  1.36419369333 |  39.7545795502 | 0.00000 |
+| S60-26  | 0.0574222955129 |  0.00106301933876 |             99 |  40.6997564097 | 0.829016153368 |  2.0878639387 |  1.00443284471 |  1.28685390459 |  22.5917473977 | 0.00057 |
+| S60-27  | 0.0518718799996 | 0.000864031207515 |            100 |  38.9821616373 | 0.689486849534 | 1.99975274338 |  1.00930486026 |  1.34616521814 |  18.6810479366 | 0.00000 |
+| S60-24  | 0.0819659928674 | 0.000625525285098 |            100 |  49.0714469146 | 0.514869995135 | 2.51732475746 |   1.0476217695 |  1.31902538093 |  35.7326334034 | 0.00000 |
+| S60-25  | 0.0549379894036 |  0.00115840851577 |             99 |   39.302702665 |  0.93783100687 | 2.01619623375 | 0.979743317263 |  1.31766627695 |  22.9282560895 | 0.00055 |
+| S30-30  | 0.0769252343554 |  0.00202645353565 |            100 |  57.1647957328 |  1.61508762518 | 2.93250687724 | 0.955801640812 |  1.26176992857 |  21.5806447169 | 0.00000 |
+| S90-06  | 0.0930555355857 | 0.000547841562852 |            100 |  57.5012498629 | 0.453123899067 | 2.94976669665 | 0.796230511085 | 0.995794397904 |  58.1556753107 | 0.00000 |
+| S30-09  | 0.0539557495183 | 0.000530875956673 |             99 |  31.8344563463 | 0.442836251345 | 1.63308135667 |  1.04476611524 |  1.33320777103 |  47.2008583192 | 0.00054 |
+| S30-32  | 0.0516055900837 |  0.00244170063685 |            100 |  43.6241727033 |  1.98168078804 | 2.23788408279 |  1.03761261448 |  1.47367385208 |  13.8379824985 | 0.00000 |
+| S90-32  |  0.052529814119 |  0.00164709104402 |            100 |  44.5882205366 |  1.37488539786 | 2.28733894159 | 0.900959846225 |  1.21876717804 |  13.5556780907 | 0.00000 |
+| S30-00  |  0.067890593076 |  0.00145522534917 |            100 |  49.2207074305 |  1.22280243783 | 2.52498169883 | 0.852899895928 | 0.958431012436 |  32.5913328731 | 0.00000 |
+| S30-03  |  0.127776320243 | 0.000985979364193 |            100 |  82.1934907749 | 0.813783195382 | 4.21645829172 | 0.866196743965 |  1.19302031639 |  76.5420995459 | 0.00000 |
+| S30-02  | 0.0808627749666 |  0.00108656340472 |            100 |  59.9454960261 |  0.97341053782 | 3.07515450904 | 0.885545873619 |  1.33902501036 |  47.2516332413 | 0.00000 |
+| S30-05  |  0.142808462936 | 0.000680834416842 |            100 |  87.3314427955 | 0.577301205008 | 4.48003099311 | 0.929931807068 |  1.20524600233 |  114.413873175 | 0.00000 |
+| S30-04  |  0.128066320625 | 0.000931785481874 |            100 |  80.3689817157 | 0.787831343878 | 4.12286248166 | 0.899928663147 |  1.19019784963 |  81.9107000958 | 0.00000 |
+| S30-07  |  0.114271464037 | 0.000445089055733 |            100 |  65.2068000782 | 0.372522962706 | 3.34505506792 |  1.00362493062 |  1.24938264474 |   115.55105692 | 0.00000 |
+| S30-06  |  0.151492396677 |  0.00063992140132 |            100 |  84.9014888557 | 0.532281302794 | 4.35537635998 |  1.01092158552 |  1.28267153292 |  142.805940384 | 0.00000 |
+| S30-31  |  0.072239529535 |  0.00275920040714 |            100 |  53.0262855562 |  2.19746058231 | 2.72020471822 | 0.934095864333 |  1.36874813319 |  17.5768157212 | 0.00000 |
+| S30-08  |  0.076212773907 | 0.000446776482984 |            100 |  42.6977729668 | 0.375905580735 | 2.19036054032 |  1.01073925343 |   1.2713643128 |  72.3780335114 | 0.00000 |
+| S60-13  | 0.0645449325943 | 0.000706779958315 |             99 |  34.5165457599 |   0.5833882434 | 1.77067033166 |  1.09744156497 |  1.42210289779 |  62.9675627245 | 0.00065 |
+| S60-12  | 0.0783046464898 | 0.000684410085388 |            100 |  41.7152975537 | 0.559542537622 | 2.13996036187 |  1.13619329502 |   1.4571546757 |  73.8760082547 | 0.00000 |
+| S60-11  | 0.0579023663944 |  0.00068953711605 |             99 |  32.0980342828 |  0.57688884425 | 1.64660268744 |  1.09920346367 |   1.4008193066 |  60.7698604582 | 0.00058 |
+| S60-10  | 0.0721817719533 | 0.000679159346885 |             99 |   38.176045611 | 0.570997576806 | 1.95839965603 |  1.09873487919 |  1.36900537973 |  81.6823780255 | 0.00072 |
+| S60-17  | 0.0873801387034 | 0.000774716001021 |            100 |  38.3908370467 | 0.634206494892 | 1.96941827954 |  1.09467570476 |  1.40639882276 |  65.8471836794 | 0.00000 |
+| S60-16  | 0.0723665819197 |  0.00072315970056 |            100 |  34.2330605725 | 0.593112240945 | 1.75612777534 |  1.05671388353 |  1.34721082175 |    60.03358555 | 0.00000 |
+| S60-15  | 0.0532967275209 |  0.00066231753637 |             99 |  27.3329383482 | 0.536785213575 | 1.40215719577 |  1.07921638288 |  1.33586089094 |  54.5969716402 | 0.00053 |
+| S60-14  |   0.05007799942 |  0.00057135359568 |             99 |  26.3965697505 |  0.47028675369 | 1.35412225893 |  1.03597784791 |  1.34224343071 |  44.5417127797 | 0.00050 |
+| S60-19  | 0.0661411072392 | 0.000942439945458 |             99 |  29.0786095956 | 0.667877724027 |  1.4917086911 |  1.07133520525 |  1.32163580275 |  46.5582907252 | 0.00066 |
+| S60-18  | 0.0729846791232 | 0.000727572195958 |             99 |  32.3360032421 | 0.611355748678 | 1.65881029879 |  1.11886887173 |  1.37693217438 |  63.2416615839 | 0.00073 |
+| S90-17  | 0.0597708711759 |  0.00081830525599 |             99 |  30.8153226004 | 0.701346709286 | 1.58080063598 |  1.08999902245 |  1.37677893718 |  44.3303630646 | 0.00060 |
+| S60-31  | 0.0586238442511 |    0.002650758435 |            100 |  49.9496588217 |  2.11309583886 | 2.56237630404 | 0.912963971877 |  1.28298784821 |  15.1878251583 | 0.00000 |
+| S30-01  | 0.0712467186756 |  0.00106651853712 |            100 |  48.8543100984 | 0.862211930394 | 2.50618581786 | 0.962730023978 |  1.30870073812 |   41.386076588 | 0.00000 |
+|---------+-----------------+-------------------+----------------+----------------+----------------+---------------+----------------+----------------+----------------+---------|
+|         | 0.08 +/- 3.1e-3 | 9.0e-4 +/- 5.2e-5 | 99.70 +/- 0.05 | 47.73 +/- 1.76 |  0.75 +/- 0.04 | 2.45 +/- 0.09 |  0.99 +/- 0.01 |  1.28 +/- 0.01 | 54.17 +/- 3.47 | 0.00000 |
+#+TBLFM: $11=(100 - $4) $2 / 100 ; f5::@101$2..@101$10=vmeane(@I..@II); f2
+
+**** Previous individual plots
+- [[file:color-hist-kk-FQ672N.png]]
+- [[file:color-hist-kk-F673N.png]]
+- [[file:color-hist-kk-FQ674N.png]]
+- [[file:color-hist-kk-F656N.png]]
+- [[file:color-hist-kk-F658N.png]]
+- [[file:color-hist-kk-FQ575N.png]]
+- [[file:color-hist-kk-F547M.png]]
+- [[file:color-hist-kk-F502N.png]]
+- [[file:color-hist-kk-F487N.png]]
+- [[file:color-hist-kk-FQ436N.png]]
+- [[file:color-hist-kk-FQ437N.png]]
+
 *** Now apply to the WFC3 maps
+:LOGBOOK:
+CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
+:END:
 #+name: ratio-limits
 | FQ575N | 0.005 | 0.07 |
 | FQ672N |   0.4 |  1.0 |
@@ -287,13 +458,13 @@ The first version is just for the continuum
       return fits.open(fitsfilenames[fn])[0].data
 
   plotlinks = []
-  for wav1, wav2, FI, FII, FIII, _, _, _, kI, kII in intable[0:]:
+  for wav1, wav2, FI, FII, FIII, _, _, _, kI, kII, kIII in intable[0:]:
       filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
       RI = get_fits_data(FI)
       RII = get_fits_data(FII)
       RIII = get_fits_data(FIII)
-      x = find_line_ratio(filterset, RI, RII, RIII, k_I=kI, k_II=kII, naive=True)
-      y = find_line_ratio(filterset, RI, RII, RIII, k_I=kI, k_II=kII, naive=False)
+      x = find_line_ratio(filterset, RI, RII, RIII, k_I=kI/kIII, k_II=kII/kIII, naive=True)
+      y = find_line_ratio(filterset, RI, RII, RIII, k_I=kI/kII, k_II=kII/kIII, naive=False)
       hdu = fits.PrimaryHDU(y, header=fits.open(fitsfilenames[FI])[0].header)
       hdu.writeto("ratio-contam-correct-{}-{}-{}.fits".format(FI, FII, FIII), clobber=True)
       hdu = fits.PrimaryHDU(x, header=fits.open(fitsfilenames[FI])[0].header)
@@ -399,7 +570,7 @@ nii = pyneb.Atom('N', 2)
 #+name: T-n-curves
 #+BEGIN_SRC python
 
-denrange = np.linspace(0.0, 3.e4, 100)
+denrange = np.linspace(0.0, 8.e4, 200)
 for tem in [9e3, 1e4, 1.1e4, 1.2e4, 1.3e4]:
     As = sii.getEmissivity(tem, denrange, wave=6716)
     Bs = sii.getEmissivity(tem, denrange, wave=6731)
@@ -408,7 +579,7 @@ for tem in [9e3, 1e4, 1.1e4, 1.2e4, 1.3e4]:
     plt.plot(As/Bs, An/Bn, label="T = {:.0f} K".format(tem))
 
 temrange = np.linspace(5000.0, 20000.0, 100)
-for den in [1000, 2000, 4000, 8000, 16000]:
+for den in [1000, 2000, 4000, 8000, 16000, 32000]:
     As = sii.getEmissivity(temrange, den, wave=6716)
     Bs = sii.getEmissivity(temrange, den, wave=6731)
     An = nii.getEmissivity(temrange, den, wave=5755)
@@ -435,8 +606,77 @@ def two_phase_rsii_rnii(den_hi, f_hi, den_lo=1000.0, T0=8000.0, T_hi=None):
     rnii = (f_hi*An_hi + (1.-f_hi)*An_lo)/(f_hi*Bn_hi + (1.-f_hi)*Bn_lo)
     return rsii, rnii
 #+END_SRC
+**** Get the ODH spectrophotometry for comparison
+:LOGBOOK:
+CLOCK: [2014-06-30 Mon 11:28]--[2014-06-30 Mon 12:43] =>  1:15
+:END:
+First of all extract the line fluxes.  We want the [N II], [S II], and H lines (the latter for de-reddening)
+#+BEGIN_SRC python :return datafile :results file
+import numpy as np
+import json
+from astropy.table import Table
+
+wavs = [6583, 5755, 6716, 6731, 4861, 6563]
+
+db = json.load(open("odh_spectral_fit_db.json"))
+
+pre = {"Flux": "f", "dFlux": "e"}
+
+names = ["Section"]
+dtype = ['<U7']
+for wav in wavs:
+    names += [pre["Flux"] + str(wav), pre["dFlux"] + str(wav)]
+    dtype += [float, float]
+tab = Table(names=names, dtype=dtype)
+
+defaultdata = {"Flux": 0.0, "dFlux": 0.0} # in case line is missing
+for section, secdata in db.items():
+    row = [section]
+    for wav in wavs:
+        linedata = secdata.get(str(wav), defaultdata)
+        row += [linedata["Flux"], linedata["dFlux"]]
+    tab.add_row(row)
+
+datafile = "odh-diag-lines.tab"
+tab.write(datafile, format='ascii.tab')
+
+#+END_SRC
+
+#+RESULTS:
+[[file:odh-diag-lines.tab]]
+
+
+Now find C(H\beta) and the extinction-corrected line ratios. 
+
+#+header: :var balmer0=2.874
+#+BEGIN_SRC python :return ratiofile :results file
+  import numpy as np
+  from astropy.table import Table
+
+  intab = Table.read("odh-diag-lines.tab", format="ascii.tab")
+
+  chb = -np.log10(balmer0*intab['f4861']/intab['f6563']) / 0.220
+
+  rnii = 10**((-0.123 + 0.222)*chb) * intab['f5755'] / intab['f6583']
+  rsii = intab['f6716'] / intab['f6731']
+
+  outtab = Table(data={'Section': intab['Section'],
+                       'C(Hb)': chb,
+                       '5755/6583': rnii,
+                       '6716/6731': rsii})
+
+  ratiofile = "odh-ratios.tab"
+  outtab.write(ratiofile, format='ascii.tab')
+#+END_SRC
+
+#+RESULTS:
+[[file:odh-ratios.tab]]
 
 **** Corrected [N II] versus [S II] ratio map
+:LOGBOOK:
+CLOCK: [2014-07-01 Tue 01:20]--[2014-07-01 Tue 01:21] =>  0:01
+CLOCK: [2014-06-30 Mon 12:43]--[2014-06-30 Mon 13:34] =>  0:51
+:END:
 
 Adal's measurements corrected for reddening
 #+name: adal-ratios
@@ -458,6 +698,39 @@ plt.plot(adal_rsii, adal_rnii, "co",
          alpha=0.6, label="Mesa-Delgado et al. (2008)")
 plt.plot(cesar_rsii, cesar_rnii, "mo", label="Esteban et al. (1998, 2004)")
 plt.plot(bob_rsii, bob_rnii, "yo", label="O'Dell & Harris (2010)")
+
+#+END_SRC
+
+Different version with ODH measurements as well
+#+name: odh-ratios
+#+BEGIN_SRC python
+from astropy.table import Table
+
+adaltab = Table.read("adal-slit6-extract.dat", format="ascii.tab")
+adal_rnii_raw = adaltab["5755"]/adaltab["6583"]
+adal_rsii = adaltab["6716"]/adaltab["6731"]
+# correct for reddening
+adal_rnii = adal_rnii_raw * 10**0.06
+
+m = (adal_rsii > 0.55) & (adal_rnii > 0.025)
+print(m.sum())
+adal_rnii[m] = np.nan
+
+odhtab = Table.read("odh-ratios.tab", format="ascii.tab")
+odh_rsii = odhtab["6716/6731"]
+odh_rnii = odhtab["5755/6583"]
+
+# bob_rsii = np.array([0.5953, 0.6133, 0.5316])
+# bob_rnii = np.array([0.0215, 0.0172, 0.0221])
+cesar_rsii = np.array([3.303/6.023, 2.59/4.71])
+cesar_rnii_raw = np.array([0.858/61.589, 0.962/52.5])
+cesar_rnii = cesar_rnii_raw * 10**0.06
+
+plt.plot(adal_rsii, adal_rnii, "yo", 
+         alpha=0.6, label="Mesa-Delgado et al. (2008)")
+plt.plot(odh_rsii, odh_rnii, "co", 
+         alpha=0.6, label="O'Dell & Harris (2010)")
+plt.plot(cesar_rsii, cesar_rnii, "mo", label="Esteban et al. (1998, 2004)")
 
 #+END_SRC
 
@@ -491,6 +764,7 @@ The 2d histogram plot itself
 #+END_SRC
 
 Putting it all together with the 1-phase curves
+#+name: plot-ratios-with-comparisons
 #+header: :python /Users/will/anaconda/envs/py27/bin/python
 #+header: :var gamma=1.5 :noweb yes
 #+BEGIN_SRC python :return pltfile :results file
@@ -501,7 +775,7 @@ Putting it all together with the 1-phase curves
   <<rnii-rsii-histogram>>
   <<pyneb-setup>>
   <<T-n-curves>>
-  <<adal-ratios>>
+  <<odh-ratios>>
   pltfile = "nii-deredden-vs-sii-ratios.pdf"
   plt.legend(ncol=2, fontsize='x-small', handlelength=2.2, numpoints=1)
   plt.xlabel("[S II] 6716 / 6731")
@@ -511,6 +785,9 @@ Putting it all together with the 1-phase curves
   fig.savefig(pltfile)
 
 #+END_SRC
+
+#+RESULTS: plot-ratios-with-comparisons
+[[file:nii-deredden-vs-sii-ratios.pdf]]
 
 #+RESULTS:
 [[file:nii-deredden-vs-sii-ratios.pdf]]
@@ -553,7 +830,6 @@ And now try with the 2-phase curves
 #+RESULTS:
 [[file:nii-sii-ratios-two-phase.pdf]]
 
-***** 
 **** The excess line maps
 We have several of these: 
 + Excess (scattered) continuum:
@@ -598,11 +874,14 @@ s469.writeto("excess_469_047.fits")
 
 **** DONE Effects of extinction
 CLOSED: [2014-06-17 Tue 12:02]
+:LOGBOOK:
+CLOCK: [2014-07-01 Tue 01:19]--[2014-07-01 Tue 01:20] =>  0:01
+:END:
 + F(\lambda) values are 
-| H\beta 4861  |    0.0 |
-| [N II] 5755  | -0.123 |
-| H\alpha 6563 | -0.220 |
-| [N II] 6584  | -0.222 |
+| H\beta 4861     |    0.0 |
+| [N II] 5755 | -0.123 |
+| H\alpha 6563     | -0.220 |
+| [N II] 6584 | -0.222 |
 
 + Calculate CHB from observed Balmer decrement R = Ha/Hb
   - I'(Ha) = I(Ha) 10**(-(1+F) CHB)
@@ -661,6 +940,9 @@ for d, results in zip(den, bdec):
 
 
 **** Mask out the bad areas in the ratio maps
+:LOGBOOK:
+CLOCK: [2014-07-01 Tue 01:22]--[2014-07-01 Tue 09:45] =>  8:23
+:END:
 #+name: files-to-mask
 | nii | ratio-FQ575N-F658N-deredden-2874.fits         | ratio-FQ575N-F658N-masked.fits  |
 | sii | ratio-contam-correct-FQ672N-FQ674N-F547M.fits | ratio-FQ672N-FQ674N-masked.fits |
@@ -991,8 +1273,148 @@ Now the excess emissions:
 + So eventually I want to use a separate mask for each line ratio
   + Currently I have [[file:FQ672N-good-box.reg]]
   + [X] Need to do the others
-#+BEGIN_SRC python
+*** From line ratios to (n, T)
+**** Single temperature models
+:LOGBOOK:
+CLOCK: [2014-07-01 Tue 01:21]--[2014-07-01 Tue 01:22] =>  0:01
+CLOCK: [2014-07-01 Tue 01:18]--[2014-07-01 Tue 01:19] =>  0:01
+CLOCK: [2014-06-29 Sun 22:05]--[2014-06-30 Mon 09:41] => 11:36
+:END:
+Assuming a single zone with a unique n and T, we can use pyneb to convert the ratios into physical variables
++ ratio-FQ575N-F658N-masked.fits
++ ratio-FQ672N-FQ674N-masked.fits
+#+BEGIN_SRC python :tangle find-Te-Ne-1phase.py
+  import pyneb
+  from scipy.interpolate import griddata
+  from astropy.io import fits
+  import numpy as np
+
+  pyneb.atomicData.resetDataFileDict()
+  sii = pyneb.Atom("S", 2)
+  nii = pyneb.Atom("N", 2)
+
+  def rsii_func(T, den):
+      A = sii.getEmissivity(T, den, wave=6716)
+      B = sii.getEmissivity(T, den, wave=6731)
+      return A/B
+
+  def rnii_func(T, den):
+      A = nii.getEmissivity(T, den, wave=5755)
+      B = nii.getEmissivity(T, den, wave=6583)
+      return A/B
+
+  Tmin, Tmax = 2000.0, 20000.0
+  Nmin, Nmax = 100.0, 5.e4
+  nT, nN = 400, 400
+  Tgrid = np.linspace(Tmin, Tmax, nT)
+  Ngrid = np.logspace(np.log10(Nmin), np.log10(Nmax), nN)
+  Nvalues, Tvalues = np.meshgrid(Ngrid, Tgrid)
+
+  rsii_grid = rsii_func(Tgrid, Ngrid)
+  rnii_grid = rnii_func(Tgrid, Ngrid)
+
+  hdu_sii = fits.open("ratio-FQ672N-FQ674N-masked.fits")[0]
+  hdu_nii = fits.open("ratio-FQ575N-F658N-masked.fits")[0]
+  rsii = hdu_sii.data
+  rnii = hdu_nii.data
+  m = np.isfinite(rsii) & np.isfinite(rnii)
+
+  # Deal with rsii values outside theoretical range
+  rsii[rsii < rsii_grid.min()]= rsii_grid.min()
+  rsii[rsii > rsii_grid.max()]= rsii_grid.max()
+
+  xi = np.array(zip(rsii[m], rnii[m]))
+  points = np.array(zip(rsii_grid.ravel(), rnii_grid.ravel()))
+
+  Te = griddata(points, Tvalues.ravel(), xi, method='nearest')
+  Ne = griddata(points, Nvalues.ravel(), xi, method='nearest')
+
+  hdu_sii.data[m] = Ne
+  hdu_sii.data[~m] = np.nan
+  hdu_nii.data[m] = Te
+  hdu_nii.data[~m] = np.nan
+
+  hdu_nii.writeto('Te-1phase-pyneb.fits', clobber=True)
+  hdu_sii.writeto('Ne-1phase-pyneb.fits', clobber=True)
 #+END_SRC
+
+I don't execute this in babel since it takes rather a long time.
+*** Bob's comments of [2014-06-30 Mon]
+:PROPERTIES:
+:EXPORT_FILE_NAME: bob-comments
+:END:
+:LOGBOOK:
+CLOCK: [2014-07-01 Tue 09:51]--[2014-07-01 Tue 10:50] =>  0:59
+CLOCK: [2014-07-01 Tue 09:45]--[2014-07-01 Tue 09:51] =>  0:06
+:END:
+
+**** Anchored Note, page 1
+: I've looked back at the calibration draft that you sent on March 5. I
+: now think that it would be better to condense what you have there and
+: merge it into this paper, inserting it approximately here.
+: 
+: Since there is a lot of redundancy with what you say here, it should
+: not take up much room. An alternative would be to condense that
+: material and put it into an appendix.
+
+Agreed
+
+**** Anchored Note, page 1
+: 4686 not 4696
+
+Thank you
+**** Equation (2), page 2
+: I don't think that this equation is necessary in this presentation.
+
+Hmm, but without it I don't see how the following part would make sense
+
+**** Table 1, page 3
+: Why mention the [OIII] results? We've already decided to not use them.
+
+Yes, it was just out of curiosity, to see whether it was possible to get anything out of [O III], but the answer is still "no".  I will remove them. 
+
+**** Last para of sec 1.1, page 4 - discussion of k-twiddle factors
+: This being the case, how is it actually derived? I assume that it is
+: an average of the right hand equation of Equation 10. That equation is
+: formulated using specific intensity values I^c and I^I, rather than
+: rates. I think that this needs to be explained.
+
+I have been working on presenting that. See attached figure odh-k-color-histograms.pdf, which shows the histograms of the k-twiddles for the different filters, as calculated from O'Dell & Harris slits. 
+
+**** Anchored Note, page 4
+: You need to explain Figure 1 (Naive ratios versus true derived
+: ratios). This is, afterall, the bottom line of this section.
+
+Yes. 
+
+**** Anchored Note, page 4
+: I don't understand why you put in the line ratios from the other
+: studies into this figure. Their utility lies in the calibration of the
+: WFC filters. After that, they are superceded by this new work, with a
+: comparison of the results from the earlier studies presented in the
+: discussion section of this paper.
+
+This is for a sanity check.  Of course, given that I used these same observations in verifying the filter throughputs, it is to be expected that the ratios that I calculate from the WFC3 observations and those same filter throughputs SHOULD be consistent.  However, it is sorely testing my sanity at the moment since I am still finding problems.  In the last couple of days, I have found two bugs in the procedure, but am still hunting for a third.  
+
+The first "bug" was conceptual.  It turns out that my footnote 3 on page 3 was overly optimistic - we do need to use a more general form of the equations for [S II] because each line contaminates the other line's filter at the 5% level.  So I have now fixed that - it doesn't complicate the equations much. 
+
+The second bug was related to vacuum versus air wavelengths.  All the filter transmission curves are in vacuum wavelengths - I was aware of that, but had not applied the conversion in all the places I should have done.  Now fixed.  This actually makes a significant difference to the [S II] cross-contamination terms. 
+
+This of course also implies that +/- 100 km/s velocity shifts would also affect the calibration - but let's not get into that!
+
+I'm hoping for a third bug since there is still a disagreement with the [N II] ratio for the faint parts of the nebula.  See second attached file: nii-deredden-vs-sii-ratios.pdf.  I still have some ideas I need to follow through on to double-check everything - mainly to do with zero-points of the spectrophotometry. 
+
+ 
+**** Anchored Note, page 4
+: Many, many good correlations are going to be possible. I think that it
+: is going to be best to finish this paper, simply giving the results
+: and at most a casual discussion of the correlation of motion features
+: and temperature-density features. Given the timing, it is probably
+: likely that you can finish this paper within a few months. Likewise, I
+: can finish the motions paper on the same timescale. We could then
+: prepare a SUPER paper, tying things together.
+
+Sounds good. 
 
 ** Revisiting the Te, ne calculations and spatial variations
 + We want to migrate the relevant material from the ipynb files and check that it is using the correct calibration
@@ -2334,6 +2756,13 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 [[file:odh-F658N-absolute.pdf]]
 
 
+If we do it without the offset, then it looks much worse
+#+call: odh-absolute("F658N", offset=0.0) :results file
+
+#+RESULTS:
+[[file:odh-F658N-absolute.pdf]]
+
+
 #+call: odh-absolute("F656N", offset=0.7) :results file
 
 #+RESULTS:
@@ -2379,6 +2808,103 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 
 #+RESULTS:
 [[file:odh-F487N-absolute.pdf]]
+
+****** Absolute calibration but showing the E/W values
+:LOGBOOK:
+CLOCK: [2014-07-01 Tue 12:57]--[2014-07-01 Tue 13:39] =>  0:42
+:END:
+It would be interesting to see if there is any trend with the E/W values
+
+#+name: odh-absolute-ew
+#+header: :var fn="F547M" norm=0.93 offset=0.0 wavtab=filters-and-lines
+#+BEGIN_SRC python :noweb yes :results output
+  import numpy as np
+  import sys
+  from astropy.table import Table
+  import astropy.table
+  from matplotlib import pyplot as plt
+  from matplotlib.ticker import MaxNLocator
+  from sweetspot_utils import find_sweetspot_mask
+
+  <<aesthetics>>
+
+  spectab = Table.read('odh-filter-synphot-rates.tab', format='ascii.tab')
+  wfc3tab = Table.read('odh-filter-wfc3-rates.tab', format='ascii.tab',
+                       fill_values=('--', 0.0))
+
+  detailtab = Table.read('odh-spectra-data-{}.tab'.format(fn), format='ascii.tab')
+
+  fulltab = astropy.table.join(spectab, wfc3tab, keys=['Section'],
+                               table_names=['s', 'w'])
+  fulltab = astropy.table.join(fulltab, detailtab, keys=['Section'])
+
+  wav = dict(wavtab)[fn]
+  e_w = fulltab['E/W {}'.format(wav)]
+  print(e_w)
+  sys.exit()
+  if fn == "F547M":
+      e_w += fulltab['Sum(E/W)']
+
+  dec = -np.array([float(s[1:3]) for s in fulltab['Section']])
+  ra = -fulltab['x0']
+  d = np.hypot(ra, dec)
+
+  x = (fulltab[fn + '_s'] - offset)*norm
+  y = fulltab[fn + '_w']
+  m = np.isfinite(x) & np.isfinite(y)
+  m = m & find_sweetspot_mask(fn, ra, dec) 
+
+  gradient = y[m].sum()/x[m].sum()
+  order = np.random.permutation(len(x[m]))
+  fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
+  scat = ax.scatter(x[m][order], y[m][order], c=e_w[m][order], s=3000.0/np.abs(dec[m][order]), vmin=0.0, vmax=e_w[m].max(), alpha=0.8, cmap=cmap)
+  cb = fig.colorbar(scat, ax=ax)
+  cb.set_label('Radius, arcsec')
+  ax.plot([0.0, x[m].max()], [0.0, gradient*x[m].max()], '--',
+           label="gradient: {:.2f}".format(gradient))
+  ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
+           label="gradient: {:.2f}".format(1.0))
+  ax.set_xlabel("ODH spectra predicted count rate per pixel / s$^{-1}$")
+  ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
+  ax.set_title(fn)
+  plotmax = 1.1*max(x[m].max(), y[m].max())
+  ax.set_xlim(0.0, plotmax)
+  ax.set_ylim(0.0, plotmax)
+  ax.xaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.yaxis.set_major_locator(MaxNLocator(nbins=8, prune='lower'))
+  ax.legend(loc='upper left')
+  ax.set_aspect('equal', adjustable='box')
+  ax.grid(ls='-', c='w', alpha=0.3)
+  ax.set_axisbelow(True)
+  plt.tight_layout()
+  pltfile = 'odh-{}-absolute-ew.pdf'.format(fn)
+  plt.savefig(pltfile)
+
+#+END_SRC
+
+#+RESULTS: odh-absolute-ew
+: E/W 5755
+: --------
+
+
+#+call: odh-absolute-ew("F547M", offset=0.3) :results file
+
+#+RESULTS:
+[[file:]]
+
+
+
+#+call: odh-absolute("FQ575N") :results file
+
+#+RESULTS:
+[[file:odh-FQ575N-absolute.pdf]]
+
+
+
+#+call: odh-absolute("F658N", offset=0.5) :results file
+
+#+RESULTS:
+[[file:odh-F658N-absolute.pdf]]
 
 
 
