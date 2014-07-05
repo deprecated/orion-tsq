@@ -40,7 +40,7 @@ def Wj(wavs, T):
 
 def Ti(wav0, wavs, T):
     "Filter transmission at wavelength of line i (wav0)"
-    return np.interp(wav0, wavs, T)
+    return np.interp(wav0*AIR_REFRACTIVE_INDEX, wavs, T)
 
 
 def Wtwid(wav0, wavs, T, kji=1.0):
@@ -59,6 +59,8 @@ def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M"
     T_2_III = Ti(wav2, wavs, T_III)
     T_1_I = Ti(wav1, wavs, T_I)
     T_2_II = Ti(wav2, wavs, T_II)
+    T_1_II = Ti(wav1, wavs, T_II)
+    T_2_I = Ti(wav2, wavs, T_I)
 
     Tm_I = Tm(T_I)
     Tm_II = Tm(T_II)
@@ -73,6 +75,8 @@ def ratio_coefficients(wav1=5755, wav2=6584, I="FQ575N", II="F658N", III="F547M"
         "alpha_2": T_2_III/T_2_II,
         "beta_1": Tm_I*W_I/(Tm_III*W_III),
         "beta_2": Tm_II*W_II/(Tm_III*W_III),
+        "gamma_1": T_1_II/T_1_I,
+        "gamma_2": T_2_I/T_2_II,
     }
     
 
@@ -93,15 +97,19 @@ If `naive` is True, then ignore the continuum and line contamination terms
         ratio = R_I/R_II
     else:
         contam_coeffs = ratio_coefficients(**filterset)
-        alpha_I = contam_coeffs["alpha_1"]
-        alpha_II = contam_coeffs["alpha_2"]
+        alpha_1 = contam_coeffs["alpha_1"]
+        alpha_2 = contam_coeffs["alpha_2"]
         beta_I = contam_coeffs["beta_1"]
         beta_II = contam_coeffs["beta_2"]
+        gamma_1 = contam_coeffs["gamma_1"]
+        gamma_2 = contam_coeffs["gamma_2"]
         
-        ratio = (1.0 - alpha_II*beta_II*k_II)*R_I \
-                + alpha_II*beta_I*k_I*R_II - beta_I*k_I*R_III
-        ratio /= alpha_I*beta_II*k_II*R_I \
-                 + (1.0 - alpha_I*beta_I*k_I)*R_II - beta_II*k_II*R_III 
+        ratio = (1.0 - alpha_2*beta_II*k_II)*R_I \
+                + (alpha_2*beta_I*k_I - gamma_2)*R_II \
+                + (gamma_2*beta_II*k_II - beta_I*k_I)*R_III
+        ratio /= (alpha_1*beta_II*k_II - gamma_1)*R_I \
+                 + (1.0 - alpha_1*beta_I*k_I)*R_II \
+                 + (gamma_1*beta_I*k_I - beta_II*k_II)*R_III 
 
     ratio *= (wav2*T_2_II)/(wav1*T_1_I)
     return ratio
