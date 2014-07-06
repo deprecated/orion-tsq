@@ -241,24 +241,29 @@ bandpass.
 \begin{table}[t]
   \caption{Filter contamination coefficients, see eq.~(\ref{eq:solve-ratio})}
   \label{tab:coefficients}
+  \small
   \medskip
-  \begin{tabular}{llrrrr}\toprule
+  \begin{tabular}{llrrrrrr}\toprule
     Ratio: \(I_1/I_2\)& Filter Set: \F{I}, \F{II}, \F{III} & 
-    \(\Falpha{I}\) &
-    \(\Falpha{II}\) & 
+    \(\Falpha{1}\) &
+    \(\Falpha{2}\) & 
     \(\Fbeta{I} \) &
-    \(\Fbeta{II}\) \\
+    \(\Fbeta{II}\) &
+    \(\Fgamma{1} \) &
+    \(\Fgamma{2}\) \\
     \midrule
     \nii{} 5755/6583 & FQ575N, F658N, F547M & 
-    0.845 & \(\sim 0\) & 0.0243 & 0.0394 \\
+    0.845 & \(\sim 0\) & 0.0243 & 0.0394 & \(\sim 0\) & \(\sim 0\) \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F673N &
-    0.994 & 1.12 & 0.164 & 0.114 \\
+    0.994 & 1.12 & 0.164 & 0.114 & 0.02586 & 0.005629 \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F547M &
-    \(\sim 0\) & \(\sim 0\) & 0.0274 & 0.0191 \\ 
+    \(\sim 0\) & \(\sim 0\) & 0.0274 & 0.0191  & 0.02586 & 0.005629 \\ 
     \oiii{} 4363/5007 & FQ437N, F502N, FQ436N &
-    0.968 & \(\sim 0\) & 0.711 & 1.998 \\ 
+    0.968 & \(\sim 0\) & 0.711 & 1.998 & \(\sim 0\) & \(\sim 0\) \\ 
     \oiii{} 4363/5007 & FQ437N, F502N, F547M &
-    \(\sim 0\) & 0.00141 & 0.03426 & 0.09627 \\ 
+    \(\sim 0\) & 0.00141 & 0.03426 & 0.09627 & \(\sim 0\) & \(\sim 0\) \\ 
+    H\(\beta\)/H\(\alpha\) 4861/6563 & F487N, F656N, F547M &
+    \(\sim 0\) & \(\sim 0\) & 0.08711 & 0.02375 & \(\sim 0\) & \(\sim 0\) \\
     \bottomrule
   \end{tabular}
   \par\smallskip Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-5}\). 
