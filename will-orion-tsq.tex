@@ -339,7 +339,11 @@ due to changes in the physical conditions.
     filter, measured from spectrophotometry of the Orion Nebula
     \citep{ODell:2010a}.  The blue histograms show the ratio of the
     mean continuum intensity in each filter to that in F547M, as given
-    by equation~(\ref{eq:color}), while the yellow histograms }
+    by equation~(\ref{eq:color}), while the yellow histograms include
+    the additional effect of non-target emission lines and correspond
+    to the numerator of fraction on the RHS of
+    equation~(\ref{eq:color-twiddle}), except for F547M where they
+    correspond to the denominator of that fraction. }
   \label{fig:color-correction}
 \end{figure}
 
@@ -568,6 +572,156 @@ while the data for scales \(< 0.4''\) are dominated by noise.
 
 
 \bibliography{BibdeskLibrary-slavoj}
+
+
+
+\appendix
+
+\section{Calibration of the WFC3 filters}
+
+In a recent study \citep{ODell:2013b} of NGC~6720, the Ring Nebula,
+evidence was found for significant deviations of some WFC3 UVIS
+narrow-band filter calibration constants from the pre-launch
+determined values given in the WFC3 Instrument Handbook.  Several
+observationally important diagnostic line ratios are significantly
+impacted by the filter calibrations in question.  It is therefore of
+paramount importance to confirm the calibrations under a wider range
+of nebular excitation conditions.  The Orion Nebula, M42, provides an
+excellent complement to NGC~6720 in this respect, since it is of lower
+ionization and temperature, allowing the calibration to be extended to
+smaller values of the emission line equivalent widths, where continuum
+contamination of the narrow band filters is greater.  At the same
+time, extensive high-quality spectrophotometric data exists for this object,
+obtained by distinct teams, using multiple telescopes and instruments
+(for example, \citealp{Mesa-Delgado:2008b, ODell:2010a}).  This allows
+the true spectrum to be determined with a degree of precision and
+confidence that is impossible for other objects.
+
+
+  % \begin{figure}[p]
+  %   \centering
+  %   \includegraphics[width=\linewidth]{manu-F658N-red-maps}\\
+  %   \includegraphics[width=0.33\linewidth]{odh-F658N-absolute}%
+  %   \includegraphics[width=0.33\linewidth]{manu-F658N-red-absolute}%
+  %   \includegraphics[width=0.33\linewidth]{adal-F658N-absolute}\\
+  %   \includegraphics[width=0.33\linewidth]{ring-F658N-absolute}%
+  %   \includegraphics[width=0.33\linewidth]{ring-profile-pa60-F658N}%
+  %   \includegraphics[width=0.33\linewidth]{ring-profile-pa150-F658N}%
+  %   \caption{Example of the procedure for spectrophotometrically
+  %     calibrating a WFC3 filter.  }
+  %   \label{fig:orioncomparison-F658N}
+  % \end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{manu-F658N-red-maps}
+  \caption{Example of the procedure for calibrating a WFC3 filter
+    using longslit and IFU spectrophotometry of the Orion Nebula.  The
+    upper-left panel shows a map of the surface brightness in the
+    F658N filter derived from integral field unit observations
+    (circles; \citealp{Nunez-Diaz:2013a}) and longslit observations
+    (squares; \citealp{ODell:2010a} and triangles;
+    \citealp{Mesa-Delgado:2008a}).  In each case, the observed sectrum
+    was folded through the nominal filter transmission profile to
+    obtain a predicted WFC3 count rate.  The upper-center panel is the
+    same, but for the actual WFC3 observations in the F658N filter,
+    after smoothing the WFC3 images to the respective ground-based
+    resolutions and integrating over a synthetic aperture
+    corresponding to each spectrophotometic sample.}
+  \label{fig:orioncomparison-F658N}
+\end{figure}
+
+\begin{figure}[b]
+  \includegraphics[width=0.5\linewidth]{ring-profile-pa60-F658N}%
+  \includegraphics[width=0.5\linewidth]{ring-profile-pa150-F658N}%
+  \caption{Example of the procedure for spectrophotometrically
+    calibrating a WFC3 filter.  }
+  \label{fig:ringcomparison-F658N}
+\end{figure}
+
+
+
+\newcommand\multicomparison[1]{%
+  \raisebox{0.11\linewidth}{#1} & 
+  \includegraphics{odh-#1-absolute} &
+  \includegraphics{adal-#1-absolute} &
+  \includegraphics{ring-#1-absolute} \\
+}
+
+\newcommand\tabheader{%
+  & Orion: \citet{ODell:2010a}
+  & Orion: \citet{Mesa-Delgado:2008b} 
+  & Ring Nebula: \citet{ODell:2013b} \\
+}
+
+\begin{figure}
+  \centering
+  \setkeys{Gin}{width=0.3\linewidth}
+  \small
+  \begin{tabular}{llll}
+    \tabheader
+    \multicomparison{FQ674N}
+    \multicomparison{F673N}
+    \multicomparison{FQ672N}
+  \end{tabular}
+  \caption{Results of spectrophotometric calibration of the nebular
+    \sii{} filters of WFC3.  On the vertical axis is plotted the
+    observed filter count rate in a series of synthetic apertures that
+    coincide with spectrophotometric observations.  On the horizontal
+    axis is plotted the predicted count rate calculated by folding the
+    observed spectrum through the nominal filter transmission profile.
+    The solid line shows a slope of unity, which is what would be
+    expected if the nominal throughput were correct.  The dashed line
+    shows the best-fit slope. }
+  \label{fig:multi-calib-1}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \setkeys{Gin}{width=0.3\linewidth}
+  \small
+  \begin{tabular}{llll}
+    \tabheader
+    \multicomparison{F658N}
+    \multicomparison{F656N}
+    \multicomparison{FQ575N}
+  \end{tabular}
+  \caption{Same as Fig.~\ref{fig:multi-calib-1} but for the nebular \nii{},  \ha{}, and auroral  \nii{} filters.}
+  \label{fig:multi-calib-2}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \setkeys{Gin}{width=0.3\linewidth}
+  \small
+  \begin{tabular}{llll}
+    \tabheader
+    \multicomparison{F547M}
+    \multicomparison{F502N}
+    \multicomparison{F487N}
+  \end{tabular}
+  \caption{Same as Fig.~\ref{fig:multi-calib-1} but for the green medium-band continuum, nebular \oiii{}, and \hb{} filters. }
+  \label{fig:multi-calib-3}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+  \setkeys{Gin}{width=0.3\linewidth}
+  \small
+  \begin{tabular}{llll}
+    \tabheader
+    \multicomparison{F469N}
+    \multicomparison{FQ437N}
+    \multicomparison{FQ436N}
+  \end{tabular}
+  \caption{Same as Fig.~\ref{fig:multi-calib-1} but for the \heii{} and auroral \oiii{} filters.}
+  \label{fig:multi-calib-4}
+\end{figure}
+
+
+
+
 
 
 \end{document}

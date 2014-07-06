@@ -80,6 +80,7 @@ DEADLINE: <2014-06-18 Wed>
 *** DONE From filter ratios to line ratios
 CLOSED: [2014-06-29 Sun 22:21]
 :LOGBOOK:
+CLOCK: [2014-07-05 Sat 20:00]--[2014-07-06 Sun 00:56] =>  4:56
 CLOCK: [2014-06-30 Mon 13:34]--[2014-06-30 Mon 16:35] =>  3:01
 CLOCK: [2014-06-30 Mon 09:41]--[2014-06-30 Mon 11:28] =>  1:47
 :END:
@@ -109,25 +110,25 @@ table = [["band", "Tm", "Wj Tm", "Wj", "Wtwid"], None]
 fmts = ['{:s}', '{:.4f}', '{:.2f}', '{:.2f}', '{:.2f}']
 for band, wav0 in zip(bands, wav0s):
     wavs, T = get_filter(band, return_wavelength=True)
-    row = [band, Tm(T), Wj(wavs, T)*Tm(T), Wj(wavs, T), Wtwid(wav0, wavs, T)]
+    row = [band, Tm(T), Wj(wavs, T)*Tm(T), Wj(wavs, T), Wtwid(wav0, wavs, band, T)]
     table.append([fmt.format(item) for item, fmt in zip(row, fmts)])
 #+END_SRC
 
 #+RESULTS:
 | band   |     Tm |  Wj Tm |     Wj |  Wtwid |
 |--------+--------+--------+--------+--------|
-| F547M  | 0.2675 | 173.89 | 650.19 | 899.79 |
-| FQ575N | 0.2297 |   4.22 |  18.37 |  18.45 |
-| F658N  | 0.2485 |   6.85 |  27.57 |  27.83 |
-| F673N  | 0.2468 |  29.07 | 117.78 | 137.49 |
-| FQ672N | 0.2460 |   4.77 |  19.38 |  19.46 |
-| FQ674N | 0.1881 |   3.32 |  17.65 |  17.66 |
+| F547M  | 0.2675 | 173.89 | 650.19 | 902.15 |
+| FQ575N | 0.2297 |   4.22 |  18.37 |  18.40 |
+| F658N  | 0.2485 |   6.85 |  27.57 |  27.96 |
+| F673N  | 0.2468 |  29.07 | 117.78 | 136.23 |
+| FQ672N | 0.2460 |   4.77 |  19.38 |  19.72 |
+| FQ674N | 0.1881 |   3.32 |  17.65 |  18.00 |
 
 Now we have a nice equation for finding the ratios
 
 #+caption: Filter sets
 #+name: filter-sets
-| 5755 | 6584 | FQ575N | F658N  | F547M  |
+| 5755 | 6583 | FQ575N | F658N  | F547M  |
 | 6716 | 6731 | FQ672N | FQ674N | F673N  |
 | 6716 | 6731 | FQ672N | FQ674N | F547M  |
 | 4363 | 5007 | FQ437N | F502N  | FQ436N |
@@ -135,11 +136,15 @@ Now we have a nice equation for finding the ratios
 | 4861 | 6563 | F487N  | F656N  | F547M  |
 
 #+BEGIN_SRC python :return table :var intable=filter-sets
-  from wfc3_utils import ratio_coefficients
-  cols = ["alpha_1", "alpha_2", "beta_1", "beta_2", "gamma_1", "gamma_2"]
+  from wfc3_utils import ratio_coefficients, line_transmission_adjustments
+  import wfc3_utils
+  cols = ["T2/T1", "alpha_1", "alpha_2", "beta_1", "beta_2", "gamma_1", "gamma_2"]
 
   table = [["I", "II", "III"] + cols, None]
 
+  line_transmission_adjustments[(6583, "F658N")] = 0.9
+  line_transmission_adjustments[(5755, "FQ575N")] = 1.09
+  #wfc3_utils.topocentric_velocity += 30.0
   for wav1, wav2, FI, FII, FIII in intable:
       d = ratio_coefficients(wav1=wav1, wav2=wav2, I=FI, II=FII, III=FIII)
       table.append([FI, FII, FIII] + ["{:0.4g}".format(d[k]) for k in cols])
@@ -148,16 +153,16 @@ Now we have a nice equation for finding the ratios
 #+END_SRC
 
 #+RESULTS:
-| I      | II     | III    |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
-|--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
-| FQ575N | F658N  | F547M  |    0.8412 | 1.284e-07 | 0.02426 | 0.03939 | 2.492e-07 | 2.121e-08 |
-| FQ672N | FQ674N | F673N  |    0.9791 |     1.148 |   0.164 |  0.1142 |   0.02586 |  0.005629 |
-| FQ672N | FQ674N | F547M  | 1.035e-07 | 2.083e-07 | 0.02742 | 0.01909 |   0.02586 |  0.005629 |
-| FQ437N | F502N  | FQ436N |     0.972 | 1.258e-07 |  0.7111 |   1.998 | 1.459e-07 | 3.057e-08 |
-| FQ437N | F502N  | F547M  | 3.912e-06 |  0.001523 | 0.03426 | 0.09627 | 1.459e-07 | 3.057e-08 |
-| F487N  | F656N  | F547M  | 2.504e-06 | 1.092e-07 | 0.08711 | 0.02375 | 5.715e-07 | 6.359e-08 |
+| I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |  0.882 |    0.7712 | 1.426e-07 | 0.02426 | 0.03939 |  2.34e-07 | 2.313e-08 |
+| FQ672N | FQ674N | F673N  | 0.7632 |    0.9698 |     1.157 |   0.164 |  0.1142 |   0.06314 |  0.004533 |
+| FQ672N | FQ674N | F547M  | 0.7632 |  1.02e-07 | 2.083e-07 | 0.02742 | 0.01909 |   0.06314 |  0.004533 |
+| FQ437N | F502N  | FQ436N |  1.164 |    0.9754 |  1.26e-07 |  0.7111 |   1.998 | 1.449e-07 | 3.061e-08 |
+| FQ437N | F502N  | F547M  |  1.164 |  3.92e-06 |  0.001539 | 0.03426 | 0.09627 | 1.449e-07 | 3.061e-08 |
+| F487N  | F656N  | F547M  | 0.9116 | 2.538e-06 | 1.107e-07 | 0.08711 | 0.02375 |  5.69e-07 | 6.471e-08 |
 
-So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1 re-show
+So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
 
 The following serves to test the new =find_line_ratio= function and
 compares the version with and without accounting for the line and
@@ -173,7 +178,7 @@ Now also grabbing suitable k values from the odh files
 #+name: filter-set-fakes
 | Wav1 | Wav2 | I      | II     | III    |   R_I | R_II | R_III |  k_I | k_II | k_III |
 |------+------+--------+--------+--------+-------+------+-------+------+------+-------|
-| 5755 | 6584 | FQ575N | F658N  | F547M  | 0.295 |  7.8 |   4.6 | 0.97 | 1.04 |  1.03 |
+| 5755 | 6583 | FQ575N | F658N  | F547M  | 0.295 |  7.8 |   4.6 | 0.97 | 1.04 |  1.03 |
 | 6716 | 6731 | FQ672N | FQ674N | F673N  |   0.3 |  0.4 |   1.0 | 0.99 |  1.0 |   1.0 |
 | 6716 | 6731 | FQ672N | FQ674N | F547M  |   0.3 |  0.4 |   2.5 | 0.99 |  1.0 |  1.03 |
 | 4363 | 5007 | FQ437N | F502N  | FQ436N |  0.18 |  8.0 |   0.4 | 1.41 | 1.10 |  1.87 |
@@ -181,7 +186,13 @@ Now also grabbing suitable k values from the odh files
 | 4861 | 6563 | F487N  | F656N  | F547M  |   3.2 | 12.0 |   2.5 | 1.13 | 1.04 |  1.03 |
 
 #+BEGIN_SRC python :return table :var intable=filter-set-fakes
-  from wfc3_utils import find_line_ratio
+  from wfc3_utils import find_line_ratio, line_transmission_adjustments
+  import wfc3_utils
+
+  line_transmission_adjustments[(6583, "F658N")] = 0.9
+  line_transmission_adjustments[(5755, "FQ575N")] = 1.09
+  # wfc3_utils.topocentric_velocity += 30.0
+
   table = [["I", "II", "III", "I_1/I_2", "Naive I_1/I_2"], None]
   for wav1, wav2, FI, FII, FIII, RI, RII, RIII, kI, kII, kIII in intable[0:]:
       filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
@@ -196,19 +207,19 @@ Now also grabbing suitable k values from the odh files
 #+RESULTS:
 | I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
 |--------+--------+--------+---------+---------------|
-| FQ575N | F658N  | F547M  |   0.031 |         0.046 |
-| FQ672N | FQ674N | F673N  |   0.520 |         0.574 |
-| FQ672N | FQ674N | F547M  |   0.511 |         0.574 |
+| FQ575N | F658N  | F547M  |   0.026 |         0.038 |
+| FQ672N | FQ674N | F673N  |   0.531 |         0.574 |
+| FQ672N | FQ674N | F547M  |   0.525 |         0.574 |
 | FQ437N | F502N  | FQ436N |  -0.013 |         0.030 |
 | FQ437N | F502N  | F547M  |   0.013 |         0.030 |
-| F487N  | F656N  | F547M  |   0.304 |         0.327 |
+| F487N  | F656N  | F547M  |   0.305 |         0.328 |
 
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
   + Presumably this is due to neglecting the line contamination, which probably gives a large k value - adjusting the k value does at least stop it from going negative, but it still disagrees with the F547M version.  And doing the ktwiddle values more carefully actually gives a negative value again
 *** Histograms of the continuum color
 :LOGBOOK:
-CLOCK: [2014-07-05 Sat 15:35]
+CLOCK: [2014-07-05 Sat 15:35]--[2014-07-05 Sat 20:00] =>  4:25
 CLOCK: [2014-07-01 Tue 09:51]--[2014-07-01 Tue 09:51] =>  0:00
 CLOCK: [2014-06-30 Mon 16:35]--[2014-06-30 Mon 19:38] =>  3:03
 :END:
@@ -432,7 +443,7 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 #+header: :var intable=filter-set-fakes limits=ratio-limits
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
-  from wfc3_utils import find_line_ratio
+  from wfc3_utils import find_line_ratio, line_transmission_adjustments
   from astropy.io import fits
   from matplotlib import pyplot as plt
   import matplotlib
@@ -451,6 +462,9 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
       "F502N": "full_F502N_north_pad.fits",
       "FQ437N": "full_FQ437N_north_pad.fits"
   }
+
+  line_transmission_adjustments[(6583, "F658N")] = 0.9
+  line_transmission_adjustments[(5755, "FQ575N")] = 1.09
 
   minmax_dict = dict([(row[0], row[1:]) for row in limits])
 
@@ -764,6 +778,7 @@ The 2d histogram plot itself
 #+END_SRC
 
 Putting it all together with the 1-phase curves
+*Remember to [[id:6BB8A20A-ECD6-494E-B7B3-DF139BC5B8F8][deredden]] first!*
 #+name: plot-ratios-with-comparisons
 #+header: :python /Users/will/anaconda/envs/py27/bin/python
 #+header: :var gamma=1.5 :noweb yes
@@ -804,20 +819,20 @@ And now try with the 2-phase curves
   <<rnii-rsii-histogram>>
   <<pyneb-setup>>
   <<two-phase-func>>
-  T_lo, T_hi, f0 = 10000, 10000, 0.5
+  T_lo, T_hi, f0 = 9000, 9000, 0.5
   for den_hi in [1.e4, 4e4, 1.e5, 2e5, 4.e5]:
       denrange = np.logspace(2.0, np.log10(den_hi), 100)
       rsii, rnii = two_phase_rsii_rnii(den_hi, f0, denrange, T_lo, T_hi)
-      plt.plot(rsii, (10**(-0.6*0.095))*rnii, 
+      plt.plot(rsii, rnii, 
               label="den(hi) = {:.0e} pcc".format(den_hi))
   for den_lo in [1000.0, 2000.0, 4000.0, 8000.0, 16000.0]:
       denrange = np.linspace(den_lo, 1.e6, 100)
       rsii, rnii = two_phase_rsii_rnii(denrange, f0, den_lo, T_lo, T_hi)
-      plt.plot(rsii, (10**(-0.6*0.095))*rnii, 
+      plt.plot(rsii, rnii, 
               '--', label="den(lo) = {:.0e} pcc".format(den_lo))
   pltfile = "nii-sii-ratios-two-phase.pdf"
   plt.legend(ncol=2, fontsize='x-small',
-             title="f(hi) = f(lo) = 0.5; T(lo) = T(hi) = 1e4 K",
+             title="f(hi) = f(lo) = 0.5; T(lo) = T(hi) = 9000 K",
              handlelength=2.2, numpoints=1)
   plt.xlabel("[S II] 6716 / 6731")
   plt.ylabel("Dereddened [N II] 5755 / 6584")
@@ -876,6 +891,9 @@ s469.writeto("excess_469_047.fits")
 CLOSED: [2014-06-17 Tue 12:02]
 :LOGBOOK:
 CLOCK: [2014-07-01 Tue 01:19]--[2014-07-01 Tue 01:20] =>  0:01
+:END:
+:PROPERTIES:
+:ID:       6BB8A20A-ECD6-494E-B7B3-DF139BC5B8F8
 :END:
 + F(\lambda) values are 
 | H\beta 4861     |    0.0 |
