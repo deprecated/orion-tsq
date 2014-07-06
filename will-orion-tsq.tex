@@ -156,6 +156,14 @@ subtended\footnote{Although geometric distorsions by the telescope
 }
 \newcommand\Falpha[1]{\ensuremath{\alpha_{\F{#1}}}}
 \newcommand\Fbeta[1]{\ensuremath{\beta_{\F{#1}}}}
+\newcommand\Fgamma[1]{\ensuremath{\gamma_{\F{#1}}}}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics{filter-schematic}
+  \caption{Schematic illustration of how the intensity ratio between two target lines is derived using observations in three filters. }
+  \label{fig:bandpass}
+\end{figure}
 
 We now consider the particular application of deriving a diagnostic
 ratio between two emission lines: \(I_1/I_2\).  It is assumed that
@@ -168,17 +176,18 @@ continuum, while at the same time avoiding strong emission lines.
 However, in practice it is usually impossible to completely avoid
 emission line contamination of filter~\F{III}, either by one or both
 of the target lines (1 and 2), or by other lines that we denote
-\(i'\).  For given line and continuum intensities, \(I_1\), \(I_2\),
-\Icont, the predicted filter rates are:
+\(i'\).  A schematic illustration of this situation is given in
+Figure~\ref{fig:bandpass}.  For given line and continuum intensities,
+\(I_1\), \(I_2\), \Icont, the predicted filter rates are:
 \begin{align}
   R_{\F{I}} & = \Constant \left[  
     \MeanC{\F{I}}\, \Tmax{\F{I}} W_{\F{I}} 
-    + \lambda_1 I_1 \T{1}{\F{I}}
+    + \lambda_1 I_1 \T{1}{\F{I}} + \lambda_2 I_2 \T{2}{\F{I}} 
     + \sum_{i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{I}}
   \right] \label{eq:RI}\\
   R_{\F{II}} & = \Constant \left[  
     \MeanC{\F{II}}\, \Tmax{\F{II}} W_{\F{II}} 
-    + \lambda_2 I_2 \T{2}{\F{II}}
+    + \lambda_1 I_1 \T{1}{\F{II}} + \lambda_2 I_2 \T{2}{\F{II}}
     + \sum_{i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{II}}
   \right] \label{eq:RII}\\
   R_{\F{III}} & = \Constant \left[ 
@@ -188,13 +197,13 @@ of the target lines (1 and 2), or by other lines that we denote
     + \sum_{i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{III}}
    \right] \label{eq:RIII}
 \end{align}
-Note that these equations do not describe the most general case, since
-they assume that there is negligible contamination of the narrow-band
-filters by the ``other'' target line, such that \(\T{1}{\F{II}} =
-\T{2}{\F{I}} = 0\).\footnote{This is a good approximation for the line
-  ratios studied in this paper, but in other cases cannot always be
-  assumed.  The general case, which is rather more cumbersome, is
-  treated in \citet{Henney:Calibration}.}  
+% Note that these equations do not describe the most general case, since
+% they assume that there is negligible contamination of the narrow-band
+% filters by the ``other'' target line, such that \(\T{1}{\F{II}} =
+% \T{2}{\F{I}} = 0\).\footnote{This is a good approximation for the line
+%   ratios studied in this paper, but in other cases cannot always be
+%   assumed.  The general case, which is rather more cumbersome, is
+%   treated in \citet{Henney:Calibration}.}  
 The mean continuum intensity in the narrow filters can be related to
 that in the wider filter by defining color terms: 
 \begin{equation}
@@ -209,8 +218,8 @@ contribution of contaminating non-target emission lines:
   \COLOR{j}{\F{III}} \equiv 
   \frac{\MeanC{j} + (\Tmax{j} W_j)^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{j}}
   {\MeanC{\F{III}} + (\Tmax{\F{III}} W_{\F{III}})^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{III}}}
-= \Color{j}{\F{III}} 
-\frac{1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{j}{i'}}
+= 
+\frac{\left(1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{j}{i'}\right) \, \Color{j}{\F{III}} }
 {1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{\F{III}}{i'}}
 \end{equation}
 where the \(E_{i'}\) are the equivalent width (in \AA) of each
@@ -222,6 +231,13 @@ each filter with respect to a given emission line:
   \quad \text{with} \quad
   \Color{j}{i} \equiv \frac{\MeanC{j}}{\lambda_i I_\lambda^i} . 
 \end{equation}
+Note that the effective width has the property that \(\Weff{j}{i}
+\simeq W_j \) for lines \(i\) that lie comfortably within the bandpass
+of filter \(j\), whereas \(\Weff{j}{i} > W_j \) for lines that lie
+on the edge of the bandpass, where the filter transmission is reduced,
+and \(\Weff{j}{i} \to \infty \) for lines far-removed from the filter
+bandpass. 
+
 \begin{table}[t]
   \caption{Filter contamination coefficients, see eq.~(\ref{eq:solve-ratio})}
   \label{tab:coefficients}
@@ -248,20 +264,21 @@ each filter with respect to a given emission line:
   \par\smallskip Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-5}\). 
 \end{table}
 
-With these definitions, equations~(\ref{eq:RI}) to~(\ref{eq:RIII}) can
-be solved to give the line ratio in terms of the filter count rates:
+With these definitions, equations~(\ref{eq:RI}) to~(\ref{eq:RIII}) can be recognised as being equivalent to a single matrix equation that gives the vector of count rates, \(\left[   R_{\F{I}}\,;\, R_{\F{II}}\,;\, R_{\F{III}}\right] \), in terms of the vector of intensities, \(\left[ \lambda_1 I_1\,;\, \lambda_2 I_2\,;\, \MeanC{\F{III}}\right]\).  Therefore, in order to solve for the intensities in terms of the count rates it is sufficient to invert the matrix.  The result for the line ratio is then:
 \begin{equation}
   \label{eq:solve-ratio}
   \frac{I_1}{I_2} = \frac{\lambda_2 \T{2}{\F{II}}}{\lambda_1 \T{1}{\F{I}}}
-  \frac{\left[(1 - \Falpha{II} \Fbeta{II} \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + \Falpha{II} \Fbeta{I} \COLOR{\F{I}}{\F{III}}  R_{\F{II}} - \Fbeta{I} \COLOR{\F{I}}{\F{III}} R_{\F{III}}\right]}
-  {\left[\Falpha{I} \Fbeta{II} \COLOR{\F{II}}{\F{III}} R_{\F{I}} + (1 - \Falpha{I} \Fbeta{I} \COLOR{\F{I}}{\F{III}}) R_{\F{II}} - \Fbeta{II} \COLOR{\F{II}}{\F{III}} R_{\F{III}}\right]}
+  \frac{\left[(1 - \Falpha{2} \Fbeta{II} \COLOR{\F{II}}{\F{III}} ) R_{\F{I}} + (\Falpha{2} \Fbeta{I} \COLOR{\F{I}}{\F{III}} - \Fgamma{2})  R_{\F{II}} + (\Fgamma{2} \Fbeta{II}  \COLOR{\F{II}}{\F{III}}  - \Fbeta{I} \COLOR{\F{I}}{\F{III}}) R_{\F{III}}\right]}
+  {\left[(\Falpha{1} \Fbeta{II} \COLOR{\F{II}}{\F{III}} - \Fgamma{1}) R_{\F{I}} + (1 - \Falpha{1} \Fbeta{I} \COLOR{\F{I}}{\F{III}}) R_{\F{II}} + (\Fgamma{1} \Fbeta{I} \COLOR{\F{I}}{\F{III}} - \Fbeta{II} \COLOR{\F{II}}{\F{III}}) R_{\F{III}}\right]}
 \end{equation}
 with filter contamination coefficients
 \begin{displaymath}
-  \Falpha{I} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
-  \Falpha{II} = \frac{\T{2}{\F{III}}}{\T{2}{\F{II}}} ; \quad
+  \Falpha{1} = \frac{\T{1}{\F{III}}}{\T{1}{\F{I}}} ; \quad 
+  \Falpha{2} = \frac{\T{2}{\F{III}}}{\T{2}{\F{II}}} ; \quad
   \Fbeta{I}  = \frac{\Tmax{\F{I}} W_{\F{I}}}{\Tmax{\F{III}} W_{\F{III}}} ; \quad
-  \Fbeta{II}  = \frac{\Tmax{\F{II}} W_{\F{II}}}{\Tmax{\F{III}} W_{\F{III}}}
+  \Fbeta{II}  = \frac{\Tmax{\F{II}} W_{\F{II}}}{\Tmax{\F{III}} W_{\F{III}}} ; \quad
+  \Fgamma{1}  = \frac{\T{1}{\F{II}}}{\T{1}{\F{I}}} ; \quad 
+  \Fgamma{2}  = \frac{\T{2}{\F{I}}}{\T{2}{\F{II}}} .
 \end{displaymath}
 The \(\alpha\) contamination coefficents give the throughput of each
 target emission line in the continuum filter \F{III} relative to the
@@ -269,7 +286,13 @@ throughput in its respective narrow-band filter, and will tend to be
 either \(\sim 1\) for lines that fall in the continuum bandpass, or
 \(\sim 0\) for those that do not.  The \(\beta\) contamination
 coefficients give the integrated continuum throughput in each narrow
-band filter relative to the continuum filter.  Since repeated
+band filter relative to the continuum filter.  The \(\gamma\)
+contamination coefficients give the throughput of each target emission
+line in the ``other'' narrow band filter relative to the throughput in
+its own narrow-band filter, and will only be important in cases where
+the two narrow band filters overlap.
+
+Since repeated
 calibration programs have shown that the WFC3 filter characteristics
 are stable with time, all these purely instrumental coefficients are
 constants, albeit with a small systematic uncertainty in their true value.
@@ -309,7 +332,9 @@ due to changes in the physical conditions.
   \caption{Observationally determined histograms of the color
     correction terms, \(k\), for each filter with respect to the F547M
     filter, measured from spectrophotometry of the Orion Nebula
-    \citep{ODell:2010a}.  }
+    \citep{ODell:2010a}.  The blue histograms show the ratio of the
+    mean continuum intensity in each filter to that in F547M, as given
+    by equation~(\ref{eq:color}), while the yellow histograms }
   \label{fig:color-correction}
 \end{figure}
 
