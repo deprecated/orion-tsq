@@ -14,8 +14,20 @@ LIGHTSPEED = 2.99792458e5       # c in km/s
 
 # Adjustments to nominal values of the line transmission in a given band
 line_transmission_adjustments = {
-    (5755, "FQ575N"): 1.0,      # example syntax
-    # Additional items may be added by the caller
+    # Defaults are weighted averages of ODH, Mesa-Delgado, & Ring
+    (6731, "FQ674N"): 0.955,
+    (6731, "F673N"): 0.974,
+    (6716, "F673N"): 0.974,
+    (6716, "FQ672N"): 0.930,
+    (6583, "F658N"): 0.930,
+    (6563, "F656N"): 1.013,
+    (5755, "FQ575N"): 1.048,
+    (5007, "F502N"): 0.953,
+    (4861, "F487N"): 0.985,
+    (4686, "F469N"): 1.350,
+    (4363, "FQ437N"): 1.022,
+    (4363, "FQ436N"): 0.940,
+    (4340, "FQ436N"): 0.940,
 }
 
 # Accurate rest wavelengths

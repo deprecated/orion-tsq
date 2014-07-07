@@ -49,7 +49,24 @@ There are at least three sorts of shadows:
 
 We have a lot of material that needs to be drawn together
 ** Plan for the final paper
-*** TODO Short term priorities
+*** Things to do next on the paper [2014-07-06 Sun]
+:LOGBOOK:
+CLOCK: [2014-07-02 Wed 23:54]--[2014-07-06 Sun 09:48] => 81:54
+:END:
++ [ ] Finish writing about the calibration in the appendix
+  + Decide on weighting for the different datasets
+    + See [[id:ACC3803A-C158-4D7C-9AD3-816471F657D6][New table of gradients]]
+  + Arrive at an average value for T_i^j of each filter for its principle line
+  + Also a subjective measure of the uncertainty in each value
+  + Note that for the ring nebula our new values are consistent with the old ones that we found from the EW graphs.  That is for all except the FQ437N and FQ436N, which are a bit different.
++ [ ] work out the sensitivity to varying various things
+  + the color correction - randomish, but may be correlated (with EW?)
+  + the adjustments to the filter throughputs (systematic)
+  + was there something else?
+    + yes, the velocity shifts
+    + can we find these out for the date of our observations?
+    + what is the systemic velocity of the Ring Nebula?
+*** TODO OLD Short term priorities
 DEADLINE: <2014-06-18 Wed>
 + [X] Do de-reddening
   + Pixel-by-pixel, or with a constant value?
@@ -1441,8 +1458,11 @@ Sounds good.
 + For F658N/F547M, the original calibration seems to be right
 + For FQ575N/F547M, the best fit seems to be r0 = 1.1, q1 = 1.1
   + But what is actually changing there?
-*** DONE [7/7] Absolute calibration of the filters
-CLOSED: [2014-04-28 Mon 09:34]
+*** TODO [7/8] Absolute calibration of the filters
+:LOGBOOK:
+- Note taken on [2014-07-06 Sun 09:45] \\
+  Reopened to resolve final issues, e.g, [[id:ACC3803A-C158-4D7C-9AD3-816471F657D6][New table of gradients]]
+:END:
 + A simpler approach would be to simply integrate the spectra over the nominal filter bandwidth and compare this with the WFC3 images
 + This would have the disadvantage that it is depends on a combination of the filter width and peak transmission, but on the other hand the r0 and q1 etc also have this problem
 + Also, we have the problem that some filters wavebands have coverage gaps in the Adal and Manu datasets - only F547M really
@@ -1576,6 +1596,31 @@ CLOSED: [2014-04-25 Fri 22:50]
 + [X] Extend wavelength ranges for F547M calculation
   + Particularly for Adal
   + Strangely, it seems OK already for Manu
+**** TODO New table of gradients
+:LOGBOOK:
+CLOCK: [2014-07-06 Sun 21:54]
+CLOCK: [2014-07-06 Sun 09:48]--[2014-07-06 Sun 10:34] =>  0:46
+:END:
+:PROPERTIES:
+:ID:       ACC3803A-C158-4D7C-9AD3-816471F657D6
+:END:
++ [ ] Take these from the graphs and then decide on weightings
+|        |  ODH | Adal | Ring | W_O | W_A | W_R |  Mean |   sig |
+|--------+------+------+------+-----+-----+-----+-------+-------|
+| FQ674N | 0.93 | 0.95 | 0.97 |   1 |   1 |   2 | 0.955 | 0.017 |
+| F673N  | 0.96 | 0.88 | 1.01 |   1 |   1 |   3 | 0.974 | 0.051 |
+| FQ672N | 0.83 | 0.91 | 0.97 |   1 |   1 |   3 | 0.930 | 0.055 |
+| F658N  | 0.90 | 0.90 | 0.99 |   1 |   1 |   1 | 0.930 | 0.042 |
+| F656N  | 1.01 | 1.01 | 1.02 |   1 |   1 |   1 | 1.013 | 0.005 |
+| FQ575N | 0.97 |  1.0 | 1.09 |   1 |   1 |   3 | 1.048 | 0.052 |
+| F547M  |  1.0 |  1.0 | 1.00 |   1 |   1 |   1 | 1.000 | 0.000 |
+| F502N  | 0.94 | 0.99 | 0.94 |   1 |   1 |   2 | 0.953 | 0.022 |
+| F487N  | 0.99 | 0.93 | 1.01 |   1 |   1 |   2 | 0.985 | 0.033 |
+| F469N  | 1.00 | 0.96 | 1.35 |   0 |   0 |   1 | 1.350 | 0.000 |
+| FQ437N | 0.81 | 0.91 | 1.13 |   1 |   1 |   3 | 1.022 | 0.136 |
+| FQ436N | 0.84 | 0.95 | 0.97 |   1 |   1 |   3 | 0.940 | 0.051 |
+#+TBLFM: $8=($2 $5 + $3 $6 + $4 $7)/vsum($5..$7); f3::$9=sqrt(($5 ($2 - $8)**2  + $6 ($3 - $8)**2 + $7 ($4 - $8)**2)/vsum($5..$7)); f3
+
 **** Table of gradients
 These should all be 1, but they ain't ...
 |        |  ODH | Manu | Adal | Ring | ODH' | Manu' | Adal' | Ring' | Average'      |   | Ring |
