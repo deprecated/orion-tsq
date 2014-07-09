@@ -97,6 +97,7 @@ DEADLINE: <2014-06-18 Wed>
 *** DONE From filter ratios to line ratios
 CLOSED: [2014-06-29 Sun 22:21]
 :LOGBOOK:
+CLOCK: [2014-07-06 Sun 22:13]--[2014-07-06 Sun 23:07] =>  0:54
 CLOCK: [2014-07-05 Sat 20:00]--[2014-07-06 Sun 00:56] =>  4:56
 CLOCK: [2014-06-30 Mon 13:34]--[2014-06-30 Mon 16:35] =>  3:01
 CLOCK: [2014-06-30 Mon 09:41]--[2014-06-30 Mon 11:28] =>  1:47
@@ -159,8 +160,6 @@ Now we have a nice equation for finding the ratios
 
   table = [["I", "II", "III"] + cols, None]
 
-  line_transmission_adjustments[(6583, "F658N")] = 0.9
-  line_transmission_adjustments[(5755, "FQ575N")] = 1.09
   #wfc3_utils.topocentric_velocity += 30.0
   for wav1, wav2, FI, FII, FIII in intable:
       d = ratio_coefficients(wav1=wav1, wav2=wav2, I=FI, II=FII, III=FIII)
@@ -172,12 +171,12 @@ Now we have a nice equation for finding the ratios
 #+RESULTS:
 | I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
 |--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
-| FQ575N | F658N  | F547M  |  0.882 |    0.7712 | 1.426e-07 | 0.02426 | 0.03939 |  2.34e-07 | 2.313e-08 |
-| FQ672N | FQ674N | F673N  | 0.7632 |    0.9698 |     1.157 |   0.164 |  0.1142 |   0.06314 |  0.004533 |
-| FQ672N | FQ674N | F547M  | 0.7632 |  1.02e-07 | 2.083e-07 | 0.02742 | 0.01909 |   0.06314 |  0.004533 |
-| FQ437N | F502N  | FQ436N |  1.164 |    0.9754 |  1.26e-07 |  0.7111 |   1.998 | 1.449e-07 | 3.061e-08 |
-| FQ437N | F502N  | F547M  |  1.164 |  3.92e-06 |  0.001539 | 0.03426 | 0.09627 | 1.449e-07 | 3.061e-08 |
-| F487N  | F656N  | F547M  | 0.9116 | 2.538e-06 | 1.107e-07 | 0.08711 | 0.02375 |  5.69e-07 | 6.471e-08 |
+| FQ575N | F658N  | F547M  |  0.948 |    0.8022 |  1.38e-07 | 0.02426 | 0.03939 | 2.434e-07 | 2.238e-08 |
+| FQ672N | FQ674N | F673N  | 0.7837 |     1.016 |      1.18 |   0.164 |  0.1142 |    0.0679 |  0.004747 |
+| FQ672N | FQ674N | F547M  | 0.7837 | 1.096e-07 | 2.181e-07 | 0.02742 | 0.01909 |    0.0679 |  0.004747 |
+| FQ437N | F502N  | FQ436N |  1.085 |    0.8971 | 1.322e-07 |  0.7111 |   1.998 | 1.418e-07 | 3.212e-08 |
+| FQ437N | F502N  | F547M  |  1.085 | 3.835e-06 |  0.001615 | 0.03426 | 0.09627 | 1.418e-07 | 3.212e-08 |
+| F487N  | F656N  | F547M  | 0.9376 | 2.577e-06 | 1.093e-07 | 0.08711 | 0.02375 | 5.776e-07 | 6.388e-08 |
 
 So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
 
@@ -206,8 +205,6 @@ Now also grabbing suitable k values from the odh files
   from wfc3_utils import find_line_ratio, line_transmission_adjustments
   import wfc3_utils
 
-  line_transmission_adjustments[(6583, "F658N")] = 0.9
-  line_transmission_adjustments[(5755, "FQ575N")] = 1.09
   # wfc3_utils.topocentric_velocity += 30.0
 
   table = [["I", "II", "III", "I_1/I_2", "Naive I_1/I_2"], None]
@@ -224,12 +221,12 @@ Now also grabbing suitable k values from the odh files
 #+RESULTS:
 | I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
 |--------+--------+--------+---------+---------------|
-| FQ575N | F658N  | F547M  |   0.026 |         0.038 |
-| FQ672N | FQ674N | F673N  |   0.531 |         0.574 |
-| FQ672N | FQ674N | F547M  |   0.525 |         0.574 |
-| FQ437N | F502N  | FQ436N |  -0.013 |         0.030 |
-| FQ437N | F502N  | F547M  |   0.013 |         0.030 |
-| F487N  | F656N  | F547M  |   0.305 |         0.328 |
+| FQ575N | F658N  | F547M  |   0.028 |         0.041 |
+| FQ672N | FQ674N | F673N  |   0.552 |         0.589 |
+| FQ672N | FQ674N | F547M  |   0.541 |         0.589 |
+| FQ437N | F502N  | FQ436N |  -0.011 |         0.028 |
+| FQ437N | F502N  | F547M  |   0.012 |         0.028 |
+| F487N  | F656N  | F547M  |   0.314 |         0.338 |
 
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
@@ -479,9 +476,6 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
       "F502N": "full_F502N_north_pad.fits",
       "FQ437N": "full_FQ437N_north_pad.fits"
   }
-
-  line_transmission_adjustments[(6583, "F658N")] = 0.9
-  line_transmission_adjustments[(5755, "FQ575N")] = 1.09
 
   minmax_dict = dict([(row[0], row[1:]) for row in limits])
 
@@ -1598,13 +1592,15 @@ CLOSED: [2014-04-25 Fri 22:50]
   + Strangely, it seems OK already for Manu
 **** TODO New table of gradients
 :LOGBOOK:
-CLOCK: [2014-07-06 Sun 21:54]
+CLOCK: [2014-07-06 Sun 21:54]--[2014-07-06 Sun 22:13] =>  0:19
 CLOCK: [2014-07-06 Sun 09:48]--[2014-07-06 Sun 10:34] =>  0:46
 :END:
 :PROPERTIES:
 :ID:       ACC3803A-C158-4D7C-9AD3-816471F657D6
 :END:
 + [ ] Take these from the graphs and then decide on weightings
+
+This is the original version I had
 |        |  ODH | Adal | Ring | W_O | W_A | W_R |  Mean |   sig |
 |--------+------+------+------+-----+-----+-----+-------+-------|
 | FQ674N | 0.93 | 0.95 | 0.97 |   1 |   1 |   2 | 0.955 | 0.017 |
@@ -1620,6 +1616,24 @@ CLOCK: [2014-07-06 Sun 09:48]--[2014-07-06 Sun 10:34] =>  0:46
 | FQ437N | 0.81 | 0.91 | 1.13 |   1 |   1 |   3 | 1.022 | 0.136 |
 | FQ436N | 0.84 | 0.95 | 0.97 |   1 |   1 |   3 | 0.940 | 0.051 |
 #+TBLFM: $8=($2 $5 + $3 $6 + $4 $7)/vsum($5..$7); f3::$9=sqrt(($5 ($2 - $8)**2  + $6 ($3 - $8)**2 + $7 ($4 - $8)**2)/vsum($5..$7)); f3
+
+And this is the new one that lets the offset value float
+|        |  ODH | Adal | Ring | W_O | W_A | W_R |  Mean |   sig |
+|--------+------+------+------+-----+-----+-----+-------+-------|
+| FQ674N | 0.92 | 0.99 | 0.86 |   1 |   1 |   2 | 0.908 | 0.054 |
+| F673N  | 0.93 | 1.01 | 0.99 |   1 |   1 |   3 | 0.982 | 0.027 |
+| FQ672N | 0.76 | 0.92 | 0.94 |   1 |   1 |   3 | 0.900 | 0.070 |
+| F658N  | 0.78 | 1.04 | 0.99 |   1 |   1 |   1 | 0.937 | 0.113 |
+| F656N  | 0.95 | 1.09 | 1.01 |   1 |   1 |   1 | 1.017 | 0.057 |
+| FQ575N | 0.95 | 1.07 | 1.09 |   1 |   1 |   3 | 1.058 | 0.055 |
+| F547M  |  1.0 |  1.0 | 1.00 |   1 |   1 |   1 | 1.000 | 0.000 |
+| F502N  | 0.92 | 1.08 | 0.94 |   1 |   1 |   2 | 0.970 | 0.064 |
+| F487N  | 0.92 | 1.07 | 0.97 |   1 |   1 |   2 | 0.983 | 0.054 |
+| F469N  | 0.85 | 1.13 | 1.35 |   0 |   0 |   1 | 1.350 | 0.000 |
+| FQ437N | 0.79 | 1.01 | 1.07 |   1 |   1 |   3 | 1.002 | 0.109 |
+| FQ436N | 0.84 | 0.99 | 0.96 |   1 |   1 |   3 | 0.942 | 0.052 |
+#+TBLFM: $8=($2 $5 + $3 $6 + $4 $7)/vsum($5..$7); f3::$9=sqrt(($5 ($2 - $8)**2  + $6 ($3 - $8)**2 + $7 ($4 - $8)**2)/vsum($5..$7)); f3
+
 
 **** Table of gradients
 These should all be 1, but they ain't ...
@@ -2145,6 +2159,8 @@ The [S II] lines show a strong peak in the S60 spectrum
   # Eliminate some spurious points
   m = m & (y < 4*x) & (x < maxcount)
   gradient = y[m].sum()/x[m].sum()
+  z = np.polyfit(x[m], y[m], 1)
+  p = np.poly1d(z)
   order = np.random.permutation(len(x[m]))
   fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
   scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=100.0/(islit[m][order]-4), vmin=0.0, vmax=150.0, alpha=0.8, cmap=cmap)
@@ -2154,6 +2170,8 @@ The [S II] lines show a strong peak in the S60 spectrum
            label="gradient: {:.2f}".format(gradient))
   ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
            label="gradient: {:.2f}".format(1.0))
+  ax.plot([0.0, x[m].max()], p([0.0, x[m].max()]), '-',
+           label="{:.2f} x + {:.4f}".format(*z))
   ax.set_xlabel("Adal spectra predicted count rate per pixel / s$^{-1}$")
   ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
   ax.set_title(fn)
@@ -2176,56 +2194,60 @@ The [S II] lines show a strong peak in the S60 spectrum
 [[file:adal-F656N-absolute.pdf]]
 
 
-#+call: adal-absolute("F502N", "blue") :results file 
+#+call: adal-absolute("F502N", "blue", norm=0.81) :results file 
 #+results:
 [[file:adal-F502N-absolute.pdf]]
 
-#+call: adal-absolute("FQ575N", "red") :results file 
+#+call: adal-absolute("FQ575N", "red", norm=0.81, offset=-0.0055) :results file 
 
 #+RESULTS:
 [[file:adal-FQ575N-absolute.pdf]]
 
-#+call: adal-absolute("F658N", "red") :results file 
+#+call: adal-absolute("F658N", "red", norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-F658N-absolute.pdf]]
 
-#+call: adal-absolute("F673N", "red", maxcount=2.5) :results file 
+#+call: adal-absolute("F656N", "red", norm=0.81) :results file 
+
+#+RESULTS:
+[[file:adal-F656N-absolute.pdf]]
+#+call: adal-absolute("F673N", "red", maxcount=2.5, norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-F673N-absolute.pdf]]
 
-#+call: adal-absolute("F469N", "blue", maxcount=0.25) :results file 
+#+call: adal-absolute("F469N", "blue", maxcount=0.25, norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-F469N-absolute.pdf]]
 
-#+call: adal-absolute("F487N", "blue") :results file 
+#+call: adal-absolute("F487N", "blue", norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-F487N-absolute.pdf]]
 
-#+call: adal-absolute("F547M", "red", maxcount=6) :results file 
+#+call: adal-absolute("F547M", "red", maxcount=6, norm=0.81, offset=-0.325) :results file 
 
 #+RESULTS:
 [[file:adal-F547M-absolute.pdf]]
 
-#+call: adal-absolute("FQ437N", "blue") :results file 
+#+call: adal-absolute("FQ437N", "blue", norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-FQ437N-absolute.pdf]]
 
-#+call: adal-absolute("FQ436N", "blue") :results file 
+#+call: adal-absolute("FQ436N", "blue", norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-FQ436N-absolute.pdf]]
 
-#+call: adal-absolute("FQ672N", "red") :results file 
+#+call: adal-absolute("FQ672N", "red", norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-FQ672N-absolute.pdf]]
 
-#+call: adal-absolute("FQ674N", "red") :results file 
+#+call: adal-absolute("FQ674N", "red", norm=0.81) :results file 
 
 #+RESULTS:
 [[file:adal-FQ674N-absolute.pdf]]
@@ -2393,6 +2415,9 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
       m = m & ~excluded
       
   gradient = y[m].sum()/x[m].sum()
+  z = np.polyfit(x[m], y[m], 1)
+  p = np.poly1d(z)
+  
   order = np.random.permutation(len(x[m]))
   fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
   scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=fulltab['PA'][m][order], vmin=0.0, alpha=0.8, cmap=cmap)
@@ -2402,6 +2427,8 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
            label="gradient: {:.2f}".format(gradient))
   ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
            label="gradient: {:.2f}".format(1.0))
+  ax.plot([0.0, x[m].max()], p([0.0, x[m].max()]), '-',
+           label="{:.2f} x + {:.4f}".format(*z))
   ax.set_xlabel("Ring spectra predicted count rate per pixel / s$^{-1}$")
   ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
   ax.set_title(fn)
@@ -2476,7 +2503,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -20.0 |   3.0 |
 | 150 | -20.0 | -10.0 |
 
-#+call: ring-absolute("F658N", exclude=f658n-exclude) :results file
+#+call: ring-absolute("F658N", exclude=f658n-exclude, norm=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F658N-absolute.pdf]]
@@ -2495,7 +2522,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -20.0 |   3.0 |
 | 150 | -20.0 | -10.0 |
 
-#+call: ring-absolute("F656N") :results file
+#+call: ring-absolute("F656N", norm=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F656N-absolute.pdf]]
@@ -2514,7 +2541,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -45.0 | -20.0 |
 | 150 |   0.0 |   0.0 |
 
-#+call: ring-absolute("F673N", exclude=f673n-exclude) :results file
+#+call: ring-absolute("F673N", exclude=f673n-exclude, norm=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F673N-absolute.pdf]]
@@ -2533,7 +2560,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -60.0 |   3.0 |
 | 150 | -50.0 | -10.0 |
 
-#+call: ring-absolute("FQ672N", exclude=fq672n-exclude) :results file
+#+call: ring-absolute("FQ672N", exclude=fq672n-exclude, norm=0.355) :results file
 
 #+RESULTS:
 [[file:ring-FQ672N-absolute.pdf]]
@@ -2553,7 +2580,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -60.0 |   3.0 |
 | 150 | -50.0 | -10.0 |
 
-#+call: ring-absolute("FQ674N", exclude=fq674n-exclude) :results file
+#+call: ring-absolute("FQ674N", exclude=fq674n-exclude, norm=0.355) :results file
 
 #+RESULTS:
 [[file:ring-FQ674N-absolute.pdf]]
@@ -2574,7 +2601,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 | 150 | -50.0 | -15.0 |
 | 150 |  -4.0 |   4.0 |
 
-#+call: ring-absolute("FQ575N", exclude=fq575n-exclude) :results file
+#+call: ring-absolute("FQ575N", exclude=fq575n-exclude, scale=0.355) :results file
 
 #+RESULTS:
 [[file:ring-FQ575N-absolute.pdf]]
@@ -2595,7 +2622,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 | 150 | -50.0 | -15.0 |
 | 150 |  -4.0 |   4.0 |
 
-#+call: ring-absolute("FQ437N", exclude=fq437n-exclude) :results file
+#+call: ring-absolute("FQ437N", exclude=fq437n-exclude, scale=0.355) :results file
 
 #+RESULTS:
 [[file:ring-FQ437N-absolute.pdf]]
@@ -2616,7 +2643,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 | 150 | -50.0 | -15.0 |
 | 150 |  -4.0 |   4.0 |
 
-#+call: ring-absolute("FQ436N", exclude=fq436n-exclude) :results file
+#+call: ring-absolute("FQ436N", exclude=fq436n-exclude, scale=0.355) :results file
 
 #+RESULTS:
 [[file:ring-FQ436N-absolute.pdf]]
@@ -2636,7 +2663,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -5.0 | 5.0 |
 | 150 | -5.0 | 5.0 |
 
-#+call: ring-absolute("F547M", 2.0, 0.01, f547m-exclude) :results file
+#+call: ring-absolute("F547M", 2.0, 0.01, f547m-exclude, norm=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F547M-absolute.pdf]]
@@ -2681,7 +2708,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -5.0 | 5.0 |
 | 150 | -5.0 | 5.0 |
 
-#+call: ring-absolute("F487N", exclude=f487n-exclude) :results file
+#+call: ring-absolute("F487N", exclude=f487n-exclude, scale=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F487N-absolute.pdf]]
@@ -2701,7 +2728,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -10.0 | 5.0 |
 | 150 |   0.0 | 0.0 |
 
-#+call: ring-absolute("F502N", exclude=f502n-exclude) :results file
+#+call: ring-absolute("F502N", exclude=f502n-exclude, scale=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F502N-absolute.pdf]]
@@ -2721,7 +2748,7 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 |  60 | -5.0 | 5.0 |
 | 150 | -5.0 | 5.0 |
 
-#+call: ring-absolute("F469N", exclude=f469n-exclude) :results file
+#+call: ring-absolute("F469N", exclude=f469n-exclude, scale=0.355) :results file
 
 #+RESULTS:
 [[file:ring-F469N-absolute.pdf]]
@@ -2737,6 +2764,9 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 [[file:ring-profile-pa150-F469N.pdf]]
 
 ***** Results for the ODH spectra
+:LOGBOOK:
+CLOCK: [2014-07-06 Sun 23:07]--[2014-07-06 Sun 23:34] =>  0:27
+:END:
 
 
 #+name: odh-absolute
@@ -2768,6 +2798,8 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
   m = m & find_sweetspot_mask(fn, ra, dec) 
 
   gradient = y[m].sum()/x[m].sum()
+  z = np.polyfit(x[m], y[m], 1)
+  p =  np.poly1d(z)
   order = np.random.permutation(len(x[m]))
   fig, ax = plt.subplots(1, 1, subplot_kw=dict(axisbg=bgcolor))
   scat = ax.scatter(x[m][order], y[m][order], c=d[m][order], s=3000.0/np.abs(dec[m][order]), vmin=0.0, vmax=150.0, alpha=0.8, cmap=cmap)
@@ -2777,6 +2809,8 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
            label="gradient: {:.2f}".format(gradient))
   ax.plot([0.0, x[m].max()], [0.0, x[m].max()], '-',
            label="gradient: {:.2f}".format(1.0))
+  ax.plot([0.0, x[m].max()], p([0.0, x[m].max()]), '-',
+           label="{:.2f} x + {:.4f}".format(*z))
   ax.set_xlabel("ODH spectra predicted count rate per pixel / s$^{-1}$")
   ax.set_ylabel("WFC3 image count rate per pixel / s$^{-1}$")
   ax.set_title(fn)
@@ -2799,21 +2833,21 @@ d = {k: (x1, x2) for k, x1, x2 in exclude}
 #+RESULTS: odh-absolute
 [[file:odh-F547M-absolute.pdf]]
 
-#+call: odh-absolute("F547M", offset=0.3) :results file
+#+call: odh-absolute("F547M", offset=0.3, norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F547M-absolute.pdf]]
 
 
 
-#+call: odh-absolute("FQ575N") :results file
+#+call: odh-absolute("FQ575N", norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-FQ575N-absolute.pdf]]
 
 
 
-#+call: odh-absolute("F658N", offset=0.5) :results file
+#+call: odh-absolute("F658N", offset=0.25, norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F658N-absolute.pdf]]
@@ -2826,48 +2860,48 @@ If we do it without the offset, then it looks much worse
 [[file:odh-F658N-absolute.pdf]]
 
 
-#+call: odh-absolute("F656N", offset=0.7) :results file
+#+call: odh-absolute("F656N", offset=0.7,  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F656N-absolute.pdf]]
 
 
-#+call: odh-absolute("F673N", offset=0.1) :results file
+#+call: odh-absolute("F673N", offset=0.1,  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F673N-absolute.pdf]]
 
-#+call: odh-absolute("FQ672N") :results file
+#+call: odh-absolute("FQ672N",  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-FQ672N-absolute.pdf]]
 
-#+call: odh-absolute("FQ674N") :results file
+#+call: odh-absolute("FQ674N",  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-FQ674N-absolute.pdf]]
 
-#+call: odh-absolute("F502N", offset=0.5) :results file
+#+call: odh-absolute("F502N", offset=0.5,  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F502N-absolute.pdf]]
 
-#+call: odh-absolute("FQ437N") :results file
+#+call: odh-absolute("FQ437N",  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-FQ437N-absolute.pdf]]
 
-#+call: odh-absolute("FQ436N") :results file
+#+call: odh-absolute("FQ436N",  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-FQ436N-absolute.pdf]]
 
-#+call: odh-absolute("F469N", offset=0.04) :results file
+#+call: odh-absolute("F469N", offset=0.04,  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F469N-absolute.pdf]]
 
-#+call: odh-absolute("F487N", offset=0.3) :results file
+#+call: odh-absolute("F487N", offset=0.3,  norm=0.948) :results file
 
 #+RESULTS:
 [[file:odh-F487N-absolute.pdf]]
