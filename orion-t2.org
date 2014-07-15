@@ -81,11 +81,11 @@ DEADLINE: <2014-06-18 Wed>
   + [ ] Write these up
 
 *** TODO Longer term
-+ [ ] sensitivity to continuum color term
++ [X] sensitivity to continuum color term
 + [ ] Generate the full-field images of the strong lines
   + [ ] Make images of each quadrant with suitable scaling in [S II] [N II] [O III] and also in scattered continuum
   + [ ] Draw attention to interesting features
-    + Narrow sattering filaments in the south
+    + Narrow scattering filaments in the south
     + Dark tendrils - which sort of [[id:8D522091-DF9C-4446-8BA7-FBC707A126C7][shadow]] are these?
 *** Global plan
 + At the moment, I have three sections:
@@ -97,10 +97,19 @@ DEADLINE: <2014-06-18 Wed>
 *** DONE From filter ratios to line ratios
 CLOSED: [2014-06-29 Sun 22:21]
 :LOGBOOK:
+CLOCK: [2014-07-14 Mon 14:18]--[2014-07-14 Mon 14:47] =>  0:29
+CLOCK: [2014-07-14 Mon 14:16]--[2014-07-14 Mon 14:18] =>  0:02
+CLOCK: [2014-07-14 Mon 14:15]--[2014-07-14 Mon 14:16] =>  0:01
+CLOCK: [2014-07-14 Mon 14:08]--[2014-07-14 Mon 14:15] =>  0:07
+CLOCK: [2014-07-10 Thu 21:50]--[2014-07-10 Thu 22:19] =>  0:29
 CLOCK: [2014-07-06 Sun 22:13]--[2014-07-06 Sun 23:07] =>  0:54
 CLOCK: [2014-07-05 Sat 20:00]--[2014-07-06 Sun 00:56] =>  4:56
 CLOCK: [2014-06-30 Mon 13:34]--[2014-06-30 Mon 16:35] =>  3:01
 CLOCK: [2014-06-30 Mon 09:41]--[2014-06-30 Mon 11:28] =>  1:47
+:END:
+:PROPERTIES:
+:noweb:    yes
+:Effort:   15:00
 :END:
 + I had the following functions
 #+BEGIN_SRC python
@@ -154,8 +163,11 @@ Now we have a nice equation for finding the ratios
 | 4861 | 6563 | F487N  | F656N  | F547M  |
 
 #+BEGIN_SRC python :return table :var intable=filter-sets
-  from wfc3_utils import ratio_coefficients, line_transmission_adjustments
+  from wfc3_utils import ratio_coefficients
   import wfc3_utils
+
+  <<strange-new-gradients>>
+
   cols = ["T2/T1", "alpha_1", "alpha_2", "beta_1", "beta_2", "gamma_1", "gamma_2"]
 
   table = [["I", "II", "III"] + cols, None]
@@ -171,12 +183,12 @@ Now we have a nice equation for finding the ratios
 #+RESULTS:
 | I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
 |--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
-| FQ575N | F658N  | F547M  |  0.948 |    0.8022 |  1.38e-07 | 0.02426 | 0.03939 | 2.434e-07 | 2.238e-08 |
-| FQ672N | FQ674N | F673N  | 0.7837 |     1.016 |      1.18 |   0.164 |  0.1142 |    0.0679 |  0.004747 |
-| FQ672N | FQ674N | F547M  | 0.7837 | 1.096e-07 | 2.181e-07 | 0.02742 | 0.01909 |    0.0679 |  0.004747 |
-| FQ437N | F502N  | FQ436N |  1.085 |    0.8971 | 1.322e-07 |  0.7111 |   1.998 | 1.418e-07 | 3.212e-08 |
-| FQ437N | F502N  | F547M  |  1.085 | 3.835e-06 |  0.001615 | 0.03426 | 0.09627 | 1.418e-07 | 3.212e-08 |
-| F487N  | F656N  | F547M  | 0.9376 | 2.577e-06 | 1.093e-07 | 0.08711 | 0.02375 | 5.776e-07 | 6.388e-08 |
+| FQ575N | F658N  | F547M  | 0.9461 |    0.7946 |  1.37e-07 | 0.02426 | 0.03939 | 2.411e-07 | 2.221e-08 |
+| FQ672N | FQ674N | F673N  | 0.7699 |     1.058 |     1.251 |   0.164 |  0.1142 |   0.07016 |  0.004993 |
+| FQ672N | FQ674N | F547M  | 0.7699 | 1.133e-07 | 2.294e-07 | 0.02742 | 0.01909 |   0.07016 |  0.004993 |
+| FQ437N | F502N  | FQ436N |  1.127 |     0.917 | 1.299e-07 |  0.7111 |   1.998 | 1.446e-07 | 3.156e-08 |
+| FQ437N | F502N  | F547M  |  1.127 | 3.912e-06 |  0.001587 | 0.03426 | 0.09627 | 1.446e-07 | 3.156e-08 |
+| F487N  | F656N  | F547M  | 0.9432 | 2.582e-06 | 1.089e-07 | 0.08711 | 0.02375 | 5.788e-07 | 6.363e-08 |
 
 So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
 
@@ -202,10 +214,11 @@ Now also grabbing suitable k values from the odh files
 | 4861 | 6563 | F487N  | F656N  | F547M  |   3.2 | 12.0 |   2.5 | 1.13 | 1.04 |  1.03 |
 
 #+BEGIN_SRC python :return table :var intable=filter-set-fakes
-  from wfc3_utils import find_line_ratio, line_transmission_adjustments
+  from wfc3_utils import find_line_ratio
   import wfc3_utils
 
   # wfc3_utils.topocentric_velocity += 30.0
+  <<strange-new-gradients>>
 
   table = [["I", "II", "III", "I_1/I_2", "Naive I_1/I_2"], None]
   for wav1, wav2, FI, FII, FIII, RI, RII, RIII, kI, kII, kIII in intable[0:]:
@@ -213,7 +226,8 @@ Now also grabbing suitable k values from the odh files
       row = [FI, FII, FIII]
       row.extend(["{:.3f}".format(find_line_ratio(filterset,
                                                   RI, RII, RIII,
-                                                  k_I=kI/kIII, k_II=kII/kIII, naive=naive))
+                                                  k_I=kI/kIII, k_II=kII/kIII,
+                                                  naive=naive))
                   for naive in (False, True)])
       table.append(row)
 #+END_SRC
@@ -221,12 +235,12 @@ Now also grabbing suitable k values from the odh files
 #+RESULTS:
 | I      | II     | III    | I_1/I_2 | Naive I_1/I_2 |
 |--------+--------+--------+---------+---------------|
-| FQ575N | F658N  | F547M  |   0.028 |         0.041 |
-| FQ672N | FQ674N | F673N  |   0.552 |         0.589 |
-| FQ672N | FQ674N | F547M  |   0.541 |         0.589 |
-| FQ437N | F502N  | FQ436N |  -0.011 |         0.028 |
-| FQ437N | F502N  | F547M  |   0.012 |         0.028 |
-| F487N  | F656N  | F547M  |   0.314 |         0.338 |
+| FQ575N | F658N  | F547M  |   0.027 |         0.041 |
+| FQ672N | FQ674N | F673N  |   0.553 |         0.579 |
+| FQ672N | FQ674N | F547M  |   0.532 |         0.579 |
+| FQ437N | F502N  | FQ436N |  -0.012 |         0.029 |
+| FQ437N | F502N  | F547M  |   0.012 |         0.029 |
+| F487N  | F656N  | F547M  |   0.316 |         0.340 |
 
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
@@ -447,8 +461,14 @@ CLOSED: [2014-06-30 Mon 19:37]
 
 *** Now apply to the WFC3 maps
 :LOGBOOK:
+CLOCK: [2014-07-10 Thu 22:19]--[2014-07-10 Thu 22:57] =>  0:38
+CLOCK: [2014-07-09 Wed 22:08]--[2014-07-09 Wed 22:15] =>  0:07
 CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 :END:
+:PROPERTIES:
+:noweb:    yes
+:END:
+
 #+name: ratio-limits
 | FQ575N | 0.005 | 0.07 |
 | FQ672N |   0.4 |  1.0 |
@@ -457,7 +477,8 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 #+header: :var intable=filter-set-fakes limits=ratio-limits
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
-  from wfc3_utils import find_line_ratio, line_transmission_adjustments
+  from wfc3_utils import find_line_ratio
+  import wfc3_utils
   from astropy.io import fits
   from matplotlib import pyplot as plt
   import matplotlib
@@ -476,6 +497,8 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
       "F502N": "full_F502N_north_pad.fits",
       "FQ437N": "full_FQ437N_north_pad.fits"
   }
+
+  <<strange-new-gradients>>
 
   minmax_dict = dict([(row[0], row[1:]) for row in limits])
 
@@ -907,10 +930,10 @@ CLOCK: [2014-07-01 Tue 01:19]--[2014-07-01 Tue 01:20] =>  0:01
 :ID:       6BB8A20A-ECD6-494E-B7B3-DF139BC5B8F8
 :END:
 + F(\lambda) values are 
-| H\beta 4861     |    0.0 |
-| [N II] 5755 | -0.123 |
-| H\alpha 6563     | -0.220 |
-| [N II] 6584 | -0.222 |
+| H\beta 4861  |    0.0 |
+| [N II] 5755  | -0.123 |
+| H\alpha 6563 | -0.220 |
+| [N II] 6584  | -0.222 |
 
 + Calculate CHB from observed Balmer decrement R = Ha/Hb
   - I'(Ha) = I(Ha) 10**(-(1+F) CHB)
@@ -1592,6 +1615,8 @@ CLOSED: [2014-04-25 Fri 22:50]
   + Strangely, it seems OK already for Manu
 **** TODO New table of gradients
 :LOGBOOK:
+CLOCK: [2014-07-10 Thu 21:35]--[2014-07-10 Thu 21:50] =>  0:15
+CLOCK: [2014-07-09 Wed 21:56]--[2014-07-09 Wed 22:08] =>  0:12
 CLOCK: [2014-07-06 Sun 21:54]--[2014-07-06 Sun 22:13] =>  0:19
 CLOCK: [2014-07-06 Sun 09:48]--[2014-07-06 Sun 10:34] =>  0:46
 :END:
@@ -1601,6 +1626,7 @@ CLOCK: [2014-07-06 Sun 09:48]--[2014-07-06 Sun 10:34] =>  0:46
 + [ ] Take these from the graphs and then decide on weightings
 
 This is the original version I had
+#+name: original-absolute-gradients
 |        |  ODH | Adal | Ring | W_O | W_A | W_R |  Mean |   sig |
 |--------+------+------+------+-----+-----+-----+-------+-------|
 | FQ674N | 0.93 | 0.95 | 0.97 |   1 |   1 |   2 | 0.955 | 0.017 |
@@ -1618,6 +1644,7 @@ This is the original version I had
 #+TBLFM: $8=($2 $5 + $3 $6 + $4 $7)/vsum($5..$7); f3::$9=sqrt(($5 ($2 - $8)**2  + $6 ($3 - $8)**2 + $7 ($4 - $8)**2)/vsum($5..$7)); f3
 
 And this is the new one that lets the offset value float
+#+name: floating-absolute-gradients
 |        |  ODH | Adal | Ring | W_O | W_A | W_R |  Mean |   sig |
 |--------+------+------+------+-----+-----+-----+-------+-------|
 | FQ674N | 0.92 | 0.99 | 0.86 |   1 |   1 |   2 | 0.908 | 0.054 |
@@ -1634,6 +1661,26 @@ And this is the new one that lets the offset value float
 | FQ436N | 0.84 | 0.99 | 0.96 |   1 |   1 |   3 | 0.942 | 0.052 |
 #+TBLFM: $8=($2 $5 + $3 $6 + $4 $7)/vsum($5..$7); f3::$9=sqrt(($5 ($2 - $8)**2  + $6 ($3 - $8)**2 + $7 ($4 - $8)**2)/vsum($5..$7)); f3
 
+And here is the above table codified for my scripts
+#+name: strange-new-gradients
+#+BEGIN_SRC python 
+wfc3_utils.line_transmission_adjustments = {
+    # Defaults are weighted averages of ODH, Mesa-Delgado, & Ring
+    (6731, "FQ674N"): 0.908,
+    (6731, "F673N"): 0.982,
+    (6716, "F673N"): 0.982,
+    (6716, "FQ672N"): 0.900,
+    (6583, "F658N"): 0.937,
+    (6563, "F656N"): 1.017,
+    (5755, "FQ575N"): 1.058,
+    (5007, "F502N"): 0.970,
+    (4861, "F487N"): 0.983,
+    (4686, "F469N"): 1.350,
+    (4363, "FQ437N"): 1.002,
+    (4363, "FQ436N"): 0.942,
+    (4340, "FQ436N"): 0.942,
+}
+#+END_SRC
 
 **** Table of gradients
 These should all be 1, but they ain't ...
@@ -3567,38 +3614,38 @@ time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e
 :PROPERTIES:
 :ID:       C66F4EB0-5E9B-499F-93D1-B7865EA6B3D9
 :END:
-| Lower - Upper       |  \lambda (\AA) | Irec/Icalc | Icalc |   Iobs | Will comment  |
-|---------------------+--------+------------+-------+--------+---------------|
-| Graphic - 3d 4F3/2  | 4069.6 |      0.921 |  1.46 |   2.04 | Blend         |
-| Graphic - 3d 4F5/2  | 4069.9 |      0.924 |  2.32 |   1.99 | with          |
-| 3d 4F7/2 - Graphic  | 4071.2 |      1.000 |  0.26 |      - | [S II]        |
-| Graphic - 3d 4F7/2  | 4072.3 |      0.952 |  3.41 |   3.27 | + C III       |
-|---------------------+--------+------------+-------+--------+---------------|
-| Graphic - 3d 4F9/2  | 4075.9 |      0.956 |  4.90 |   4.42 | Blend [S II]  |
-|---------------------+--------+------------+-------+--------+---------------|
-| 3d 4D7/2 - Graphic  | 4275.5 |      1.000 |  0.84 |   0.65 | Blend [Fe II] |
-| 3d 4D3/2 - Graphic  | 4275.9 |      1.000 |  0.16 |      - |               |
-| 3d 4D5/2 - Graphic  | 4276.3 |      1.000 |  0.12 |      - |               |
-| 3d 4D5/2 - Graphic  | 4276.8 |      1.000 |  0.31 | 0.79 ? |               |
-| 3d 4D1/2 - Graphic  | 4277.4 |      1.000 |  0.21 |   0.33 |               |
-| 3d 4D7/2 - Graphic  | 4277.8 |      1.000 |  0.15 |      - |               |
-|---------------------+--------+------------+-------+--------+---------------|
-| 3s 4P5/2 - Graphic  | 4366.8 |      0.605 |  1.67 |   1.36 | Blend O I     |
-|---------------------+--------+------------+-------+--------+---------------|
-| 3s 2P3/2 - Graphic  | 4414.9 |      0.812 |  5.26 |   3.03 | Blend [Fe II] |
-| 3s 2P1/2 - Graphic  | 4416.8 |      0.815 |  2.95 |   1.97 | Blend [Fe II] |
-|---------------------+--------+------------+-------+--------+---------------|
-| 3s′ 2D5/2 - Graphic | 4590.9 |      0.729 |  0.60 |   1.43 |  V15          |
-| 3s′ 2D3/2 - Graphic | 4596.2 |      0.774 |  0.53 |   0.94 |               |
-|---------------------+--------+------------+-------+--------+---------------|
-| 3s 4P1/2 - Graphic  | 4638.8 |      0.731 |  2.07 |   1.96 | V1            |
-| 3s 4P3/2 - Graphic  | 4641.6 |      0.794 |  4.68 |   4.22 |               |
-| 3s 4P5/2 - Graphic  | 4649.2 |      0.795 |  8.35 |   6.70 |               |
-| 3s 4P1/2 - Graphic  | 4650.9 |      0.688 |  2.05 |   2.17 |               |
-| 3s 4P3/2 - Graphic  | 4661.6 |      0.731 |  2.30 |   2.31 |               |
-| 3s 4P3/2 - Graphic  | 4673.8 |      0.688 |  0.35 |   0.41 |               |
-| 3s 4P5/2 - Graphic  | 4676.2 |      0.794 |  1.59 |   1.58 |               |
-|---------------------+--------+------------+-------+--------+---------------|
+| Lower - Upper       | \lambda (\AA) | Irec/Icalc | Icalc |   Iobs | Will comment  |
+|---------------------+---------------+------------+-------+--------+---------------|
+| Graphic - 3d 4F3/2  |        4069.6 |      0.921 |  1.46 |   2.04 | Blend         |
+| Graphic - 3d 4F5/2  |        4069.9 |      0.924 |  2.32 |   1.99 | with          |
+| 3d 4F7/2 - Graphic  |        4071.2 |      1.000 |  0.26 |      - | [S II]        |
+| Graphic - 3d 4F7/2  |        4072.3 |      0.952 |  3.41 |   3.27 | + C III       |
+|---------------------+---------------+------------+-------+--------+---------------|
+| Graphic - 3d 4F9/2  |        4075.9 |      0.956 |  4.90 |   4.42 | Blend [S II]  |
+|---------------------+---------------+------------+-------+--------+---------------|
+| 3d 4D7/2 - Graphic  |        4275.5 |      1.000 |  0.84 |   0.65 | Blend [Fe II] |
+| 3d 4D3/2 - Graphic  |        4275.9 |      1.000 |  0.16 |      - |               |
+| 3d 4D5/2 - Graphic  |        4276.3 |      1.000 |  0.12 |      - |               |
+| 3d 4D5/2 - Graphic  |        4276.8 |      1.000 |  0.31 | 0.79 ? |               |
+| 3d 4D1/2 - Graphic  |        4277.4 |      1.000 |  0.21 |   0.33 |               |
+| 3d 4D7/2 - Graphic  |        4277.8 |      1.000 |  0.15 |      - |               |
+|---------------------+---------------+------------+-------+--------+---------------|
+| 3s 4P5/2 - Graphic  |        4366.8 |      0.605 |  1.67 |   1.36 | Blend O I     |
+|---------------------+---------------+------------+-------+--------+---------------|
+| 3s 2P3/2 - Graphic  |        4414.9 |      0.812 |  5.26 |   3.03 | Blend [Fe II] |
+| 3s 2P1/2 - Graphic  |        4416.8 |      0.815 |  2.95 |   1.97 | Blend [Fe II] |
+|---------------------+---------------+------------+-------+--------+---------------|
+| 3s′ 2D5/2 - Graphic |        4590.9 |      0.729 |  0.60 |   1.43 | V15           |
+| 3s′ 2D3/2 - Graphic |        4596.2 |      0.774 |  0.53 |   0.94 |               |
+|---------------------+---------------+------------+-------+--------+---------------|
+| 3s 4P1/2 - Graphic  |        4638.8 |      0.731 |  2.07 |   1.96 | V1            |
+| 3s 4P3/2 - Graphic  |        4641.6 |      0.794 |  4.68 |   4.22 |               |
+| 3s 4P5/2 - Graphic  |        4649.2 |      0.795 |  8.35 |   6.70 |               |
+| 3s 4P1/2 - Graphic  |        4650.9 |      0.688 |  2.05 |   2.17 |               |
+| 3s 4P3/2 - Graphic  |        4661.6 |      0.731 |  2.30 |   2.31 |               |
+| 3s 4P3/2 - Graphic  |        4673.8 |      0.688 |  0.35 |   0.41 |               |
+| 3s 4P5/2 - Graphic  |        4676.2 |      0.794 |  1.59 |   1.58 |               |
+|---------------------+---------------+------------+-------+--------+---------------|
 
 ***** Table 7 (Complete)
 + Note that some of the lower/upper states are given as images o nthe web page
@@ -3704,7 +3751,7 @@ time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e
 | Graphic–3d 4D5/2   |  4856.4 |      0.686 |  0.11 |      – |
 | Graphic–3d 4P1/2   |  4890.8 |      0.465 |  0.41 |   1.37 |
 | Graphic–3d 4P3/2   |  4906.9 |      0.655 |  0.71 |   0.42 |
-| Graphic–3d 4P5/2   |  4924.7 |      0.711 |  0.41 |   0.89 | 
+| Graphic–3d 4P5/2   |  4924.7 |      0.711 |  0.41 |   0.89 |
   
 〈Irec/Icalc〉 = 0.838	〈Icalc/Iobs〉 = 0.898
 *λ 4097.2 includes the emission of Graphic–3d 4D3/2.
