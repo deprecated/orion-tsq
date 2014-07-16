@@ -459,6 +459,7 @@ CLOSED: [2014-06-30 Mon 19:37]
 - [[file:color-hist-kk-FQ436N.png]]
 - [[file:color-hist-kk-FQ437N.png]]
 
+
 *** Now apply to the WFC3 maps
 :LOGBOOK:
 CLOCK: [2014-07-10 Thu 22:19]--[2014-07-10 Thu 22:57] =>  0:38
@@ -556,6 +557,24 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 - [[file:contam-correct-FQ437N-F502N-FQ436N.pdf]]
 - [[file:contam-correct-FQ437N-F502N-F547M.pdf]]
 - [[file:contam-correct-F487N-F656N-F547M.pdf]]
+
+
+**** Sensitivity to variations in different parameters
+We want to show how the line ratios vary with: 
+1. Changing color terms
+2. Changing calibration constants
+
+For this, we are going to have to put everything together in one work flow:
+1. Start with the individual rates
+   - just do the de-reddening once
+2. For each set of constants/colors
+   - calculate the ratios
+   - plot them somehow
+
+Write a separate python file for this.
+
+
+
 **** Correlations between ratios
 Look at the following:
 - The two ways of finding 6716/6731
@@ -1021,7 +1040,6 @@ CLOCK: [2014-07-01 Tue 01:22]--[2014-07-01 Tue 09:45] =>  8:23
 :         Use the `.cards` attribute instead. [pyregion.wcs_helper]
 : WARNING: Overwriting existing file 'ratio-FQ575N-F658N-masked.fits'. [astropy.io.fits.file]
 : WARNING: Overwriting existing file 'ratio-FQ672N-FQ674N-masked.fits'. [astropy.io.fits.file]
-
 *** Making some nice images
 **** Three-color imageof entire field: [S II], [N II], [O III]
 + Note that this doesn't work in python3
