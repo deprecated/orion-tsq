@@ -1,0 +1,239 @@
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:{} arch:headline
+
+* Finally try and do it on the git commits
++ rcs-latexdiff does not allow passing on of options to latexdiff
+  + doh!
++ Try git-latexdiff instead
+  + This is much better, but it still has a couple of bugs:
+    1. Needs a way of of ignoring the errors from the latex run
+    2. There is a --bbl command but the problem is that the .bbl file does not exist until BibTeX has been run.
+  + /Fixed them/ and opened a merge request
+
+#+BEGIN_SRC sh
+git-latexdiff report14 report15 --verbose --main will-orion-tsq.tex --quiet -b --bbl --ignore-latex-errors --preamble=$PWD/wjh-latexdiff-preamble.tex --ignore-warnings --math-markup=1 --allow-spaces
+#+END_SRC
+
+
+* Now try it on the real thing
+#+name: run-latexdiff
+#+header: :var FILE_A="/Users/will/Dropbox/Public/will-orion-tsq-2014-06-18.tex"
+#+header: :var FILE_B="/Users/will/Dropbox/Public/will-orion-tsq-2014-07-16.tex"
+#+header: :var FILE_DIFF="../diff-r14-r15.tex"
+#+header: :var OPTIONS="--type=CFONT --ignore-warnings --math-markup=off"
+#+BEGIN_SRC sh :results file
+  latexdiff $OPTIONS --verbose $FILE_A $FILE_B > $FILE_DIFF
+  echo $FILE_DIFF
+#+END_SRC
+
+#+RESULTS: run-latexdiff
+[[file:../diff-r14-r15.tex]]
+
+#+call: run-latexdiff(OPTIONS="--preamble=wjh-latexdiff-preamble.tex --append-context2cmd='label' --ignore-warnings --math-markup=1 --allow-spaces") :results file
+
+#+RESULTS:
+[[file:../diff-r14-r15.tex]]
+
+
+
+* More complicated example with =\frac= command
+This is still failing with 1.0.3
+#+BEGIN_SRC latex :tangle file2A.tex
+  \documentclass{article}
+
+  \begin{document}
+  \begin{equation}
+    \label{eq:color-twiddle}
+    \COLOR{j}{\F{III}} \equiv 
+    \frac{\MeanC{j} + (\Tmax{j} W_j)^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{j}}
+    {\MeanC{\F{III}} + (\Tmax{\F{III}} W_{\F{III}})^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{III}}}
+    = \Color{j}{\F{III}} 
+    \frac{1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{j}{i'}}
+    {1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{\F{III}}{i'}}
+  \end{equation}
+  \end{document}
+
+#+END_SRC
+
+#+BEGIN_SRC latex :tangle file2B.tex
+  \documentclass{article}
+
+  \begin{document}
+  \begin{equation}
+    \label{eq:color-twiddle}
+    \COLOR{j}{\F{III}} \equiv 
+    \frac{\MeanC{j} + (\Tmax{j} W_j)^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{j}}
+    {\MeanC{\F{III}} + (\Tmax{\F{III}} W_{\F{III}})^{-1} \sum_{\scriptscriptstyle i' \ne 1, 2} \lambda_{i'} I_{i'} \T{i'}{\F{III}}}
+  = 
+  \frac{\left(1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{j}{i'}\right) \, \Color{j}{\F{III}} }
+  {1 + \sum_{\scriptscriptstyle i' \ne 1, 2} E_{i'} / \Weff{\F{III}}{i'}}
+  \end{equation}
+  \end{document}
+
+#+END_SRC
+
+#+call: run-latexdiff(FILE_A="file2A.tex", FILE_B="file2B.tex", FILE_DIFF="diff2AB.tex") :results file
+
+#+RESULTS:
+[[file:diff2AB.tex]]
+
+Simpler version:
+
+#+BEGIN_SRC latex :tangle file3A.tex
+  \documentclass{article}
+  \begin{document}
+  Here is an equation with some fractions: 
+  \begin{equation}
+    x \equiv 
+    \frac{A}
+    {B}
+    = C 
+    \frac{D + E}
+    {F}
+  \end{equation}
+  Note that the factor \(C\) is outside of the fraction. 
+  \end{document}
+#+END_SRC
+
+#+BEGIN_SRC latex :tangle file3B.tex
+  \documentclass{article}
+  \begin{document}
+  Here is a modified equation with some fractions: 
+  \begin{equation}
+    x \equiv 
+    \frac{A}
+    {B}
+    = 
+    \frac{\left(D + E\right) C}
+    {F}
+  \end{equation}
+  Note that now the factor \(C\) is inside of the fraction and we have
+  added some parentheses.
+  \end{document}
+#+END_SRC
+
+#+call: run-latexdiff(FILE_A="file3A.tex", FILE_B="file3B.tex", FILE_DIFF="diff3AB.tex", OPTIONS="--preamble=wjh-latexdiff-preamble.tex --ignore-warnings --math-markup=1 --allow-spaces") :results file
+
+#+RESULTS:
+[[file:diff3AB.tex]]
+
+#+call: run-latexdiff(FILE_A="file3A.tex", FILE_B="file3B.tex", FILE_DIFF="diff3AB.tex", OPTIONS="--type=CFONT --ignore-warnings --math-markup=whole --allow-spaces") :results file
+
+#+RESULTS:
+[[file:diff3AB.tex]]
+
++ Note that =CTRADITIONAL= does not work because it tries to put
+  complicated things in footnotes.
++ =--subtype=MARGIN= doen't work with pdflatex
+
+
+* Custom preamble for colors
++ We use a dark red color for new material, with a wavy line underneath
+  + =\uwave= from the =ulem= package
++ We use tiny font and light gray for the deleted material with lines through it
+  + =\sout= from the =ulem= package for normal text
+  + =\cancel= from the =cancel= package for math mode
+  + We initially tried to use =\st= from =soul= for the underlining, but this caused compilation errors. 
+#+BEGIN_SRC latex :tangle wjh-latexdiff-preamble.tex
+%DIF PREAMBLE customized by Will Henney 17 Jul 2014
+%DIF COLOR PREAMBLE %DIF PREAMBLE
+\RequirePackage{xcolor}
+\RequirePackage{graphics}
+\RequirePackage[normalem]{ulem}
+\RequirePackage{cancel}
+\providecommand{\DIFadd}[1]{{\protect\color{red!70!black}\uwave{#1}}} %DIF PREAMBLE
+% \providecommand{\DIFdel}[1]{{\protect\color{white!20!black} \scalebox{0.4}{#1}}} 
+\providecommand{\DIFdel}[1]{{\protect\color{white!70!black} \ifmmode\scriptscriptstyle\cancel{#1}\else\tiny\sout{#1}\fi}} %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{\color{red!50!black}} %DIF PREAMBLE
+\providecommand{\DIFaddend}{\color{black}} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+\scrollmode 
+%DIF END PREAMBLE 
+#+END_SRC
+* Simple example to resolve errors I was getting
+This was giving me trouble with an old version of latexdiff:
+#+BEGIN_SRC sh
+  latexdiff --type=CFONT \
+      --ignore-warnings --append-safecmd="\)"\
+      fileA.tex fileB.tex > diffAB.tex
+#+END_SRC
+
+#+RESULTS:
+
+But it seems to be working fine now
+
+#+BEGIN_SRC sh :results verbatim stderr
+latexdiff --version
+#+END_SRC
+
+#+RESULTS:
+: This is LATEXDIFF 1.0.3  (Algorithm::Diff 1.15 so, Perl v5.16.2)
+:   (c) 2004-2013 F J Tilmann
+
+Had to copy the output from the =*Org-Babel Error Output*= buffer. 
+
+
+#+BEGIN_SRC sh :results verbatim :results latex
+latexdiff --type=UNDERLINE --show-preamble
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_LaTeX
+
+Preamble commands:
+%DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
+%DIF UNDERLINE PREAMBLE %DIF PREAMBLE
+\RequirePackage[normalem]{ulem} %DIF PREAMBLE
+\RequirePackage{color}\definecolor{RED}{rgb}{1,0,0}\definecolor{BLUE}{rgb}{0,0,1} %DIF PREAMBLE
+\providecommand{\DIFadd}[1]{{\protect\color{blue}\uwave{#1}}} %DIF PREAMBLE
+\providecommand{\DIFdel}[1]{{\protect\color{red}\sout{#1}}}                      %DIF PREAMBLE
+%DIF SAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{} %DIF PREAMBLE
+\providecommand{\DIFaddend}{} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+%DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
+#+END_LaTeX
+
+
+#+BEGIN_SRC sh :results verbatim :results latex
+latexdiff --type=CFONT --show-preamble
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_LaTeX
+
+Preamble commands:
+%DIF PREAMBLE EXTENSION ADDED BY LATEXDIFF
+%DIF CFONT PREAMBLE %DIF PREAMBLE
+\RequirePackage{color}\definecolor{RED}{rgb}{1,0,0}\definecolor{BLUE}{rgb}{0,0,1} %DIF PREAMBLE
+\providecommand{\DIFadd}[1]{{\protect\color{blue} \sf #1}} %DIF PREAMBLE
+\providecommand{\DIFdel}[1]{{\protect\color{red} \scriptsize #1}} %DIF PREAMBLE
+%DIF SAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddbegin}{} %DIF PREAMBLE
+\providecommand{\DIFaddend}{} %DIF PREAMBLE
+\providecommand{\DIFdelbegin}{} %DIF PREAMBLE
+\providecommand{\DIFdelend}{} %DIF PREAMBLE
+%DIF FLOATSAFE PREAMBLE %DIF PREAMBLE
+\providecommand{\DIFaddFL}[1]{\DIFadd{#1}} %DIF PREAMBLE
+\providecommand{\DIFdelFL}[1]{\DIFdel{#1}} %DIF PREAMBLE
+\providecommand{\DIFaddbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFaddendFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelbeginFL}{} %DIF PREAMBLE
+\providecommand{\DIFdelendFL}{} %DIF PREAMBLE
+%DIF END PREAMBLE EXTENSION ADDED BY LATEXDIFF
+#+END_LaTeX

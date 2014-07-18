@@ -94,6 +94,8 @@ DEADLINE: <2014-06-18 Wed>
   3. Fluctuations in Te, ne
 + Where I have been stuck for months on the first part, and still don't have firm conclusions
 + To this I could add a fourth section: maps of Te and correlation with other indicators (in particular, the [Fe III] and the excess [S II])
+*** Using latexdiff to mark up changes between commits
+
 *** DONE From filter ratios to line ratios
 CLOSED: [2014-06-29 Sun 22:21]
 :LOGBOOK:
