@@ -94,7 +94,9 @@ DEADLINE: <2014-06-18 Wed>
   3. Fluctuations in Te, ne
 + Where I have been stuck for months on the first part, and still don't have firm conclusions
 + To this I could add a fourth section: maps of Te and correlation with other indicators (in particular, the [Fe III] and the excess [S II])
-*** Using latexdiff to mark up changes between commits
+*** DONE Using latexdiff to mark up changes between commits
+CLOSED: [2014-07-29 Tue 13:34]
+See [[file:test-latexdiff/test-latexdiff.org]]
 
 *** DONE From filter ratios to line ratios
 CLOSED: [2014-06-29 Sun 22:21]
@@ -131,16 +133,16 @@ def ratio_nii(R, R575, R658, k575=0.938):
 #+END_SRC
 + Of course, some of this now needs modification - we should calculate the parameters directly from the filter bandpasses. 
 #+BEGIN_SRC python :return table 
-from wfc3_utils import get_filter, Tm, Wj, Wtwid
+  from wfc3_utils import get_filter, Tm, Wj, Wtwid
 
-bands = ["F547M", "FQ575N", "F658N", "F673N", "FQ672N", "FQ674N"]
-wav0s = [5755, 5755, 6583, 6731, 6716, 6731]
-table = [["band", "Tm", "Wj Tm", "Wj", "Wtwid"], None]
-fmts = ['{:s}', '{:.4f}', '{:.2f}', '{:.2f}', '{:.2f}']
-for band, wav0 in zip(bands, wav0s):
-    wavs, T = get_filter(band, return_wavelength=True)
-    row = [band, Tm(T), Wj(wavs, T)*Tm(T), Wj(wavs, T), Wtwid(wav0, wavs, band, T)]
-    table.append([fmt.format(item) for item, fmt in zip(row, fmts)])
+  bands = ["F547M", "FQ575N", "F658N", "F673N", "FQ672N", "FQ674N"]
+  wav0s = [5755, 5755, 6583, 6731, 6716, 6731]
+  table = [["band", "Tm", "Wj Tm", "Wj", "Wtwid"], None]
+  fmts = ['{:s}', '{:.4f}', '{:.2f}', '{:.2f}', '{:.2f}']
+  for band, wav0 in zip(bands, wav0s):
+      wavs, T = get_filter(band, return_wavelength=True)
+      row = [band, Tm(T), Wj(wavs, T)*Tm(T), Wj(wavs, T), Wtwid(wav0, wavs, band, T)]
+      table.append([fmt.format(item) for item, fmt in zip(row, fmts)])
 #+END_SRC
 
 #+RESULTS:
@@ -874,7 +876,7 @@ And now try with the 2-phase curves
   <<rnii-rsii-histogram>>
   <<pyneb-setup>>
   <<two-phase-func>>
-  T_lo, T_hi, f0 = 9000, 9000, 0.5
+  T_lo, T_hi, f0 = 9000, 10000, 0.2
   for den_hi in [1.e4, 4e4, 1.e5, 2e5, 4.e5]:
       denrange = np.logspace(2.0, np.log10(den_hi), 100)
       rsii, rnii = two_phase_rsii_rnii(den_hi, f0, denrange, T_lo, T_hi)
@@ -979,8 +981,11 @@ b0string = str(int(1000*balmer0))
 hdu.writeto("new-chb-{}.fits".format(b0string), clobber=True)
 
 hdu = fits.open("ratio-contam-correct-FQ575N-F658N-F547M.fits")[0]
-hdu.data *= 10**(0.099*chb)
+correction = 10**(0.099*chb)
+hdu.data *= correction
 hdu.writeto("ratio-FQ575N-F658N-deredden-{}.fits".format(b0string), clobber=True)
+hdu.data = correction
+hdu.writeto("redcorrect-FQ575N-F658N-{}.fits".format(b0string), clobber=True)
 #+END_SRC
 
 #+RESULTS:
@@ -1012,14 +1017,16 @@ for d, results in zip(den, bdec):
 | 30000.0 |      2.919 |      2.884 |      2.862 |       2.839 |       2.826 |
 
 
-**** Mask out the bad areas in the ratio maps
+**** DONE Mask out the bad areas in the ratio maps
+CLOSED: [2014-07-29 Tue 13:46]
 :LOGBOOK:
+CLOCK: [2014-07-29 Tue 13:40]--[2014-07-29 Tue 13:46] =>  0:06
 CLOCK: [2014-07-01 Tue 01:22]--[2014-07-01 Tue 09:45] =>  8:23
 :END:
 #+name: files-to-mask
 | nii | ratio-FQ575N-F658N-deredden-2874.fits         | ratio-FQ575N-F658N-masked.fits  |
 | sii | ratio-contam-correct-FQ672N-FQ674N-F547M.fits | ratio-FQ672N-FQ674N-masked.fits |
-#+BEGIN_SRC python :var tab=files-to-mask :results output
+#+BEGIN_SRC python :var tab=files-to-mask :results output verbatim
   from astropy.io import fits
   import numpy as np
   import pyregion
@@ -1042,6 +1049,9 @@ CLOCK: [2014-07-01 Tue 01:22]--[2014-07-01 Tue 09:45] =>  8:23
 :         Use the `.cards` attribute instead. [pyregion.wcs_helper]
 : WARNING: Overwriting existing file 'ratio-FQ575N-F658N-masked.fits'. [astropy.io.fits.file]
 : WARNING: Overwriting existing file 'ratio-FQ672N-FQ674N-masked.fits'. [astropy.io.fits.file]
+
+
+
 *** Making some nice images
 **** Three-color imageof entire field: [S II], [N II], [O III]
 + Note that this doesn't work in python3
@@ -1348,6 +1358,7 @@ Now the excess emissions:
 *** From line ratios to (n, T)
 **** Single temperature models
 :LOGBOOK:
+CLOCK: [2014-07-29 Tue 13:46]--[2014-07-29 Tue 14:20] =>  0:34
 CLOCK: [2014-07-01 Tue 01:21]--[2014-07-01 Tue 01:22] =>  0:01
 CLOCK: [2014-07-01 Tue 01:18]--[2014-07-01 Tue 01:19] =>  0:01
 CLOCK: [2014-06-29 Sun 22:05]--[2014-06-30 Mon 09:41] => 11:36
@@ -1411,6 +1422,263 @@ Assuming a single zone with a unique n and T, we can use pyneb to convert the ra
 #+END_SRC
 
 I don't execute this in babel since it takes rather a long time.
+*** Rebinning the maps
+:LOGBOOK:
+CLOCK: [2014-07-31 Thu 11:58]--[2014-07-31 Thu 12:05] =>  0:07
+CLOCK: [2014-07-30 Wed 18:21]--[2014-07-30 Wed 19:11] =>  0:50
+:END:
+:PROPERTIES:
+:noweb:    yes
+:END:
++ Previously we had rebinned the ratios, but it would be best to do it to the surface brightness maps
+
+**** Make a symbolic link to the reddening image
+#+BEGIN_SRC sh :results silent
+  ln -s redcorrect-FQ575N-F658N-2874.fits full_redcorrect_north_pad.fits
+#+END_SRC
+This is just so that it has the same filename pattern as the other images.
+
+**** Common functionality for rebinning
++ Only do [N II] and [S II] for now
++ And bin in powers of 2 up to 256 × 256
+#+name: rebin-common
+#+BEGIN_SRC python
+  table = [
+      ["redcorrect", None],
+      ["FQ575N", "nii"],
+      ["F658N", None],
+      ["F673N", None],
+      ["F547M", None],
+      ["FQ672N", "sii"],
+      ["FQ674N", "sii"],
+  ]
+  nlist = [1, 2, 4, 8, 16, 32, 64, 128, 256]
+#+END_SRC
+
+
+**** STARTED Rebin the surface brightnesses
+:LOGBOOK:
+- Note taken on [2014-07-31 Thu 12:09] \\
+  Second, we need to use the fine-scale mask to cut things off in all
+  the binned maps.  But possibly only the convex hull?
+- Note taken on [2014-07-31 Thu 12:08] \\
+  First, there seems to be a spatial offset between the binned images.
+  The more the binning, the more it shifts to the upper right.
+- Note taken on [2014-07-31 Thu 12:08] \\
+  This has a few problems at the moment
+CLOCK: [2014-07-31 Thu 12:05]--[2014-07-31 Thu 12:11] =>  0:06
+:END:
+
+#+BEGIN_SRC python :results output
+  import numpy as np
+  from rebin_utils import downsample, oversample
+  from astropy.io import fits
+  import pyregion
+  import scipy.ndimage as ndi
+  from skimage.morphology import erosion, square
+
+  <<rebin-common>>
+
+  starmask = fits.open("full_F547M_north_pad.fits")[0].data > 8.0
+  for fn, xn in table:
+      infile = "full_{}_north_pad.fits".format(fn)
+      hdu = fits.open(infile)[0]
+      m = np.isfinite(hdu.data) & (hdu.data > 0.0) & (~starmask)
+      if fn == "redcorrect":
+          m = m & (hdu.data < 1.6) & (hdu.data >= 1.0)
+          m = erosion(m.astype(np.uint8), square(3)).astype(bool)
+      w = np.ones_like(hdu.data)
+      if xn is not None:
+          include = pyregion.open("will-{}-sweet-spot.reg".format(xn))
+          exclude = pyregion.open("will-{}-exclude.reg".format(xn))
+          m = m & (include.get_mask(hdu=hdu) & (~exclude.get_mask(hdu=hdu)))
+          
+      for n in nlist:
+          hdu.data[~m] = 0.0
+          outfile = infile.replace("_north_pad", "bin{0:03d}x{0:03d}".format(n))
+          print("Saving", outfile)
+          fits.PrimaryHDU(data=oversample(hdu.data, n),
+                          header=hdu.header).writeto(outfile, clobber=True)
+          [hdu.data,], m, w = downsample([hdu.data,], m, weights=w)
+
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Saving full_redcorrectbin001x001.fits
+WARNING: Overwriting existing file 'full_redcorrectbin001x001.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin002x002.fits
+WARNING: Overwriting existing file 'full_redcorrectbin002x002.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin004x004.fits
+WARNING: Overwriting existing file 'full_redcorrectbin004x004.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin008x008.fits
+WARNING: Overwriting existing file 'full_redcorrectbin008x008.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin016x016.fits
+WARNING: Overwriting existing file 'full_redcorrectbin016x016.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin032x032.fits
+WARNING: Overwriting existing file 'full_redcorrectbin032x032.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin064x064.fits
+WARNING: Overwriting existing file 'full_redcorrectbin064x064.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin128x128.fits
+WARNING: Overwriting existing file 'full_redcorrectbin128x128.fits'. [astropy.io.fits.file]
+Saving full_redcorrectbin256x256.fits
+WARNING: Overwriting existing file 'full_redcorrectbin256x256.fits'. [astropy.io.fits.file]
+WARNING: AstropyDeprecationWarning: The ascard function is deprecated and may be removed in a future version.
+        Use the `.cards` attribute instead. [pyregion.wcs_helper]
+WARNING: AstropyDeprecationWarning: The CardList class has been deprecated; all its former functionality has been subsumed by the Header class, so CardList objects should not be directly created.  See the PyFITS 3.1.0 CHANGELOG for more details. [astropy.io.fits.card]
+WARNING: AstropyDeprecationWarning: The ascard function is deprecated and may be removed in a future version.
+        Use the `.cards` attribute instead. [pyregion.wcs_helper]
+WARNING: AstropyDeprecationWarning: The wcs_sky2pix function is deprecated and may be removed in a future version.
+        Use wcs_world2pix instead. [pyregion.wcs_helper]
+WARNING: AstropyDeprecationWarning: The wcs_pix2sky function is deprecated and may be removed in a future version.
+        Use wcs_pix2world instead. [pyregion.wcs_helper]
+Saving full_FQ575Nbin001x001.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin001x001.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin002x002.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin002x002.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin004x004.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin004x004.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin008x008.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin008x008.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin016x016.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin016x016.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin032x032.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin032x032.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin064x064.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin064x064.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin128x128.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin128x128.fits'. [astropy.io.fits.file]
+Saving full_FQ575Nbin256x256.fits
+WARNING: Overwriting existing file 'full_FQ575Nbin256x256.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin001x001.fits
+WARNING: Overwriting existing file 'full_F658Nbin001x001.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin002x002.fits
+WARNING: Overwriting existing file 'full_F658Nbin002x002.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin004x004.fits
+WARNING: Overwriting existing file 'full_F658Nbin004x004.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin008x008.fits
+WARNING: Overwriting existing file 'full_F658Nbin008x008.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin016x016.fits
+WARNING: Overwriting existing file 'full_F658Nbin016x016.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin032x032.fits
+WARNING: Overwriting existing file 'full_F658Nbin032x032.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin064x064.fits
+WARNING: Overwriting existing file 'full_F658Nbin064x064.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin128x128.fits
+WARNING: Overwriting existing file 'full_F658Nbin128x128.fits'. [astropy.io.fits.file]
+Saving full_F658Nbin256x256.fits
+WARNING: Overwriting existing file 'full_F658Nbin256x256.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin001x001.fits
+WARNING: Overwriting existing file 'full_F673Nbin001x001.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin002x002.fits
+WARNING: Overwriting existing file 'full_F673Nbin002x002.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin004x004.fits
+WARNING: Overwriting existing file 'full_F673Nbin004x004.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin008x008.fits
+WARNING: Overwriting existing file 'full_F673Nbin008x008.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin016x016.fits
+WARNING: Overwriting existing file 'full_F673Nbin016x016.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin032x032.fits
+WARNING: Overwriting existing file 'full_F673Nbin032x032.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin064x064.fits
+WARNING: Overwriting existing file 'full_F673Nbin064x064.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin128x128.fits
+WARNING: Overwriting existing file 'full_F673Nbin128x128.fits'. [astropy.io.fits.file]
+Saving full_F673Nbin256x256.fits
+WARNING: Overwriting existing file 'full_F673Nbin256x256.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin001x001.fits
+WARNING: Overwriting existing file 'full_F547Mbin001x001.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin002x002.fits
+WARNING: Overwriting existing file 'full_F547Mbin002x002.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin004x004.fits
+WARNING: Overwriting existing file 'full_F547Mbin004x004.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin008x008.fits
+WARNING: Overwriting existing file 'full_F547Mbin008x008.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin016x016.fits
+WARNING: Overwriting existing file 'full_F547Mbin016x016.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin032x032.fits
+WARNING: Overwriting existing file 'full_F547Mbin032x032.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin064x064.fits
+WARNING: Overwriting existing file 'full_F547Mbin064x064.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin128x128.fits
+WARNING: Overwriting existing file 'full_F547Mbin128x128.fits'. [astropy.io.fits.file]
+Saving full_F547Mbin256x256.fits
+WARNING: Overwriting existing file 'full_F547Mbin256x256.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin001x001.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin001x001.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin002x002.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin002x002.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin004x004.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin004x004.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin008x008.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin008x008.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin016x016.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin016x016.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin032x032.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin032x032.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin064x064.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin064x064.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin128x128.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin128x128.fits'. [astropy.io.fits.file]
+Saving full_FQ672Nbin256x256.fits
+WARNING: Overwriting existing file 'full_FQ672Nbin256x256.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin001x001.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin001x001.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin002x002.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin002x002.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin004x004.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin004x004.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin008x008.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin008x008.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin016x016.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin016x016.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin032x032.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin032x032.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin064x064.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin064x064.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin128x128.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin128x128.fits'. [astropy.io.fits.file]
+Saving full_FQ674Nbin256x256.fits
+WARNING: Overwriting existing file 'full_FQ674Nbin256x256.fits'. [astropy.io.fits.file]
+#+end_example
+
+**** WAITING Re-calculate the line ratios from the rebinned filter maps
+:LOGBOOK:
+- State "WAITING"    from "STARTED"    [2014-07-31 Thu 12:12] \\
+  Need to sort out issues with the binned maps first
+CLOCK: [2014-07-31 Thu 12:11]
+:END:
+  
+#+header: :var intable=filter-set-fakes limits=ratio-limits
+#+BEGIN_SRC python :return plotlinks :results output
+  from wfc3_utils import find_line_ratio
+  import wfc3_utils
+  from astropy.io import fits
+
+  <<rebin-common>>
+
+  <<strange-new-gradients>>
+
+  def get_fits_hdu(fn, n):
+      return fits.open("full_{0}bin{1:03d}x{1:03d}.fits".format(fn, n))[0]
+
+
+  for n in nlist:
+      for wav1, wav2, FI, FII, FIII, _, _, _, kI, kII, kIII in intable[0:3]:
+          filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
+          RI = get_fits_hdu(FI, n).data
+          RII = get_fits_hdu(FII, n).data
+          RIII = get_fits_hdu(FIII, n).data
+          y = find_line_ratio(filterset, RI, RII, RIII,
+                              k_I=kI/kII, k_II=kII/kIII, naive=False)
+          hdu = fits.PrimaryHDU(y, header=get_fits_hdu(FI, 1).header)
+          rfile = "ratio-bin{0:03d}x{0:03d}-{1}-{2}-{3}.fits".format(n, FI, FII, FIII)
+          hdu.writeto(rfile, clobber=True)
+#+END_SRC
+
+#+RESULTS:
+
 *** Bob's comments of [2014-06-30 Mon]
 :PROPERTIES:
 :EXPORT_FILE_NAME: bob-comments
@@ -5718,16 +5986,11 @@ r_{\mathrm{pred}} = 1 + \left[50.44 k^{-1} \frac{R_{\mathrm{F575N}}}{R_{\mathrm{
 #+TITLE:     Orion t^2 project
 #+AUTHOR:    William Henney
 #+EMAIL:     w.henney@crya.unam.mx
-#+DESCRIPTION:
-#+KEYWORDS:
+#+SEQ_TODO: TODO(t) STARTED(s) WAITING(w@) | DONE(d) CANCELED(c@)
 #+LANGUAGE:  en
 #+PROPERTY: header-args    :exports both
 #+OPTIONS:   H:5 num:nil toc:t \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
 #+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
-#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
 #+EXPORT_SELECT_TAGS: export
 #+EXPORT_EXCLUDE_TAGS: noexport
-#+LINK_UP:   
-#+LINK_HOME: 
-#+XSLT:
 
