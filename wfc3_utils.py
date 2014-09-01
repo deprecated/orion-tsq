@@ -161,3 +161,7 @@ If `naive` is True, then ignore the continuum and line contamination terms
 
     ratio *= (wav2*T_2_II)/(wav1*T_1_I)
     return ratio
+
+# Local Variables:
+# wjh/elpy-virtual-environment: "~/anaconda/envs/py27"
+# End:

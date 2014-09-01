@@ -165,6 +165,8 @@ Now we have a nice equation for finding the ratios
 | 4363 | 5007 | FQ437N | F502N  | FQ436N |
 | 4363 | 5007 | FQ437N | F502N  | F547M  |
 | 4861 | 6563 | F487N  | F656N  | F547M  |
+| 6583 | 6563 | F658N  | F656N  | F547M  |
+| 5007 | 4861 | F502N  | F487N  | F547M  |
 
 #+BEGIN_SRC python :return table :var intable=filter-sets
   from wfc3_utils import ratio_coefficients
@@ -193,6 +195,8 @@ Now we have a nice equation for finding the ratios
 | FQ437N | F502N  | FQ436N |  1.127 |     0.917 | 1.299e-07 |  0.7111 |   1.998 | 1.446e-07 | 3.156e-08 |
 | FQ437N | F502N  | F547M  |  1.127 | 3.912e-06 |  0.001587 | 0.03426 | 0.09627 | 1.446e-07 | 3.156e-08 |
 | F487N  | F656N  | F547M  | 0.9432 | 2.582e-06 | 1.089e-07 | 0.08711 | 0.02375 | 5.788e-07 | 6.363e-08 |
+| F658N  | F656N  | F547M  | 0.9811 |  1.37e-07 | 1.089e-07 | 0.03939 | 0.02375 | 1.174e-05 |  0.002225 |
+| F502N  | F487N  | F547M  |  1.068 |  0.001587 | 2.582e-06 | 0.09627 | 0.08711 | 7.406e-06 | 7.789e-07 |
 
 So for the [N II] ratio, the continuum contribution coefficients \beta for 575 and 658 are comparable - 2 to 4%, but the result will be more important for 575 since R_{II} > R_{III} > R_{I} by factors of 100:10:1
 
@@ -216,6 +220,8 @@ Now also grabbing suitable k values from the odh files
 | 4363 | 5007 | FQ437N | F502N  | FQ436N |  0.18 |  8.0 |   0.4 | 1.41 | 1.10 |  1.87 |
 | 4363 | 5007 | FQ437N | F502N  | F547M  |  0.18 |  8.0 |   2.5 | 1.28 | 1.10 |  1.03 |
 | 4861 | 6563 | F487N  | F656N  | F547M  |   3.2 | 12.0 |   2.5 | 1.13 | 1.04 |  1.03 |
+| 6583 | 6563 | F658N  | F656N  | F547M  |   7.8 | 12.0 |   2.5 | 1.04 | 1.04 |  1.03 |
+| 5007 | 4861 | F502N  | F487N  | F547M  |   8.0 |  3.2 |   2.5 |  1.1 | 1.13 |  1.03 |
 
 #+BEGIN_SRC python :return table :var intable=filter-set-fakes
   from wfc3_utils import find_line_ratio
@@ -245,6 +251,8 @@ Now also grabbing suitable k values from the odh files
 | FQ437N | F502N  | FQ436N |  -0.012 |         0.029 |
 | FQ437N | F502N  | F547M  |   0.012 |         0.029 |
 | F487N  | F656N  | F547M  |   0.316 |         0.340 |
+| F658N  | F656N  | F547M  |   0.629 |         0.636 |
+| F502N  | F487N  | F547M  |   2.711 |         2.593 |
 
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
@@ -479,6 +487,8 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 | FQ672N |   0.4 |  1.0 |
 | FQ437N | -0.01 | 0.03 |
 | F487N  |  0.20 | 0.33 |
+| F658N  |   0.1 | 0.4 |
+| F502N  |   2.5 | 4.5 |
 #+header: :var intable=filter-set-fakes limits=ratio-limits
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
@@ -540,7 +550,7 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
                                          [[xmin, xmax], [ymin, ymax]],
                                          weights=w)
       plt.imshow(H.T, extent=[xmin, xmax, ymin, ymax],
-                 interpolation='none', aspect='auto', origin='lower', 
+                 interpolation='nearest', aspect='auto', origin='lower', 
                  cmap=plt.cm.gray_r, alpha=1.0)
       plt.xlabel("({} / {})*".format(wav1, wav2))
       plt.ylabel("({} / {})".format(wav1, wav2))
@@ -561,6 +571,8 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 - [[file:contam-correct-FQ437N-F502N-FQ436N.pdf]]
 - [[file:contam-correct-FQ437N-F502N-F547M.pdf]]
 - [[file:contam-correct-F487N-F656N-F547M.pdf]]
+- [[file:contam-correct-F658N-F656N-F547M.pdf]]
+- [[file:contam-correct-F502N-F487N-F547M.pdf]]
 
 
 **** Sensitivity to variations in different parameters
@@ -587,10 +599,11 @@ Look at the following:
 
 In all cases, we weight by the nii brightness
 #+name: interesting-ratios
-| nii-red  | F487N-F656N-F547M   | 0.2 | 0.3 | FQ575N-F658N-F547M  | 0.00 | 0.04 |
-| nii-sii  | FQ672N-FQ674N-F547M | 0.4 | 0.8 | FQ575N-F658N-F547M  | 0.00 | 0.04 |
-| nii-sii2 | FQ672N-FQ674N-F673N | 0.4 | 0.8 | FQ575N-F658N-F547M  | 0.00 | 0.04 |
-| sii-sii  | FQ672N-FQ674N-F547M | 0.4 | 0.8 | FQ672N-FQ674N-F673N |  0.4 |  0.8 |
+| nii-red  | F487N-F656N-F547M   | 0.2 | 0.3 | FQ575N-F658N-F547M  | 0.00 | 0.04 | linear |
+| nii-sii  | FQ672N-FQ674N-F547M | 0.4 | 0.8 | FQ575N-F658N-F547M  | 0.00 | 0.04 | linear |
+| nii-sii2 | FQ672N-FQ674N-F673N | 0.4 | 0.8 | FQ575N-F658N-F547M  | 0.00 | 0.04 | linear |
+| sii-sii  | FQ672N-FQ674N-F547M | 0.4 | 0.8 | FQ672N-FQ674N-F673N |  0.4 |  0.8 | linear |
+| BPT      | F658N-F656N-F547M   | 0.1 | 0.5 | F502N-F487N-F547M   |  2.0 |  4.0 | log    |
 #+header: :var tab=interesting-ratios
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
@@ -598,15 +611,19 @@ In all cases, we weight by the nii brightness
   from matplotlib import pyplot as plt
   import pyregion
   plotlinks = []
-  snii = fits.open("full_F658N_north_pad.fits")[0].data
-  for descrip, ratA, xmin, xmax, ratB, ymin, ymax in tab:
+  sha = fits.open("full_F656N_north_pad.fits")[0].data
+  for descrip, ratA, xmin, xmax, ratB, ymin, ymax, graph_type in tab:
       hduA = fits.open("ratio-contam-correct-{}.fits".format(ratA))[0]
       hduB = fits.open("ratio-contam-correct-{}.fits".format(ratB))[0]
       region =  pyregion.open("will-extended-sweet-spot.reg")
       m = region.get_mask(hdu=hduA)
       x = hduA.data[m]
-      y = hduB.data[m]
-      w = snii[m]
+      y = hduB.data[m] 
+      w = sha[m]
+      if graph_type == 'log':
+          x = np.log10(x)
+          y = np.log10(y)
+          xmin, xmax, ymin, ymax = [np.log10(var) for var in [xmin, xmax, ymin, ymax]]
       fig = plt.figure(figsize=(6,6))
       pltfile = "ratio-correl-{}.pdf".format(descrip)
       H, xedges, yedges = np.histogram2d(x, y, 100,
@@ -629,6 +646,11 @@ In all cases, we weight by the nii brightness
 - [[file:ratio-correl-nii-sii.pdf]]
 - [[file:ratio-correl-nii-sii2.pdf]]
 - [[file:ratio-correl-sii-sii.pdf]]
+- [[file:ratio-correl-BPT.pdf]]
+
+
+
+
 **** Curves for T,n diagnostics
 #+name: pyneb-setup
 #+header: :python /Users/will/anaconda/envs/py27/bin/python
@@ -953,9 +975,10 @@ CLOCK: [2014-07-01 Tue 01:19]--[2014-07-01 Tue 01:20] =>  0:01
 :ID:       6BB8A20A-ECD6-494E-B7B3-DF139BC5B8F8
 :END:
 + F(\lambda) values are 
-| H\beta 4861  |    0.0 |
+| H\beta 4861      |    0.0 |
+| [O III] 5007 | -0.022 |
 | [N II] 5755  | -0.123 |
-| H\alpha 6563 | -0.220 |
+| H\alpha 6563      | -0.220 |
 | [N II] 6584  | -0.222 |
 
 + Calculate CHB from observed Balmer decrement R = Ha/Hb
@@ -1431,12 +1454,16 @@ CLOCK: [2014-07-30 Wed 18:21]--[2014-07-30 Wed 19:11] =>  0:50
 :noweb:    yes
 :END:
 + Previously we had rebinned the ratios, but it would be best to do it to the surface brightness maps
-
+  
 **** Make a symbolic link to the reddening image
 #+BEGIN_SRC sh :results silent
   ln -s redcorrect-FQ575N-F658N-2874.fits full_redcorrect_north_pad.fits
 #+END_SRC
 This is just so that it has the same filename pattern as the other images.
+
+#+BEGIN_SRC sh :results silent
+  ln -s new-chb-2874.fits full_chb_north_pad.fits
+#+END_SRC
 
 **** Common functionality for rebinning
 + Only do [N II] and [S II] for now
@@ -1444,13 +1471,16 @@ This is just so that it has the same filename pattern as the other images.
 #+name: rebin-common
 #+BEGIN_SRC python
   table = [
-      ["redcorrect", None],
-      ["FQ575N", "nii"],
-      ["F658N", None],
-      ["F673N", None],
-      ["F547M", None],
-      ["FQ672N", "sii"],
-      ["FQ674N", "sii"],
+      ["F502N", None],
+      # ["F656N", None],
+      # ["chb", None],
+      # ["redcorrect", None],
+      # ["FQ575N", "nii"],
+      # ["F658N", None],
+      # ["F673N", None],
+      # ["F547M", None],
+      # ["FQ672N", "sii"],
+      # ["FQ674N", "sii"],
   ]
   nlist = [1, 2, 4, 8, 16, 32, 64, 128, 256]
 #+END_SRC
@@ -1458,14 +1488,13 @@ This is just so that it has the same filename pattern as the other images.
 
 **** STARTED Rebin the surface brightnesses
 :LOGBOOK:
-- Note taken on [2014-07-31 Thu 12:09] \\
-  Second, we need to use the fine-scale mask to cut things off in all
-  the binned maps.  But possibly only the convex hull?
 - Note taken on [2014-07-31 Thu 12:08] \\
-  First, there seems to be a spatial offset between the binned images.
-  The more the binning, the more it shifts to the upper right.
-- Note taken on [2014-07-31 Thu 12:08] \\
-  This has a few problems at the moment
+  - This has a few problems at the moment
+  - First, there seems to be a spatial offset between the binned
+    images. The more the binning, the more it shifts to the upper
+    right.
+  - Second, we need to use the fine-scale mask to cut things off in
+    all the binned maps.  But possibly only the convex hull?
 CLOCK: [2014-07-31 Thu 12:05]--[2014-07-31 Thu 12:11] =>  0:06
 :END:
 
@@ -1487,6 +1516,9 @@ CLOCK: [2014-07-31 Thu 12:05]--[2014-07-31 Thu 12:11] =>  0:06
       if fn == "redcorrect":
           m = m & (hdu.data < 1.6) & (hdu.data >= 1.0)
           m = erosion(m.astype(np.uint8), square(3)).astype(bool)
+      if fn == "chb":
+          m = m & (hdu.data < 2.1) & (hdu.data >= 0.0)
+          m = erosion(m.astype(np.uint8), square(3)).astype(bool)
       w = np.ones_like(hdu.data)
       if xn is not None:
           include = pyregion.open("will-{}-sweet-spot.reg".format(xn))
@@ -1505,149 +1537,21 @@ CLOCK: [2014-07-31 Thu 12:05]--[2014-07-31 Thu 12:11] =>  0:06
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Saving full_redcorrectbin001x001.fits
-WARNING: Overwriting existing file 'full_redcorrectbin001x001.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin002x002.fits
-WARNING: Overwriting existing file 'full_redcorrectbin002x002.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin004x004.fits
-WARNING: Overwriting existing file 'full_redcorrectbin004x004.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin008x008.fits
-WARNING: Overwriting existing file 'full_redcorrectbin008x008.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin016x016.fits
-WARNING: Overwriting existing file 'full_redcorrectbin016x016.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin032x032.fits
-WARNING: Overwriting existing file 'full_redcorrectbin032x032.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin064x064.fits
-WARNING: Overwriting existing file 'full_redcorrectbin064x064.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin128x128.fits
-WARNING: Overwriting existing file 'full_redcorrectbin128x128.fits'. [astropy.io.fits.file]
-Saving full_redcorrectbin256x256.fits
-WARNING: Overwriting existing file 'full_redcorrectbin256x256.fits'. [astropy.io.fits.file]
-WARNING: AstropyDeprecationWarning: The ascard function is deprecated and may be removed in a future version.
-        Use the `.cards` attribute instead. [pyregion.wcs_helper]
-WARNING: AstropyDeprecationWarning: The CardList class has been deprecated; all its former functionality has been subsumed by the Header class, so CardList objects should not be directly created.  See the PyFITS 3.1.0 CHANGELOG for more details. [astropy.io.fits.card]
-WARNING: AstropyDeprecationWarning: The ascard function is deprecated and may be removed in a future version.
-        Use the `.cards` attribute instead. [pyregion.wcs_helper]
-WARNING: AstropyDeprecationWarning: The wcs_sky2pix function is deprecated and may be removed in a future version.
-        Use wcs_world2pix instead. [pyregion.wcs_helper]
-WARNING: AstropyDeprecationWarning: The wcs_pix2sky function is deprecated and may be removed in a future version.
-        Use wcs_pix2world instead. [pyregion.wcs_helper]
-Saving full_FQ575Nbin001x001.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin001x001.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin002x002.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin002x002.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin004x004.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin004x004.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin008x008.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin008x008.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin016x016.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin016x016.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin032x032.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin032x032.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin064x064.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin064x064.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin128x128.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin128x128.fits'. [astropy.io.fits.file]
-Saving full_FQ575Nbin256x256.fits
-WARNING: Overwriting existing file 'full_FQ575Nbin256x256.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin001x001.fits
-WARNING: Overwriting existing file 'full_F658Nbin001x001.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin002x002.fits
-WARNING: Overwriting existing file 'full_F658Nbin002x002.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin004x004.fits
-WARNING: Overwriting existing file 'full_F658Nbin004x004.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin008x008.fits
-WARNING: Overwriting existing file 'full_F658Nbin008x008.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin016x016.fits
-WARNING: Overwriting existing file 'full_F658Nbin016x016.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin032x032.fits
-WARNING: Overwriting existing file 'full_F658Nbin032x032.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin064x064.fits
-WARNING: Overwriting existing file 'full_F658Nbin064x064.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin128x128.fits
-WARNING: Overwriting existing file 'full_F658Nbin128x128.fits'. [astropy.io.fits.file]
-Saving full_F658Nbin256x256.fits
-WARNING: Overwriting existing file 'full_F658Nbin256x256.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin001x001.fits
-WARNING: Overwriting existing file 'full_F673Nbin001x001.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin002x002.fits
-WARNING: Overwriting existing file 'full_F673Nbin002x002.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin004x004.fits
-WARNING: Overwriting existing file 'full_F673Nbin004x004.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin008x008.fits
-WARNING: Overwriting existing file 'full_F673Nbin008x008.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin016x016.fits
-WARNING: Overwriting existing file 'full_F673Nbin016x016.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin032x032.fits
-WARNING: Overwriting existing file 'full_F673Nbin032x032.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin064x064.fits
-WARNING: Overwriting existing file 'full_F673Nbin064x064.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin128x128.fits
-WARNING: Overwriting existing file 'full_F673Nbin128x128.fits'. [astropy.io.fits.file]
-Saving full_F673Nbin256x256.fits
-WARNING: Overwriting existing file 'full_F673Nbin256x256.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin001x001.fits
-WARNING: Overwriting existing file 'full_F547Mbin001x001.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin002x002.fits
-WARNING: Overwriting existing file 'full_F547Mbin002x002.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin004x004.fits
-WARNING: Overwriting existing file 'full_F547Mbin004x004.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin008x008.fits
-WARNING: Overwriting existing file 'full_F547Mbin008x008.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin016x016.fits
-WARNING: Overwriting existing file 'full_F547Mbin016x016.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin032x032.fits
-WARNING: Overwriting existing file 'full_F547Mbin032x032.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin064x064.fits
-WARNING: Overwriting existing file 'full_F547Mbin064x064.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin128x128.fits
-WARNING: Overwriting existing file 'full_F547Mbin128x128.fits'. [astropy.io.fits.file]
-Saving full_F547Mbin256x256.fits
-WARNING: Overwriting existing file 'full_F547Mbin256x256.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin001x001.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin001x001.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin002x002.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin002x002.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin004x004.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin004x004.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin008x008.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin008x008.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin016x016.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin016x016.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin032x032.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin032x032.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin064x064.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin064x064.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin128x128.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin128x128.fits'. [astropy.io.fits.file]
-Saving full_FQ672Nbin256x256.fits
-WARNING: Overwriting existing file 'full_FQ672Nbin256x256.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin001x001.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin001x001.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin002x002.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin002x002.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin004x004.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin004x004.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin008x008.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin008x008.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin016x016.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin016x016.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin032x032.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin032x032.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin064x064.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin064x064.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin128x128.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin128x128.fits'. [astropy.io.fits.file]
-Saving full_FQ674Nbin256x256.fits
-WARNING: Overwriting existing file 'full_FQ674Nbin256x256.fits'. [astropy.io.fits.file]
-#+end_example
+: Saving full_F502Nbin001x001.fits
+: Saving full_F502Nbin002x002.fits
+: Saving full_F502Nbin004x004.fits
+: Saving full_F502Nbin008x008.fits
+: Saving full_F502Nbin016x016.fits
+: Saving full_F502Nbin032x032.fits
+: Saving full_F502Nbin064x064.fits
+: Saving full_F502Nbin128x128.fits
+: Saving full_F502Nbin256x256.fits
 
 **** WAITING Re-calculate the line ratios from the rebinned filter maps
 :LOGBOOK:
 - State "WAITING"    from "STARTED"    [2014-07-31 Thu 12:12] \\
   Need to sort out issues with the binned maps first
-CLOCK: [2014-07-31 Thu 12:11]
+CLOCK: [2014-07-31 Thu 12:11]--[2014-07-31 Thu 12:16] =>  0:05
 :END:
   
 #+header: :var intable=filter-set-fakes limits=ratio-limits
@@ -1678,6 +1582,901 @@ CLOCK: [2014-07-31 Thu 12:11]
 #+END_SRC
 
 #+RESULTS:
+
+
+**** Make some masks with the convex hull for nii, sii, and combined
+:LOGBOOK:
+CLOCK: [2014-08-11 Mon 23:14]--[2014-08-13 Wed 10:30] => 35:16
+:END:
+#+BEGIN_SRC python
+  import numpy as np
+  import pyregion
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+
+  ions = ["nii", "sii"]
+
+  hdu = fits.open("full_F658N_north_pad.fits")[0]
+  masks = {"basic": np.isfinite(hdu.data) & (hdu.data > 0.0)}
+  for ion in ions:
+      include = pyregion.open("will-{}-sweet-spot.reg".format(ion))
+      exclude = pyregion.open("will-{}-exclude.reg".format(ion))
+      masks[ion] = include.get_mask(hdu) & (~exclude.get_mask(hdu)) & masks["basic"]
+      masks[ion] = convex_hull_image(masks[ion])
+
+  masks['nii-sii'] = masks['sii'] & masks['nii']
+
+  for k, v in masks.items():
+      fits.PrimaryHDU(v.astype(int), header=hdu.header).writeto("full-mask-{}.fits".format(k), clobber=True)
+#+END_SRC
+
+#+RESULTS:
+: None
+
+**** Re-calculate the T, n from the line ratios for the binned images
+:PROPERTIES:
+:header-args: :python ~/anaconda/envs/py27/bin/python
+:header-args: :shebang "from __future__ import print_function"
+:header-args: :padline no
+:END:
+
+We need to use python 2 for this since pyneb has not been ported yet
+#+BEGIN_SRC python
+import sys
+return sys.version
+#+END_SRC
+
+#+RESULTS:
+: 2.7.8 |Anaconda 1.8.0 (x86_64)| (default, Jul  2 2014, 15:36:00) 
+: [GCC 4.2.1 (Apple Inc. build 5577)]
+
+#+name: binned-n-T
+#+header: :var n=1
+#+BEGIN_SRC python :results output
+  import pyneb
+  from scipy.interpolate import griddata
+  from astropy.io import fits
+  import numpy as np
+
+  pyneb.atomicData.resetDataFileDict()
+  sii = pyneb.Atom("S", 2)
+  nii = pyneb.Atom("N", 2)
+
+  def rsii_func(T, den):
+      A = sii.getEmissivity(T, den, wave=6716)
+      B = sii.getEmissivity(T, den, wave=6731)
+      return A/B
+
+  def rnii_func(T, den):
+      A = nii.getEmissivity(T, den, wave=5755)
+      B = nii.getEmissivity(T, den, wave=6583)
+      return A/B
+
+  Tmin, Tmax = 2000.0, 20000.0
+  Nmin, Nmax = 100.0, 5.e4
+  nT, nN = 400, 400
+  Tgrid = np.linspace(Tmin, Tmax, nT)
+  Ngrid = np.logspace(np.log10(Nmin), np.log10(Nmax), nN)
+  Nvalues, Tvalues = np.meshgrid(Ngrid, Tgrid)
+
+  rsii_grid = rsii_func(Tgrid, Ngrid)
+  rnii_grid = rnii_func(Tgrid, Ngrid)
+  points = np.array(zip(rsii_grid.ravel(), rnii_grid.ravel()))
+
+  ssmask = fits.open("full-mask-nii-sii.fits")[0].data
+  print("created mask")
+  binid = "bin{0:03d}x{0:03d}".format(n)
+  hdu_sii = fits.open("ratio-{}-FQ672N-FQ674N-F547M.fits".format(binid))[0]
+  hdu_nii = fits.open("ratio-{}-FQ575N-F658N-F547M.fits".format(binid))[0]
+  rsii = hdu_sii.data
+  rnii = hdu_nii.data
+  m = ssmask & np.isfinite(rsii) & np.isfinite(rnii) & (rsii > 0.0) & (rnii > 0.0)
+
+  # Deal with rsii values outside theoretical range
+  rsii[rsii < rsii_grid.min()] = rsii_grid.min()
+  rsii[rsii > rsii_grid.max()] = rsii_grid.max()
+
+  xi = np.array(zip(rsii[m], rnii[m]))
+
+  Te = griddata(points, Tvalues.ravel(), xi, method='nearest')
+  Ne = griddata(points, Nvalues.ravel(), xi, method='nearest')
+
+  hdu_sii.data[m] = Ne
+  hdu_sii.data[~m] = np.nan
+  hdu_nii.data[m] = Te
+  hdu_nii.data[~m] = np.nan
+  print("Writing", binid, "Te, Ne images")
+  hdu_nii.writeto('Te-{}.fits'.format(binid), clobber=True)
+  hdu_sii.writeto('Ne-{}.fits'.format(binid), clobber=True)
+
+#+END_SRC
+
+#+RESULTS: binned-n-T
+
+#+RESULTS:
+
+#+call: binned-n-T[:results output](n=1)
+
+#+RESULTS:
+: nil
+
+#+name: func-test
+#+BEGIN_SRC python :var n=1 :results output
+print("n =", n)
+#+END_SRC
+
+#+RESULTS:
+: ('n =', 1)
+
+#+call: func-test(n=5)
+
+#+RESULTS:
+: ('n =', 5)
+
+**** Reproduce the graphs in the "Tsq spatial scale" notebook
+
+***** Make an array of radii from th1C
+:LOGBOOK:
+CLOCK: [2014-08-11 Mon 10:17]--[2014-08-11 Mon 23:14] => 12:57
+:END:
+#+name: radii-from-theta-1-C-Ori
+#+BEGIN_SRC python
+  import numpy as np
+  import astropy.coordinates as coord
+  import astropy.units as u
+  from astropy import wcs
+  from astropy.io import fits
+  from rebin_utils import downsample, oversample
+  def radii_grid(hdr):
+      """Calculate radius in arcsec from th1C"""
+      c0 = coord.ICRSCoordinates(coordstr="5:35:16.466 -5:23:22.77",
+                                 unit=(u.hour, u.deg))
+      nx, ny = hdr['NAXIS1'], hdr['NAXIS2']
+      X, Y = np.meshgrid(np.arange(nx), np.arange(ny))
+      w = wcs.WCS(hdr)
+      RA, DEC = w.all_pix2world(X, Y, 0)
+      cc = coord.ICRSCoordinates(ra=RA, dec=DEC, unit=(u.deg, u.deg))
+      seps = cc.separation(c0).arcsec
+      return seps
+
+
+  hdu = fits.open("full_redcorrect_north_pad.fits")[0]
+  radii = radii_grid(hdu.header)
+  m = np.ones_like(radii).astype(bool)
+  for n in [1, 2, 4, 8, 16, 32, 64, 128, 256]:
+      outfile = "radii_bin{0:03d}x{0:03d}.fits".format(n)
+      fits.PrimaryHDU(oversample(radii, n),
+                      header=hdu.header).writeto(outfile, clobber=True)
+      [radii], m = downsample([radii], m)
+
+#+END_SRC
+
+#+RESULTS: radii-from-theta-1-C-Ori
+: None
+
+
+***** Histograms of ratios versus radii
+
+****** First the [N II] ratio histogram versus radius
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 95.0
+  y1, y2 = 0.00, 0.032
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-nii-sweet-spot.reg")
+  exclude = pyregion.open("will-nii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      r575 = fits.open(
+          "ratio-bin{0:03d}x{0:03d}-FQ575N-F658N-F547M.fits".format(n))[0]
+      s575 = fits.open(
+          "full_FQ575Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=r575) & (~exclude.get_mask(hdu=r575))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = r575.data[m]
+      w = s575.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("5755 / 6584")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "rnii-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:rnii-vs-radius-binning-new.pdf]]
+
+****** Second the [S II] ratio histogram versus radius
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 105.0
+  y1, y2 = 0.45, 0.9
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      r673 = fits.open(
+          "ratio-bin{0:03d}x{0:03d}-FQ672N-FQ674N-F547M.fits".format(n))[0]
+      s673 = fits.open(
+          "full_F673Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=r673) & (~exclude.get_mask(hdu=r673))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = r673.data[m]
+      w = s673.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("6716 / 6731")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "rsii-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:rsii-vs-radius-binning-new.pdf]]
+
+****** Third the [N II] brightness histogram versus radius
++ This is for the 6583 line
++ [X] It has been de-redenned
++ We detrend it by multiplying by R^{1.9}
+#+BEGIN_SRC python :return outtab
+  from astropy.io import fits
+  import numpy as np
+  x = fits.open("full_F658Nbin{0:03d}x{0:03d}.fits".format(1))[0].data
+  m = np.isfinite(x) & (x > 0.0)
+  x = np.log10(x[m])
+  outtab = [["mean", "median", "std", "min", "max"]]
+  outtab.append(None)
+  outtab.append(["{:.4f}".format(10**v) for v in
+                 [x.mean(), np.median(x), x.std(), x.min(), x.max()]])
+#+END_SRC
+
+#+RESULTS:
+|   mean | median |    std |    min |        max |
+|--------+--------+--------+--------+------------|
+| 1.3934 | 1.3614 | 2.2213 | 0.0000 | 16085.2080 |
+
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 105.0
+  y1, y2 = 0.00, 4.0
+  # y1, y2 = -0.5, 1.5
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      chb = fits.open(
+          "full_chbbin{0:03d}x{0:03d}.fits".format(n))[0]
+      s658 = fits.open(
+          "full_F658Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=s658) & (~exclude.get_mask(hdu=s658))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = s658.data[m] * 10**(chb.data[m]*(1.0 - 0.222)) * 0.45*(x/100)**1.9
+      w = s658.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("Detrended S([N II] 6583)")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "snii-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:snii-vs-radius-binning-new.pdf]]
+
+
+****** Fourth the H\alpha brightness histogram versus radius
++ This is for the 6563 line
++ [X] It has been de-redenned 
++ We detrend it by multiplying by R^{1.4}
+#+BEGIN_SRC python :return outtab
+  from astropy.io import fits
+  import numpy as np
+  x = fits.open("full_F656Nbin{0:03d}x{0:03d}.fits".format(1))[0].data
+  m = np.isfinite(x) & (x > 0.0)
+  x = np.log10(x[m])
+  outtab = [["mean", "median", "std", "min", "max"]]
+  outtab.append(None)
+  outtab.append(["{:.4f}".format(10**v) for v in
+                 [x.mean(), np.median(x), x.std(), x.min(), x.max()]])
+#+END_SRC
+
+#+RESULTS:
+|   mean | median |    std |    min |        max |
+|--------+--------+--------+--------+------------|
+| 7.9913 | 8.1588 | 1.9101 | 0.0000 | 86526.4867 |
+
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 105.0
+  y1, y2 = 0.00, 4.0
+  # y1, y2 = -0.5, 1.5
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      s656 = fits.open(
+          "full_F656Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      chb = fits.open(
+          "full_chbbin{0:03d}x{0:03d}.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=s656) & (~exclude.get_mask(hdu=s656))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = s656.data[m] * 10**(chb.data[m]*(1.0 - 0.220)) * 0.08*(x/100)**1.4
+      w = s656.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("Detrended S(H alpha 6563)")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "sha-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:sha-vs-radius-binning-new.pdf]]
+
+
+****** Fifth the [O III] brightness histogram versus radius
++ This is for the 5007 line
++ [X] It has been de-redenned 
++ We detrend it by multiplying by R^{1.4}
+#+BEGIN_SRC python :return outtab
+  from astropy.io import fits
+  import numpy as np
+  x = fits.open("full_F502Nbin{0:03d}x{0:03d}.fits".format(1))[0].data
+  m = np.isfinite(x) & (x > 0.0)
+  x = np.log10(x[m])
+  outtab = [["mean", "median", "std", "min", "max"]]
+  outtab.append(None)
+  outtab.append(["{:.4f}".format(10**v) for v in
+                 [x.mean(), np.median(x), x.std(), x.min(), x.max()]])
+#+END_SRC
+
+#+RESULTS:
+|   mean | median |    std |    min |         max |
+|--------+--------+--------+--------+-------------|
+| 5.0388 | 5.3161 | 2.0563 | 0.0000 | 264113.5791 |
+
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 105.0
+  y1, y2 = 0.00, 4.0
+  # y1, y2 = -0.5, 1.5
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      s502 = fits.open(
+          "full_F502Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      chb = fits.open(
+          "full_chbbin{0:03d}x{0:03d}.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=s502) & (~exclude.get_mask(hdu=s502))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = s502.data[m] * 10**(chb.data[m]*(1.0 - 0.022)) * 0.09*(x/100)**1.4
+      w = s502.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("Detrended S([O III] 5007)")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "soiii-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:soiii-vs-radius-binning-new.pdf]]
+
+
+***** Histograms of nii ratios versus sii ratios
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+
+
+  x1, x2 = 0.45, 0.8
+  y1, y2 = 0.00, 0.032
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-nii-sweet-spot.reg")
+  exclude = pyregion.open("will-nii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      r575 = fits.open(
+          "ratio-bin{0:03d}x{0:03d}-FQ575N-F658N-F547M.fits".format(n))[0]
+      s575 = fits.open(
+          "full_FQ575Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      r672 = fits.open(
+          "ratio-bin{0:03d}x{0:03d}-FQ672N-FQ674N-F547M.fits".format(n))[0]
+      m = include.get_mask(hdu=r575) & (~exclude.get_mask(hdu=r575))
+      m = m & include.get_mask(hdu=r672) & (~exclude.get_mask(hdu=r672))
+      m = convex_hull_image(m)
+      x = r672.data[m]
+      y = r575.data[m]
+      w = s575.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  axes[1, 0].set_xlabel("6716 / 6731")
+  axes[1, 0].set_ylabel("5755 / 6584")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "rnii-vs-rsii-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+
+#+END_SRC
+
+#+RESULTS:
+[[file:rnii-vs-rsii-binning-new.pdf]]
+
+
+***** Ratio statistics vs binning
+****** First the [N II] ratio sigma versus radius
+
+#+BEGIN_SRC python :return plotfile :results file
+  import json
+  import numpy as np
+  from matplotlib import pyplot as plt
+  from scipy.special import erfinv
+
+  iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
+
+  with open("rnii-vs-radius-binning-stats.json") as f:
+      multistats = json.load(f)
+
+  colors = iter(["b", "g", "r", "c"])
+  for n in [1, 4, 16, 64]:
+      ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
+      c = next(colors)
+      xgrid = ystats["x"]
+      iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
+      sig_width = ystats["std"]/ystats["mean"]
+  #    plt.plot(xgrid, sig_width, c, label=None)
+      plt.plot(xgrid, sig_width, c, lw=3, label="binning {0} x {0}".format(n))
+      
+  plt.legend(ncol=2, loc="lower right")
+  plt.ylim(0.0, None)
+  plt.grid()
+  plt.xlabel("Radius from th1C, arcsec")
+  plt.ylabel("Fractional st. dev. of 5755/6584 ratio")
+  plotfile = "sigma-rnii-vs-radius-binning-new.pdf"
+  plt.savefig(plotfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:sigma-rnii-vs-radius-binning-new.pdf]]
+
+****** Second the [S II] ratio sigma versus radius
+
+#+BEGIN_SRC python :return plotfile :results file
+  import json
+  import numpy as np
+  from matplotlib import pyplot as plt
+  from scipy.special import erfinv
+
+  iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
+
+  with open("rsii-vs-radius-binning-stats.json") as f:
+      multistats = json.load(f)
+
+  colors = iter(["b", "g", "r", "c"])
+  for n in [1, 4, 16, 64]:
+      ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
+      c = next(colors)
+      xgrid = ystats["x"]
+      iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
+      sig_width = ystats["std"]/ystats["mean"]
+  #    plt.plot(xgrid, sig_width, c, label=None)
+      plt.plot(xgrid, sig_width, c, lw=3, label="binning {0} x {0}".format(n))
+      
+  plt.legend(ncol=2, loc="lower right")
+  plt.ylim(0.0, None)
+  plt.grid()
+  plt.xlabel("Radius from th1C, arcsec")
+  plt.ylabel("Fractional st. dev. of 6716/6731 ratio")
+  plotfile = "sigma-rsii-vs-radius-binning-new.pdf"
+  plt.savefig(plotfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:sigma-rsii-vs-radius-binning-new.pdf]]
+
+****** Abandoned earlier attempt with robust stats
+#+BEGIN_SRC python :return plotfile :results file
+  import json
+  import numpy as np
+  from matplotlib import pyplot as plt
+  from scipy.special import erfinv
+
+  iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
+
+  with open("rnii-vs-rsii-binning-stats.json") as f:
+      multistats = json.load(f)
+
+  colors = iter(["b", "g", "r", "c"])
+  for n in [1, 4, 16, 64]:
+      ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
+      c = next(colors)
+      xgrid = ystats["x"]
+      iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
+      sig_width = ystats["std"]/ystats["mean"]
+      plt.plot(xgrid, sig_width, c, label=None)
+      plt.plot(xgrid, iqr_width, c, lw=3, label="binning {0} x {0}".format(n))
+      
+  plt.legend(ncol=2, loc="lower right")
+  plt.ylim(0.0, None)
+  plt.grid()
+  plt.xlabel("6716 / 6731")
+  plt.ylabel("Fractional st. dev. of 5755/6584 ratio")
+  plotfile = "sigma-rnii-vs-rsii-binning-abandoned.pdf"
+  plt.savefig(plotfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:sigma-rnii-vs-rsii-binning-new.pdf]]
+
+***** Now repeat with the derived T and n
 
 *** Bob's comments of [2014-06-30 Mon]
 :PROPERTIES:
