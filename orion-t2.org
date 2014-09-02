@@ -1471,7 +1471,8 @@ This is just so that it has the same filename pattern as the other images.
 #+name: rebin-common
 #+BEGIN_SRC python
   table = [
-      ["F502N", None],
+      ["F487N", None],
+      # ["F502N", None],
       # ["F656N", None],
       # ["chb", None],
       # ["redcorrect", None],
@@ -1537,15 +1538,15 @@ CLOCK: [2014-07-31 Thu 12:05]--[2014-07-31 Thu 12:11] =>  0:06
 #+END_SRC
 
 #+RESULTS:
-: Saving full_F502Nbin001x001.fits
-: Saving full_F502Nbin002x002.fits
-: Saving full_F502Nbin004x004.fits
-: Saving full_F502Nbin008x008.fits
-: Saving full_F502Nbin016x016.fits
-: Saving full_F502Nbin032x032.fits
-: Saving full_F502Nbin064x064.fits
-: Saving full_F502Nbin128x128.fits
-: Saving full_F502Nbin256x256.fits
+: Saving full_F487Nbin001x001.fits
+: Saving full_F487Nbin002x002.fits
+: Saving full_F487Nbin004x004.fits
+: Saving full_F487Nbin008x008.fits
+: Saving full_F487Nbin016x016.fits
+: Saving full_F487Nbin032x032.fits
+: Saving full_F487Nbin064x064.fits
+: Saving full_F487Nbin128x128.fits
+: Saving full_F487Nbin256x256.fits
 
 **** WAITING Re-calculate the line ratios from the rebinned filter maps
 :LOGBOOK:
@@ -1569,7 +1570,7 @@ CLOCK: [2014-07-31 Thu 12:11]--[2014-07-31 Thu 12:16] =>  0:05
 
 
   for n in nlist:
-      for wav1, wav2, FI, FII, FIII, _, _, _, kI, kII, kIII in intable[0:3]:
+      for wav1, wav2, FI, FII, FIII, _, _, _, kI, kII, kIII in intable[-2:]:
           filterset = {"wav1": wav1, "wav2": wav2, "I": FI, "II": FII, "III": FIII}
           RI = get_fits_hdu(FI, n).data
           RII = get_fits_hdu(FII, n).data
@@ -2110,7 +2111,7 @@ CLOCK: [2014-08-11 Mon 10:17]--[2014-08-11 Mon 23:14] => 12:57
           return json.JSONEncoder.default(self, obj)
               
   x1, x2 = 30.0, 105.0
-  y1, y2 = 0.00, 4.0
+  y1, y2 = 0.00, 3.0
   # y1, y2 = -0.5, 1.5
   fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
   nn = 0
@@ -2278,6 +2279,214 @@ CLOCK: [2014-08-11 Mon 10:17]--[2014-08-11 Mon 23:14] => 12:57
 [[file:soiii-vs-radius-binning-new.pdf]]
 
 
+****** Sixth the [N II]/H\alpha ratio histogram versus radius
++ This is for the 6583/6563 ratio
+#+BEGIN_SRC python :return outtab
+  from astropy.io import fits
+  import numpy as np
+  x = fits.open("full_F502Nbin{0:03d}x{0:03d}.fits".format(1))[0].data
+  m = np.isfinite(x) & (x > 0.0)
+  x = np.log10(x[m])
+  outtab = [["mean", "median", "std", "min", "max"]]
+  outtab.append(None)
+  outtab.append(["{:.4f}".format(10**v) for v in
+                 [x.mean(), np.median(x), x.std(), x.min(), x.max()]])
+#+END_SRC
+
+#+RESULTS:
+|   mean | median |    std |    min |         max |
+|--------+--------+--------+--------+-------------|
+| 5.0388 | 5.3161 | 2.0563 | 0.0000 | 264113.5791 |
+
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 105.0
+  y1, y2 = 0.00, 0.5
+  # y1, y2 = -0.5, 1.5
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      s656 = fits.open(
+          "full_F656Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      r658 = fits.open(
+          "ratio-bin{0:03d}x{0:03d}-F658N-F656N-F547M.fits".format(n))[0]
+      chb = fits.open(
+          "full_chbbin{0:03d}x{0:03d}.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=r658) & (~exclude.get_mask(hdu=r658))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = r658.data[m]
+      w = s656.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("[N II] 6583 / H alpha 6563")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "rnii-ha-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:rnii-ha-vs-radius-binning-new.pdf]]
+
+
+****** Seventh the [O III]/H\beta ratio histogram versus radius
++ This is for the 5007/4861 ratio
+
+#+BEGIN_SRC python :return plotfile :results file
+  import numpy as np
+  from scipy import stats as ss
+  from matplotlib import pyplot as plt
+  from astropy.io import fits
+  from skimage.morphology import convex_hull_image
+  import pyregion
+  import json
+
+  def stats_vs_x(x, y, xedges):
+      """Calculate statistics column by column to complement a histogram
+      """
+      rslt = {"mean": [], "median": [], "std": [], "lower": [], "upper": []}
+      for x1, x2 in zip(xedges[:-1], xedges[1:]):
+          thisbin = (x >= x1) & (x <= x2)
+          rslt["mean"].append(y[thisbin].mean())
+          rslt["median"].append(np.median(y[thisbin]))
+          rslt["std"].append(y[thisbin].std())
+          if thisbin.sum() > 0:
+              rslt["lower"].append(ss.scoreatpercentile(y[thisbin].ravel(), 25))
+              rslt["upper"].append(ss.scoreatpercentile(y[thisbin].ravel(), 75))
+          else:
+              rslt["lower"].append(np.nan)
+              rslt["upper"].append(np.nan)
+      xcenters = 0.5*(xedges[:-1] + xedges[1:])
+      rslt["x"] = xcenters
+      for s in rslt:
+          rslt[s] = np.array(rslt[s])
+      return xcenters, rslt
+
+  class NumpyAwareJSONEncoder(json.JSONEncoder):
+      def default(self, obj):
+          if isinstance(obj, np.ndarray) and obj.ndim <= 1:
+              return obj.tolist()
+          return json.JSONEncoder.default(self, obj)
+              
+  x1, x2 = 30.0, 105.0
+  y1, y2 = 2.00, 4.0
+  # y1, y2 = -0.5, 1.5
+  fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
+  nn = 0
+  multistats = {}
+  include = pyregion.open("will-sii-sweet-spot.reg")
+  exclude = pyregion.open("will-sii-exclude.reg")
+  for n, ax in zip([1, 4, 16, 64], axes.flat):
+      s656 = fits.open(
+          "full_F656Nbin{0:03d}x{0:03d}.fits".format(n))[0]
+      r502 = fits.open(
+          "ratio-bin{0:03d}x{0:03d}-F502N-F487N-F547M.fits".format(n))[0]
+      radii = fits.open(
+          "radii_bin{0:03d}x{0:03d}.fits".format(n))[0]
+      m = include.get_mask(hdu=r502) & (~exclude.get_mask(hdu=r502))
+      m = convex_hull_image(m)
+      x = radii.data[m]
+      y = r502.data[m]
+      w = s656.data[m]
+      mm = np.isfinite(x) & (x > x1) & (x < x2) & (y > y1) & (y < y2)
+      H, xedges, yedges = np.histogram2d(x[mm], y[mm],
+                                         [20, 20], [[x1, x2], [y1, y2]],
+                                         weights=w[mm])
+      ax.imshow(H.T, extent=[x1, x2, y1, y2],
+                interpolation='nearest', aspect='auto', origin='lower',
+                cmap=plt.cm.gray_r, alpha=1.0)
+      ax.grid()
+      ax.set_title("Binning {0} x {0}".format(n))
+      xgrid, ystats = stats_vs_x(x[mm], y[mm], xedges)
+      multistats[n] = ystats
+      ax.fill_between(xgrid, ystats["lower"], ystats["upper"],
+                      alpha=0.3, facecolor="orange")
+      ax.plot(xgrid, ystats["median"], "orange", lw=3)
+      ax.set_ylim(y1, y2)
+      ax.set_xlim(x1, x2)
+
+  for ax in axes[1, :]:
+      ax.set_xlabel("Radius from th1C, arcsec")
+  for ax in axes[:, 0]:
+      ax.set_ylabel("[O III] 5007 / H beta 4861")
+  fig.set_size_inches(8, 8)
+  fig.tight_layout(h_pad=1.0, w_pad=1.0)
+  plotfile = "roiii-hb-vs-radius-binning-new.pdf"
+  fig.savefig(plotfile)
+
+  jsonfile = plotfile.replace("-new.pdf", "-stats.json")
+  with open(jsonfile, "w") as f:
+      json.dump(multistats, f, indent=2, cls=NumpyAwareJSONEncoder)   
+
+#+END_SRC
+
+#+RESULTS:
+[[file:roiii-hb-vs-radius-binning-new.pdf]]
+
+
 ***** Histograms of nii ratios versus sii ratios
 #+BEGIN_SRC python :return plotfile :results file
   import numpy as np
@@ -2379,23 +2588,26 @@ CLOCK: [2014-08-11 Mon 10:17]--[2014-08-11 Mon 23:14] => 12:57
   import numpy as np
   from matplotlib import pyplot as plt
   from scipy.special import erfinv
+  import itertools
 
   iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
 
   with open("rnii-vs-radius-binning-stats.json") as f:
       multistats = json.load(f)
 
-  colors = iter(["b", "g", "r", "c"])
+  widths = itertools.cycle([1, 2, 3, 4])
+  styles = itertools.cycle(['-'])
+  alphas = itertools.cycle([1.0, 0.7, 0.4, 0.2])
+
   for n in [1, 4, 16, 64]:
       ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
-      c = next(colors)
       xgrid = ystats["x"]
       iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
       sig_width = ystats["std"]/ystats["mean"]
-  #    plt.plot(xgrid, sig_width, c, label=None)
-      plt.plot(xgrid, sig_width, c, lw=3, label="binning {0} x {0}".format(n))
+      plt.plot(xgrid, sig_width, c='k', lw=next(widths), ls=next(styles),
+               alpha=next(alphas), label="binning {0} x {0}".format(n))
       
-  plt.legend(ncol=2, loc="lower right")
+  plt.legend(ncol=2, loc="lower right", title='[N II] auroral/nebular ratio fluctuations')
   plt.ylim(0.0, None)
   plt.grid()
   plt.xlabel("Radius from th1C, arcsec")
@@ -2414,23 +2626,25 @@ CLOCK: [2014-08-11 Mon 10:17]--[2014-08-11 Mon 23:14] => 12:57
   import numpy as np
   from matplotlib import pyplot as plt
   from scipy.special import erfinv
+  import itertools
 
   iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
 
   with open("rsii-vs-radius-binning-stats.json") as f:
       multistats = json.load(f)
 
-  colors = iter(["b", "g", "r", "c"])
+  widths = itertools.cycle([1, 2, 3, 4])
+  styles = itertools.cycle(['-'])
+  alphas = itertools.cycle([1.0, 0.7, 0.4, 0.2])
   for n in [1, 4, 16, 64]:
       ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
-      c = next(colors)
       xgrid = ystats["x"]
       iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
       sig_width = ystats["std"]/ystats["mean"]
-  #    plt.plot(xgrid, sig_width, c, label=None)
-      plt.plot(xgrid, sig_width, c, lw=3, label="binning {0} x {0}".format(n))
+      plt.plot(xgrid, sig_width, c='k', lw=next(widths), ls=next(styles),
+               alpha=next(alphas), label="binning {0} x {0}".format(n))
       
-  plt.legend(ncol=2, loc="lower right")
+  plt.legend(ncol=2, loc="lower right", title='[S II] doublet ratio fluctuations')
   plt.ylim(0.0, None)
   plt.grid()
   plt.xlabel("Radius from th1C, arcsec")
@@ -2441,6 +2655,120 @@ CLOCK: [2014-08-11 Mon 10:17]--[2014-08-11 Mon 23:14] => 12:57
 
 #+RESULTS:
 [[file:sigma-rsii-vs-radius-binning-new.pdf]]
+
+****** Third the [N II]/H\alpha ratio sigma versus radius
+
+#+BEGIN_SRC python :return plotfile :results file
+  import json
+  import numpy as np
+  from matplotlib import pyplot as plt
+  from scipy.special import erfinv
+  import itertools
+
+  iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
+
+  with open("rnii-ha-vs-radius-binning-stats.json") as f:
+      multistats = json.load(f)
+
+  widths = itertools.cycle([1, 2, 3, 4])
+  styles = itertools.cycle(['-'])
+  alphas = itertools.cycle([1.0, 0.7, 0.4, 0.2])
+
+  for n in [1, 4, 16, 64]:
+      ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
+      xgrid = ystats["x"]
+      iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
+      sig_width = ystats["std"]/ystats["mean"]
+      plt.plot(xgrid, sig_width, c='k', lw=next(widths), ls=next(styles),
+               alpha=next(alphas), label="binning {0} x {0}".format(n))
+      
+  plt.legend(ncol=2, loc="lower right", title='[N II] / H alpha ratio fluctuations')
+  plt.ylim(0.0, None)
+  plt.grid()
+  plt.xlabel("Radius from th1C, arcsec")
+  plt.ylabel("Fractional st. dev. of 6583/6563 ratio")
+  plotfile = "sigma-rnii-ha-vs-radius-binning-new.pdf"
+  plt.savefig(plotfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:sigma-rnii-ha-vs-radius-binning-new.pdf]]
+
+****** Fourth the [O III]/H\beta ratio sigma versus radius
+
+#+BEGIN_SRC python :return plotfile :results file
+  import json
+  import numpy as np
+  from matplotlib import pyplot as plt
+  from scipy.special import erfinv
+  import itertools
+
+  iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
+
+  with open("roiii-hb-vs-radius-binning-stats.json") as f:
+      multistats = json.load(f)
+
+  widths = itertools.cycle([1, 2, 3, 4])
+  styles = itertools.cycle(['-'])
+  alphas = itertools.cycle([1.0, 0.7, 0.4, 0.2])
+
+  for n in [1, 4, 16, 64]:
+      ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
+      xgrid = ystats["x"]
+      iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
+      sig_width = ystats["std"]/ystats["mean"]
+      plt.plot(xgrid, sig_width, c='k', lw=next(widths), ls=next(styles),
+               alpha=next(alphas), label="binning {0} x {0}".format(n))
+      
+  plt.legend(ncol=2, loc="lower right", title='[O III] / H beta ratio fluctuations')
+  plt.ylim(0.0, None)
+  plt.grid()
+  plt.xlabel("Radius from th1C, arcsec")
+  plt.ylabel("Fractional st. dev. of 5007/4861 ratio")
+  plotfile = "sigma-roiii-hb-vs-radius-binning-new.pdf"
+  plt.savefig(plotfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:sigma-roiii-hb-vs-radius-binning-new.pdf]]
+
+****** Fifth the H\alpha brightness sigma versus radius
+
+#+BEGIN_SRC python :return plotfile :results file
+  import json
+  import numpy as np
+  from matplotlib import pyplot as plt
+  from scipy.special import erfinv
+  import itertools
+
+  iqr_over_sigma = 2.0*np.sqrt(2.0)*erfinv(0.5)
+
+  with open("sha-vs-radius-binning-stats.json") as f:
+      multistats = json.load(f)
+
+  widths = itertools.cycle([1, 2, 3, 4])
+  styles = itertools.cycle(['-'])
+  alphas = itertools.cycle([1.0, 0.7, 0.4, 0.2])
+
+  for n in [1, 4, 16, 64]:
+      ystats = {k: np.array(v) for k, v in multistats[str(n)].items()} 
+      xgrid = ystats["x"]
+      iqr_width = (ystats["upper"] - ystats["lower"])/(ystats["median"]*iqr_over_sigma)
+      sig_width = ystats["std"]/ystats["mean"]
+      plt.plot(xgrid, sig_width, c='k', lw=next(widths), ls=next(styles),
+               alpha=next(alphas), label="binning {0} x {0}".format(n))
+      
+  plt.legend(ncol=2, loc="lower right", title='H alpha surface brightness fluctuations')
+  plt.ylim(0.0, None)
+  plt.grid()
+  plt.xlabel("Radius from th1C, arcsec")
+  plt.ylabel("Fractional st. dev. of S(H alpha)")
+  plotfile = "sigma-sha-vs-radius-binning-new.pdf"
+  plt.savefig(plotfile)
+#+END_SRC
+
+#+RESULTS:
+[[file:sigma-sha-vs-radius-binning-new.pdf]]
 
 ****** Abandoned earlier attempt with robust stats
 #+BEGIN_SRC python :return plotfile :results file

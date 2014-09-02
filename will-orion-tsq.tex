@@ -256,17 +256,21 @@ bandpass.
     \(\Fgamma{2}\) \\
     \midrule
     \nii{} 5755/6583 & FQ575N, F658N, F547M & 
-    0.845 & \(\sim 0\) & 0.0243 & 0.0394 & \(\sim 0\) & \(\sim 0\) \\
+    0.7946 & \(\sim 0\) & 0.0243 & 0.0394 & \(\sim 0\) & \(\sim 0\) \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F673N &
-    0.994 & 1.12 & 0.164 & 0.114 & 0.02586 & 0.005629 \\
+    1.0580 & 1.2510 & 0.1640 & 0.1142 & 0.0702 & 0.0056 \\
     \sii{} 6716/6731 & FQ672N, FQ674N, F547M &
-    \(\sim 0\) & \(\sim 0\) & 0.0274 & 0.0191  & 0.02586 & 0.005629 \\ 
+    \(\sim 0\) & \(\sim 0\) & 0.0274 & 0.0191  & 0.0702 & 0.0050 \\ 
     \oiii{} 4363/5007 & FQ437N, F502N, FQ436N &
-    0.968 & \(\sim 0\) & 0.711 & 1.998 & \(\sim 0\) & \(\sim 0\) \\ 
+    0.9170 & \(\sim 0\) & 0.711 & 1.998 & \(\sim 0\) & \(\sim 0\) \\ 
     \oiii{} 4363/5007 & FQ437N, F502N, F547M &
-    \(\sim 0\) & 0.00141 & 0.03426 & 0.09627 & \(\sim 0\) & \(\sim 0\) \\ 
+    \(\sim 0\) & 0.0016 & 0.0343 & 0.0963 & \(\sim 0\) & \(\sim 0\) \\ 
     H\(\beta\)/H\(\alpha\) 4861/6563 & F487N, F656N, F547M &
-    \(\sim 0\) & \(\sim 0\) & 0.08711 & 0.02375 & \(\sim 0\) & \(\sim 0\) \\
+    \(\sim 0\) & \(\sim 0\) & 0.0871 & 0.0238 & \(\sim 0\) & \(\sim 0\) \\
+    \nii{}/H\(\alpha\) 6583/6563 & F658N, F656N, F547M &
+    \(\sim 0\) & \(\sim 0\) & 0.0394 & 0.0238 & \(\sim 0\) & 0.0022 \\
+    \oiii{}/H\(\beta\) 5007/4861 & F502N, F487N, F547M &
+    0.0016 & \(\sim 0\) & 0.0963 & 0.0871 & \(\sim 0\) & \(\sim 0\) \\
     \bottomrule
   \end{tabular}
   \par\smallskip Note: Values marked as ``\(\sim 0\)'' are all less than \(10^{-5}\). 
@@ -358,7 +362,7 @@ due to changes in the physical conditions.
   \label{fig:sens-ktwid}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[p]
   \centering
   \setlength\tabcolsep{0pt}
   \setkeys{Gin}{width=0.45\linewidth}
@@ -376,7 +380,60 @@ due to changes in the physical conditions.
 \end{figure}
 
 
+\begin{figure}[p]
+  \setkeys{Gin}{width=0.45\linewidth}
+  \begin{tabular}{ll}
+    (\textit{a}) & (\textit{b}) \\
+    \includegraphics{rnii-vs-radius-binning-new} &
+    \includegraphics{rsii-vs-radius-binning-new} \\
+    (\textit{c}) & (\textit{d}) \\
+    \includegraphics{rnii-ha-vs-radius-binning-new} &
+    \includegraphics{roiii-hb-vs-radius-binning-new} \\
+  \end{tabular}
+  \caption{Distributions of line ratios as a function of radius.
+    (\textit{a})~\nii{} 5755/6584. (\textit{b})~\sii{} 6716/6731.
+    (\textit{c})~\nii{} 6583/\ha{} 6563. (\textit{d})~\oiii{}
+    5007/\hb{} 4861. In all cases the weighting is by \ha{} surface
+    brightness and four cases are shown with binnings of \(1\times
+    1\), \(4 \times 4\), \(16 \times 16\), and \(64 \times 64\)
+    pixels.}
+  \label{fig:ratio-hist-vs-radius}
+\end{figure}
 
+\begin{figure}[p]
+  \center
+  \includegraphics{sha-vs-radius-binning-new}
+  \caption{Same as Fig.~\ref{fig:ratio-hist-vs-radius} but for the
+    dereddened surface brightness of the \ha{} line after detrending,
+    that is removing a large scale variation with radius of
+    \(R^{-1.4}\).}
+  \label{fig:sha-hist-vs-radius}
+\end{figure}
+
+\begin{figure}[p]
+  \setkeys{Gin}{width=0.45\linewidth}
+  \begin{tabular}{ll}
+    \includegraphics{sigma-rnii-vs-radius-binning-new} &
+    \includegraphics{sigma-rsii-vs-radius-binning-new} \\
+    \includegraphics{sigma-rnii-ha-vs-radius-binning-new} &
+    \includegraphics{sigma-roiii-hb-vs-radius-binning-new} \\
+    \includegraphics{sigma-sha-vs-radius-binning-new}
+  \end{tabular}
+  \caption{Fractional standard deviation of line ratio and surface
+    brightness fluctuations as a function of radius and for different
+    binnings.}
+  \label{fig:sigma-ratio-hist-vs-radius}
+\end{figure}
+
+\begin{figure}[p]
+  \center
+  \includegraphics{ratio-correl-BPT}
+  \caption{Joint distribution of strong line ratios: \oiii{}/\hb{}
+  versus \nii{}/\ha{}.  The weighting is by the \ha{} surface brightness.}
+  \label{fig:BPT}
+\end{figure}
+
+\clearpage
 \subsection{\boldmath Deriving \(\Te, \Ne\) from line ratios}
 \label{sec:derive}
 
@@ -603,7 +660,7 @@ while the data for scales \(< 0.4''\) are dominated by noise.
 \bibliography{BibdeskLibrary-slavoj}
 
 
-
+\clearpage
 \appendix
 
 \section{Calibration of the WFC3 filters}
@@ -684,7 +741,7 @@ confidence that is impossible for other objects.
 }
 
 \begin{figure}
-  \centering
+  \centering[p]
   \setkeys{Gin}{width=0.3\linewidth}
   \small
   \begin{tabular}{llll}
@@ -705,7 +762,7 @@ confidence that is impossible for other objects.
   \label{fig:multi-calib-1}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[p]
   \centering
   \setkeys{Gin}{width=0.3\linewidth}
   \small
@@ -719,7 +776,7 @@ confidence that is impossible for other objects.
   \label{fig:multi-calib-2}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[p]
   \centering
   \setkeys{Gin}{width=0.3\linewidth}
   \small
@@ -734,7 +791,7 @@ confidence that is impossible for other objects.
 \end{figure}
 
 
-\begin{figure}
+\begin{figure}[p]
   \centering
   \setkeys{Gin}{width=0.3\linewidth}
   \small
