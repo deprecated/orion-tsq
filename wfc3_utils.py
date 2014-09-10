@@ -49,12 +49,32 @@ air_rest_wavelength = {
 # And also HST-earth motion may be +/- 8 km/s
 topocentric_velocity = 20.0     
 
+# Virtual composite filters are the sum of two or more real filters
+composite_filters = {
+    "FQ673N": ["FQ672N", "FQ674N"],
+}
+
 
 def get_filter(fname, UVIS=1, return_wavelength=False):
-    datafile = "{:s}.UVIS{:01d}.tab".format(fname.lower(), UVIS)
-    fullpath = os.path.join(datapath, datafile) 
-    data = np.genfromtxt(fullpath,
-                      names=("row", "wavelength", "throughput"))
+    if fname in composite_filters:
+        # Deal with virtual composite filters
+        T = None
+        wave = None
+        for fn in composite_filters[fname]:
+            # Call get_filter recursively for each component filter
+            wav, TT = get_filter(fn, UVIS, True)
+            if TT is None:
+                wave = wav
+                T = TT
+            else:
+                assert wav == wave
+                T += TT
+        data = {"wavelength": wave, "throughput": T}
+    else:
+        datafile = "{:s}.UVIS{:01d}.tab".format(fname.lower(), UVIS)
+        fullpath = os.path.join(datapath, datafile)
+        data = np.genfromtxt(fullpath,
+                             names=("row", "wavelength", "throughput"))
     if return_wavelength:
         return data["wavelength"], data["throughput"]
     else:
