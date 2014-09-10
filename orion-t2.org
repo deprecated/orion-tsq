@@ -162,6 +162,8 @@ Now we have a nice equation for finding the ratios
 | 5755 | 6583 | FQ575N | F658N  | F547M  |
 | 6716 | 6731 | FQ672N | FQ674N | F673N  |
 | 6716 | 6731 | FQ672N | FQ674N | F547M  |
+| 6716 | 6731 | FQ672N | F673N  | F547M  |
+| 6731 | 6716 | FQ674N | F673N  | F547M  |
 | 4363 | 5007 | FQ437N | F502N  | FQ436N |
 | 4363 | 5007 | FQ437N | F502N  | F547M  |
 | 4861 | 6563 | F487N  | F656N  | F547M  |
@@ -192,6 +194,8 @@ Now we have a nice equation for finding the ratios
 | FQ575N | F658N  | F547M  | 0.9461 |    0.7946 |  1.37e-07 | 0.02426 | 0.03939 | 2.411e-07 | 2.221e-08 |
 | FQ672N | FQ674N | F673N  | 0.7699 |     1.058 |     1.251 |   0.164 |  0.1142 |   0.07016 |  0.004993 |
 | FQ672N | FQ674N | F547M  | 0.7699 | 1.133e-07 | 2.294e-07 | 0.02742 | 0.01909 |   0.07016 |  0.004993 |
+| FQ672N | F673N  | F547M  | 0.9632 | 1.133e-07 | 1.834e-07 | 0.02742 |  0.1672 |     1.058 |  0.003991 |
+| FQ674N | F673N  | F547M  |  1.374 | 2.294e-07 | 1.071e-07 | 0.01909 |  0.1672 |     1.251 |    0.0663 |
 | FQ437N | F502N  | FQ436N |  1.127 |     0.917 | 1.299e-07 |  0.7111 |   1.998 | 1.446e-07 | 3.156e-08 |
 | FQ437N | F502N  | F547M  |  1.127 | 3.912e-06 |  0.001587 | 0.03426 | 0.09627 | 1.446e-07 | 3.156e-08 |
 | F487N  | F656N  | F547M  | 0.9432 | 2.582e-06 | 1.089e-07 | 0.08711 | 0.02375 | 5.788e-07 | 6.363e-08 |
@@ -489,10 +493,11 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 #+name: ratio-limits
 | FQ575N | 0.005 | 0.07 |
 | FQ672N |   0.4 |  1.0 |
+| FQ674N |   1.0 |  2.5 |
 | FQ437N | -0.01 | 0.03 |
 | F487N  |  0.20 | 0.33 |
-| F658N  |   0.1 | 0.4 |
-| F502N  |   2.5 | 4.5 |
+| F658N  |   0.1 |  0.4 |
+| F502N  |   2.5 |  4.5 |
 #+header: :var intable=filter-set-fakes limits=ratio-limits
 #+BEGIN_SRC python :return plotlinks :results list
   import numpy as np
@@ -572,6 +577,8 @@ CLOCK: [2014-06-30 Mon 19:38]--[2014-07-01 Tue 01:18] =>  5:40
 - [[file:contam-correct-FQ575N-F658N-F547M.pdf]]
 - [[file:contam-correct-FQ672N-FQ674N-F673N.pdf]]
 - [[file:contam-correct-FQ672N-FQ674N-F547M.pdf]]
+- [[file:contam-correct-FQ672N-F673N-F547M.pdf]]
+- [[file:contam-correct-FQ674N-F673N-F547M.pdf]]
 - [[file:contam-correct-FQ437N-F502N-FQ436N.pdf]]
 - [[file:contam-correct-FQ437N-F502N-F547M.pdf]]
 - [[file:contam-correct-F487N-F656N-F547M.pdf]]
