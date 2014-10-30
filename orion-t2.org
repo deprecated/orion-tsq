@@ -1,19 +1,5 @@
 Orion t^2 project based on Rubin's 2012 WFC3 data
 
-* Messing around with the graphics
-Abandoned both of these for the time being - more trouble than they were worth. 
-** Fancy javascript effects
-#+BEGIN_SRC python
-import mpld3
-mpld3.enable_notebook()
-mpld3.disable_notebook()
-#+END_SRC
-
-** Better defaults for colors and the like
-#+BEGIN_SRC python
-import seaborn as sn
-#+END_SRC
-
 * Notes on particular objects
 
 ** Shadows 
@@ -33,15 +19,6 @@ There are at least three sorts of shadows:
 
 
      
-* Learning to use a proper database
-+ The main thing I want from a database is the ability to simultaneously update records from multiple programs running at the same time, without having
-+ However, after spending an entire morning looking into this, it seems to be far more trouble than it is worth
-  + Doing it properly, e.g., using SQLalchemy is way too complicated
-  + There are easy-to-use wrappers such as dataset, but they are very limiting
-    + You can't store nested dicts or dicts of numpy arrays very easily
-    + Although you can do it by doing =json.dumps= on the sub-objects to convert them to a string
-  + It is also necessary to be careful with concurrent connections, although I think I have that just about sorted
-    + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
 * Final push to finish this - April/June 2014
 :PROPERTIES:
 :exports:  both
@@ -986,10 +963,10 @@ CLOCK: [2014-07-01 Tue 01:19]--[2014-07-01 Tue 01:20] =>  0:01
 :ID:       6BB8A20A-ECD6-494E-B7B3-DF139BC5B8F8
 :END:
 + F(\lambda) values are 
-| H\beta 4861      |    0.0 |
+| H\beta 4861  |    0.0 |
 | [O III] 5007 | -0.022 |
 | [N II] 5755  | -0.123 |
-| H\alpha 6563      | -0.220 |
+| H\alpha 6563 | -0.220 |
 | [N II] 6584  | -0.222 |
 
 + Calculate CHB from observed Balmer decrement R = Ha/Hb
@@ -5694,6 +5671,18 @@ CLOCK: [2014-04-18 Fri 17:05]--[2014-04-18 Fri 17:24] =>  0:19
 + Change to using =Positions= instead of =Sections=
   + =Manu-Data/Positions/blue-0140-0262.json= has the data written by =manu-photom-select.py=, which includes the arrays of wavelengths, fluxes, etc.
   + =Manu-Data/LineFit/blue-0140-0262/5299.json= has the fit data for the line 5299 
+**** CANCELED Learning to use a proper database
+CLOSED: [2014-10-30 Thu 10:11]
+:LOGBOOK:  
+:END:      
++ The main thing I want from a database is the ability to simultaneously update records from multiple programs running at the same time, without having
++ However, after spending an entire morning looking into this, it seems to be far more trouble than it is worth
+  + Doing it properly, e.g., using SQLalchemy is way too complicated
+  + There are easy-to-use wrappers such as dataset, but they are very limiting
+    + You can't store nested dicts or dicts of numpy arrays very easily
+    + Although you can do it by doing =json.dumps= on the sub-objects to convert them to a string
+  + It is also necessary to be careful with concurrent connections, although I think I have that just about sorted
+    + With SQLite, many processes can be reading from the database at any one time, but only one can be writing to it
 
 ** ODH spectra
 + [X] odh-photom.py - this fits Gaussians to all the spectra in the three slit
@@ -7309,6 +7298,21 @@ Table 6.2: WFC3/UVIS Filters and Grism
 \[
 r_{\mathrm{pred}} = 1 + \left[50.44 k^{-1} \frac{R_{\mathrm{F575N}}}{R_{\mathrm{F547M}}} - 1\right]^{-1}
 \]
+
+
+* Messing around with the graphics
+Abandoned both of these for the time being - more trouble than they were worth. 
+** Fancy javascript effects
+#+BEGIN_SRC python
+import mpld3
+mpld3.enable_notebook()
+mpld3.disable_notebook()
+#+END_SRC
+
+** Better defaults for colors and the like
+#+BEGIN_SRC python
+import seaborn as sn
+#+END_SRC
 
 
 * Export options						   :noexport:
