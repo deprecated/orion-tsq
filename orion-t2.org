@@ -242,6 +242,142 @@ Now also grabbing suitable k values from the odh files
 + So many of these change significantly from the naive value
 + The set that uses FQ436N produces a negative ratio, which can't be right
   + Presumably this is due to neglecting the line contamination, which probably gives a large k value - adjusting the k value does at least stop it from going negative, but it still disagrees with the F547M version.  And doing the ktwiddle values more carefully actually gives a negative value again
+
+*** Filter ratios to line ratios using nebulio
+:LOGBOOK:  
+CLOCK: [2014-11-03 Mon 09:21]--[2014-11-03 Mon 22:28] => 13:07
+CLOCK: [2014-11-01 Sat 17:34]--[2014-11-01 Sat 18:21] =>  0:47
+CLOCK: [2014-10-31 Fri 21:58]--[2014-10-31 Fri 22:33] =>  0:35
+CLOCK: [2014-10-31 Fri 12:28]--[2014-10-31 Fri 13:30] =>  1:02
+:END:      
+:PROPERTIES:
+:noweb:    yes
+:END:
+As a check on the previous values, and to allow us to calculate the null hypothesis [S II] ratio, we will try and do the same using nebulio. 
+
+#+name: species-for-lines
+| 5755 | [N II] 5755  |
+| 6583 | [N II] 6583  |
+| 6716 | [S II] 6716  |
+| 6731 | [S II] 6731  |
+| 5007 | [O III] 5007 |
+| 4363 | [O III] 4363 |
+| 4861 | H I 4861     |
+| 6563 | H I 6563     |
+
+
+#+BEGIN_SRC python :return table :var intable=filter-sets :var linetab=species-for-lines
+  import nebulio
+  import wfc3_utils
+
+  <<strange-new-gradients>>
+
+  linedict = dict(linetab)
+
+  nebulio.Bandpass.T_adjustments = {
+      (str(iwav), 'wfc3,uvis1,'+fn): val
+      for (iwav, fn), val in wfc3_utils.line_transmission_adjustments.items()}
+
+
+  cols = ["T2/T1", "alpha_1", "alpha_2", "beta_1", "beta_2", "gamma_1", "gamma_2"]
+
+  table = [["I", "II", "III"] + cols, None]
+
+
+  #wfc3_utils.topocentric_velocity += 30.0
+  for wav1, wav2, FI, FII, FIII in intable:
+      fset = nebulio.Filterset(
+          bpnames=['wfc3,uvis1,' + fn for fn in [FI, FII, FIII]],
+          lineids=[linedict[wav1], linedict[wav2]],
+          velocity=-70.0, fwhm_kms=None)
+      table.append([FI, FII, FIII]
+                   + ["{:0.4g}".format(x) for x in
+                      fset.T2_T1,
+                      fset.alpha[0], fset.alpha[1],
+                      fset.beta[0], fset.beta[1],
+                      fset.gamma[0], fset.gamma[1]])
+
+
+#+END_SRC
+
+#+RESULTS:
+| I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |  1.004 |    0.7835 | 1.706e-07 | 0.02469 | 0.04244 | 2.336e-07 | 2.817e-08 |
+| FQ672N | FQ674N | F673N  | 0.7777 |     1.095 |     1.232 |  0.1619 |  0.1128 |  0.008471 |   0.02488 |
+| FQ672N | FQ674N | F547M  | 0.7777 | 1.147e-07 | 2.192e-07 | 0.02805 | 0.01953 |  0.008471 |   0.02488 |
+| FQ672N | F673N  | F547M  | 0.9584 | 1.147e-07 | 1.779e-07 | 0.02805 |  0.1732 |     1.095 |   0.02019 |
+| FQ674N | F673N  | F547M  |  1.408 | 2.192e-07 | 1.048e-07 | 0.01953 |  0.1732 |     1.232 |  0.007737 |
+| FQ437N | F502N  | FQ436N |  1.144 |    0.8955 |  1.59e-07 |   0.724 |   2.062 | 1.494e-07 | 3.944e-08 |
+| FQ437N | F502N  | F547M  |  1.144 | 3.824e-06 |  0.001431 | 0.03496 | 0.09956 | 1.494e-07 | 3.944e-08 |
+| F487N  | F656N  | F547M  | 0.9936 |  2.47e-06 |  8.83e-08 | 0.08917 | 0.02545 | 6.108e-07 | 5.081e-08 |
+| F658N  | F656N  | F547M  |  0.986 | 1.706e-07 |  8.83e-08 | 0.04244 | 0.02545 |  0.001897 | 0.0007605 |
+| F502N  | F487N  | F547M  |  1.057 |  0.001431 |  2.47e-06 | 0.09956 | 0.08917 | 1.809e-05 | 6.045e-07 |
+
+So first question is: 
++ why are these different from the wfc3_utils.py results?
+
+There are some variations with the velocity and width. 
+#+name: results-for-v30-w20
+#+caption: Filterset parameters with v = +30 km/s, w = 20 km/s
+| I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |  1.002 |    0.7801 | 1.715e-07 | 0.02469 | 0.04244 | 2.577e-07 | 3.568e-08 |
+| FQ672N | FQ674N | F673N  | 0.7663 |      1.07 |     1.276 |  0.1619 |  0.1128 |   0.08324 |  0.004146 |
+| FQ672N | FQ674N | F547M  | 0.7663 | 1.104e-07 | 2.245e-07 | 0.02805 | 0.01953 |   0.08324 |  0.004146 |
+| FQ672N | F673N  | F547M  | 0.9777 | 1.104e-07 |  1.76e-07 | 0.02805 |  0.1732 |      1.07 |   0.00325 |
+| FQ674N | F673N  | F547M  |  1.396 | 2.245e-07 | 1.032e-07 | 0.01953 |  0.1732 |     1.276 |   0.07783 |
+| FQ437N | F502N  | FQ436N |  1.144 |    0.9008 | 1.579e-07 |   0.724 |   2.062 | 1.463e-07 | 3.843e-08 |
+| FQ437N | F502N  | F547M  |  1.144 | 3.834e-06 |  0.001573 | 0.03496 | 0.09956 | 1.463e-07 | 3.843e-08 |
+| F487N  | F656N  | F547M  | 0.9908 | 2.529e-06 | 1.027e-07 | 0.08917 | 0.02545 | 6.065e-07 | 6.166e-08 |
+| F658N  | F656N  | F547M  | 0.9774 | 1.715e-07 | 1.027e-07 | 0.04244 | 0.02545 |   0.02717 |  0.002541 |
+| F502N  | F487N  | F547M  |  1.055 |  0.001573 | 2.529e-06 | 0.09956 | 0.08917 | 1.712e-05 | 8.076e-07 |
+
+The width makes very little difference for the low values that we are talking about. 
+#+caption: Filterset parameters with v = +30 km/s, w = 0 km/s
+| I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |  1.002 |    0.7801 | 1.715e-07 | 0.02469 | 0.04244 | 2.577e-07 | 3.567e-08 |
+| FQ672N | FQ674N | F673N  | 0.7667 |      1.07 |     1.276 |  0.1619 |  0.1128 |   0.08167 |  0.004093 |
+| FQ672N | FQ674N | F547M  | 0.7667 | 1.104e-07 | 2.245e-07 | 0.02805 | 0.01953 |   0.08167 |  0.004093 |
+| FQ672N | F673N  | F547M  |  0.978 | 1.104e-07 |  1.76e-07 | 0.02805 |  0.1732 |      1.07 |  0.003209 |
+| FQ674N | F673N  | F547M  |  1.395 | 2.245e-07 | 1.032e-07 | 0.01953 |  0.1732 |     1.276 |   0.07634 |
+| FQ437N | F502N  | FQ436N |  1.144 |    0.9005 | 1.577e-07 |   0.724 |   2.062 | 1.463e-07 | 3.841e-08 |
+| FQ437N | F502N  | F547M  |  1.144 | 3.834e-06 |  0.001573 | 0.03496 | 0.09956 | 1.463e-07 | 3.841e-08 |
+| F487N  | F656N  | F547M  | 0.9907 | 2.529e-06 | 1.027e-07 | 0.08917 | 0.02545 | 6.065e-07 | 6.165e-08 |
+| F658N  | F656N  | F547M  | 0.9773 | 1.715e-07 | 1.027e-07 | 0.04244 | 0.02545 |   0.02644 |  0.002504 |
+| F502N  | F487N  | F547M  |  1.055 |  0.001573 | 2.529e-06 | 0.09956 | 0.08917 | 1.712e-05 | 8.077e-07 |
+
+
+But changing the velocity by \pm100 km/s has a significant effect on the [S II] quad filters, especially their cross contamination terms (the \gamma). 
+#+caption: Filterset parameters with v = +130 km/s, w = 20 km/s
+| I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |  1.013 |    0.7774 | 1.695e-07 | 0.02469 | 0.04244 |  2.82e-07 | 4.318e-08 |
+| FQ672N | FQ674N | F673N  |  0.706 |      1.03 |     1.404 |  0.1619 |  0.1128 |    0.4082 |  0.001097 |
+| FQ672N | FQ674N | F547M  |  0.706 | 1.047e-07 | 2.312e-07 | 0.02805 | 0.01953 |    0.4082 |  0.001097 |
+| FQ672N | F673N  | F547M  |  0.991 | 1.047e-07 | 1.647e-07 | 0.02805 |  0.1732 |      1.03 | 0.0007812 |
+| FQ674N | F673N  | F547M  |  1.459 | 2.312e-07 | 1.017e-07 | 0.01953 |  0.1732 |     1.404 |    0.3964 |
+| FQ437N | F502N  | FQ436N |  1.161 |    0.9135 | 1.627e-07 |   0.724 |   2.062 | 1.446e-07 | 3.789e-08 |
+| FQ437N | F502N  | F547M  |  1.161 | 3.885e-06 |  0.001759 | 0.03496 | 0.09956 | 1.446e-07 | 3.789e-08 |
+| F487N  | F656N  | F547M  | 0.9932 | 2.582e-06 | 1.164e-07 | 0.08917 | 0.02545 | 6.007e-07 | 7.211e-08 |
+| F658N  | F656N  | F547M  |  0.966 | 1.695e-07 | 1.164e-07 | 0.04244 | 0.02545 |    0.1713 |   0.01875 |
+| F502N  | F487N  | F547M  |   1.05 |  0.001759 | 2.582e-06 | 0.09956 | 0.08917 |  1.61e-05 | 1.011e-06 |
+
+#+caption: Filterset parameters with v = -70 km/s, w = 20 km/s
+| I      | II     | III    |  T2/T1 |   alpha_1 |   alpha_2 |  beta_1 |  beta_2 |   gamma_1 |   gamma_2 |
+|--------+--------+--------+--------+-----------+-----------+---------+---------+-----------+-----------|
+| FQ575N | F658N  | F547M  |  1.004 |    0.7835 | 1.706e-07 | 0.02469 | 0.04244 | 2.336e-07 | 2.817e-08 |
+| FQ672N | FQ674N | F673N  | 0.7777 |     1.095 |     1.232 |  0.1619 |  0.1128 |  0.008471 |   0.02488 |
+| FQ672N | FQ674N | F547M  | 0.7777 | 1.147e-07 | 2.192e-07 | 0.02805 | 0.01953 |  0.008471 |   0.02488 |
+| FQ672N | F673N  | F547M  | 0.9584 | 1.147e-07 | 1.779e-07 | 0.02805 |  0.1732 |     1.095 |   0.02019 |
+| FQ674N | F673N  | F547M  |  1.408 | 2.192e-07 | 1.048e-07 | 0.01953 |  0.1732 |     1.232 |  0.007737 |
+| FQ437N | F502N  | FQ436N |  1.144 |    0.8955 |  1.59e-07 |   0.724 |   2.062 | 1.494e-07 | 3.944e-08 |
+| FQ437N | F502N  | F547M  |  1.144 | 3.824e-06 |  0.001431 | 0.03496 | 0.09956 | 1.494e-07 | 3.944e-08 |
+| F487N  | F656N  | F547M  | 0.9936 |  2.47e-06 |  8.83e-08 | 0.08917 | 0.02545 | 6.108e-07 | 5.081e-08 |
+| F658N  | F656N  | F547M  |  0.986 | 1.706e-07 |  8.83e-08 | 0.04244 | 0.02545 |  0.001897 | 0.0007605 |
+| F502N  | F487N  | F547M  |  1.057 |  0.001431 |  2.47e-06 | 0.09956 | 0.08917 | 1.809e-05 | 6.045e-07 |
+
 *** Histograms of the continuum color
 :LOGBOOK:
 CLOCK: [2014-07-05 Sat 15:35]--[2014-07-05 Sat 20:00] =>  4:25
@@ -630,11 +766,11 @@ In all cases, we weight by the nii brightness
 #+END_SRC  
 
 #+RESULTS:
-- [[file:ratio-correl-nii-red.pdf]]
+- [[file:ratio-correl-nii-red.pdf]] 
 - [[file:ratio-correl-nii-sii.pdf]]
-- [[file:ratio-correl-nii-sii2.pdf]]
+- [[file:ratio-correl-nii-sii2.pdf]] 
 - [[file:ratio-correl-sii-sii.pdf]]
-- [[file:ratio-correl-BPT.pdf]]
+- [[file:ratio-correl-BPT.pdf]] 
 
 
 
