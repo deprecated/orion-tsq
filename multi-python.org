@@ -41,8 +41,8 @@ return sys.version
 #+END_SRC
 
 #+RESULTS: check-python-version
-: 3.3.5 |Anaconda 2.0.0 (x86_64)| (default, Mar 10 2014, 11:22:25) 
-: [GCC 4.0.1 (Apple Inc. build 5493)]
+: 3.3.5 |Anaconda 2.1.0 (x86_64)| (default, Sep  2 2014, 13:57:31) 
+: [GCC 4.2.1 (Apple Inc. build 5577)]
 
 This is the control experiment. 
 
@@ -53,8 +53,8 @@ return sys.version
 #+END_SRC
 
 #+RESULTS:
-: 2.7.5 |Anaconda 1.8.0 (x86_64)| (default, Oct 24 2013, 07:02:20) 
-: [GCC 4.0.1 (Apple Inc. build 5493)]
+: 2.7.8 |Anaconda 2.1.0 (x86_64)| (default, Aug 21 2014, 15:21:46) 
+: [GCC 4.2.1 (Apple Inc. build 5577)]
 
 This works.
 
