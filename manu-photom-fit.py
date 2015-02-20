@@ -114,6 +114,7 @@ for c in line_table:
     species_dict[id_] = c['lineid']
 
 # Lines that are forced to have the same Delta Wav and Sigma as another line
+# Note that it must be keyed by the longer wavelength line
 tied_lines = {
     # O II lines
     "4651": "4639", "4662": "4639", "4649": "4639",
@@ -122,7 +123,7 @@ tied_lines = {
     # N II lines
     "4643": "4631",
     # [Ar IV] lines
-    "4711": "4740"
+    "4740": "4711"
 }
 
 # Sky
