@@ -36,6 +36,7 @@ def main(wav: "Line wavelength, e.g., 4649", wavband: "Red, green, or blue"):
         rowdata = [posdata[k] for k in poscolumns] + [linedata[k] for k in linecolumns]
         linetable.add_row(rowdata)
 
+    linetable.sort(['x', 'y'])
     if not tables_dir.is_dir():
         tables_dir.mkdir(parents=True)
     table_file = tables_dir / "{}-{}.tab".format(wav, wavband)
