@@ -175,7 +175,7 @@ def main(pattern="*", rangelist="narrow", only=None, xtol=1.e-3, ftol=1.e-3, max
             wav0s = np.array(line_table["linewav"])
             wav0s = wav0s[(wav0s > wavmin) & (wav0s < wavmax)]
             m = (wavs > wavmin) & (wavs < wavmax)
-
+            print("Lines to fit: ", wav0s)
             params = lmfit.Parameters()
             gauss_components = []
             init_poly_component(params, [0.0, 0.0, 0.0])

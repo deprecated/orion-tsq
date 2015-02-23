@@ -94,7 +94,7 @@ alpha_disk = 0.8
           m = np.ones_like(tab).astype(bool)
       else:
           max_d = float(mask)
-          m = (tab['d'+column] > 0.0) & (tab['d'+column] <= max_d)
+          m = (tab['d'+column] > 0.0) & (tab['d'+column] <= max_d*tab[column])
       return m
 #+END_SRC
 
@@ -127,14 +127,25 @@ alpha_disk = 0.8
 #+END_SRC
 
 
+#+name: diverging-colormap
+#+BEGIN_SRC python
+  if diverging:
+      cmap = sns.diverging_palette(30, 230, sep=5, s=95, l=40,
+                                   center="light", as_cmap=True)
+      # cmap = sns.diverging_palette(60, 210, sep=3, s=95, l=85,
+      #                              center="light", as_cmap=True)
+      alpha_disk = 1.0
+#+END_SRC
 
 #+name: manu-ratio-map
-#+header: :var wavA="4363" wavB="4649" band="blue" vmin="0.0" vmax="auto" column="Flux" mask="nonzero"
+#+header: :var wavA="4363" wavB="4649" band="blue" vmin="0.0" vmax="auto" column="Flux" mask="nonzero" diverging="" scale="linear"
 #+BEGIN_SRC python :return pltfile :results file 
   from astropy.table import Table
   import matplotlib.pyplot as plt
+  from matplotlib.colors import LogNorm
   import numpy as np
   <<aesthetics>>
+  <<diverging-colormap>>
   <<manu-find-mask>>
   fig = plt.figure(figsize=(10, 10))
   ax_map = plt.subplot(111, axisbg=bgcolor)
@@ -155,9 +166,18 @@ alpha_disk = 0.8
   meanratio = colA[m].mean()/colB[m].mean()
   if vmax == "auto":
       vmax = 4*meanratio
-  scat = ax_map.scatter(tableA[m]['x'], tableA[m]['y'], s=45, c=ratio, vmin=float(vmin), vmax=float(vmax), alpha=alpha_disk, edgecolors='none', cmap=cmap)
+  if scale.startswith("log"):
+      vmin, vmax = np.log10(float(vmin)), np.log10(float(vmax))
+      v = np.log10(ratio)
+      cblabel = "log10(Ratio)"
+  else:
+      vmin, vmax = float(vmin), float(vmax)
+      v = ratio
+      cblabel = "Ratio"
+  scat = ax_map.scatter(tableA[m]['x'], tableA[m]['y'], s=45, c=v, vmin=vmin, vmax=vmax, alpha=alpha_disk, edgecolors='none', cmap=cmap)
   print(ratio.min(), ratio.max(), ratio.mean(), np.median(ratio), meanratio)
   cb = fig.colorbar(scat, ax=ax_map)
+  cb.set_label(cblabel)
   ax_map.set_xlim(120.0, -120.0)
   ax_map.set_ylim(-160.0, 160.0)
   ax_map.set_aspect('equal', adjustable='box-forced')
@@ -169,16 +189,17 @@ alpha_disk = 0.8
 #+END_SRC
 
 #+RESULTS: manu-ratio-map
-: 5.23194386008e-12 2.33738127253e+15 322390979346.0 10.5513768152 9.49827430764
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4363-4649-blue.pdf]]
 
 #+name: manu-ratio-map-interp
-#+header: :var wavA="4363" wavB="4959" bandA="blue" bandB="green" vmin="0.0" vmax="auto" mask="nonzero" method="linear" onto="A"
+#+header: :var wavA="4363" wavB="4959" bandA="blue" bandB="green" vmin="0.0" vmax="auto" mask="nonzero" method="linear" onto="A" diverging=""
 #+BEGIN_SRC python :return pltfile :results file 
   from astropy.table import Table
   import matplotlib.pyplot as plt
   import numpy as np
   from scipy.interpolate import griddata
   <<aesthetics>>
+  <<diverging-colormap>>
   <<manu-find-mask>>
   column = 'Flux'
   fig = plt.figure(figsize=(10, 10))
@@ -300,6 +321,12 @@ alpha_disk = 0.8
 
 ***** Results of ratio plots
 
+****** T-sensitive [N II] pure CEL ratio
+#+call: manu-ratio-map("5755", "6583", band="red", vmin=0.008, vmax=0.027, mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-5755-6583-red.pdf]]
+
 ****** T-sensitive CEL-ORL ratio
 
 ******* First, just use the one O II line
@@ -418,12 +445,38 @@ We can also do 4388/6678, which should be independent of n,T, which might make i
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4388-6678-blue-red-B.pdf]]
 
-****** N-sensitive forbidden line ratio
+****** N-sensitive forbidden line ratios: [Cl III], [Ar IV], [O II], [S II], [N I]
 #+call: manu-ratio-map("5538", "5518", "green", vmin=0.8, vmax=2.2, mask="none") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-5538-5518-green.pdf]]
 
+General drop with radius, but superimposed on two dense filaments to SW
+
+#+call: manu-ratio-map("4740", "4711", "blue", vmin=0.7, vmax=2.0, mask="0.4") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4740-4711-blue.pdf]]
+
+The [Ar IV] densities are noisy, but tend to drop with radius
+
+#+call: manu-ratio-map("5198", "5200", "green", vmin=1.4, vmax=3.0, mask="0.2") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-5198-5200-green.pdf]]
+
+Given that [N I] is mainly fluorescent, the ratio shouldn' necessarily tell us very much.  But it has a peak at the position of the optical outflows from BN/KL: HH 201, etc
+This indicates that there is collisional excitation of [N I] in these HH objects.  However, the high ratios reached 5198/5200 > 2.5 means that 5200/5198 < 0.4, which is lower than the theoretical high density limit. 
+
+#+call: manu-ratio-map("6731", "6716", "red", vmin=1.3, vmax=2.2) :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6731-6716-red.pdf]]
+
+#+call: manu-ratio-map-interp("4069", "6731", bandA="blue", bandB="red", vmin="0.1", vmax="0.7", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4069-6731-blue-red-A.pdf]]
 
 ****** N-sensitive ORL line ratio
 This one is the best theoretically
@@ -455,6 +508,36 @@ This needs to be corrected for extinction.  But even so, it looks strange.  Big 
 
 
 
+****** Ratios that should be constant
+
+******* [N II] 6583/6548
+#+call: manu-ratio-map("6583", "6548", "red", vmin=2.8, vmax=3.6)  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6583-6548-red.pdf]]
+
+This is consistently larger than 3, and is higher in the Dark Bay and the SW
+
+It might be a zero-point problem.  It is like we have added a constant on to the 6583 
+
+Need to plot one against the other
+
+******* [O I] 6300/6363
+#+call: manu-ratio-map("6300", "6364", "red", vmin=2.7, vmax=3.5)  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6300-6364-red.pdf]]
+
+Similar behavior - higher in faint regions
+
+******* [O III] 5007/4959
+#+call: manu-ratio-map("5007", "4959", "green", vmin=2.7, vmax=3.5)  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-5007-4959-green.pdf]]
+
++ [ ] This has strange structure that repeats identically from one field to the next
+
 ****** Ratio between N II and O II brightness
 #+call: manu-ratio-map("4631", "4642", "blue", vmin=0.0, vmax=1.0, mask="none") :results file
 
@@ -473,26 +556,183 @@ This is the 4642 blend (O II + N III + N II) divided by a "pure" O II 4639 line.
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4642-4639+4649+4651+4662-blue.pdf]]
 
 ****** Ratio of N III to N II
-#+call: manu-ratio-map("4634", "4631", "blue", vmin=0.0, vmax=1.0, mask="none") :results file
+#+call: manu-ratio-map("4634", "4631", "blue", vmin=0.0, vmax=1.0, mask="none", diverging="yes") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4634-4631-blue.pdf]]
 
+
+****** Dust destruction
+******* [S III]/[Fe III]
+
+#+call: manu-ratio-map-interp("6312", "4658", bandB="blue", bandA="red", vmin="0.3", vmax="6.0", diverging="yes", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6312-4658-red-blue-A.pdf]]
+
+This is mainly an ionization indicator
+******* [Fe III]/[S II] + [S III]
+#+call: manu-ratio-map-interp("4658", "6312+6312+6731", bandA="blue", bandB="red", vmin="0.0", vmax="0.16", diverging="yes", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4658-6312+6312+6731-blue-red-A.pdf]]
+
+#+call: manu-ratio-map-interp("4658", "6312+6312+6731", bandA="blue", bandB="red", vmin="0.0", vmax="0.16", diverging="yes", mask="none", onto="B") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4658-6312+6312+6731-blue-red-B.pdf]]
+
+These show up the jets nicely, but subtraction might be better
+******* [Fe II]/O I
+#+call: manu-ratio-map-interp("4287", "6046", bandA="blue", bandB="red", vmin="0.35", vmax="1.7", diverging="yes", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4287-6046-blue-red-A.pdf]]
+
+#+call: manu-ratio-map-interp("4287", "6046", bandA="blue", bandB="red", vmin="0.35", vmax="1.7", diverging="yes", mask="none", onto="B") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4287-6046-blue-red-B.pdf]]
+
+****** Ionization indicators
+******* [Ar IV] / [Ar III]
+#+call: manu-ratio-map-interp("4740", "5192", bandA="blue", bandB="green", vmin="0.0", vmax="2.5", method="nearest", mask="0.7", diverging="yes") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4740-5192-blue-green-A.pdf]]
+******* [O I]/[N I]
+#+call: manu-ratio-map-interp("6300", "5200", bandA="red", bandB="green", vmin="0.0", vmax="20.0", method="nearest", diverging="yes") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6300-5200-red-green-A.pdf]]
+
+******* [O I]/O I
+#+call: manu-ratio-map("6300", "6046", "red", vmin="4", vmax="25", mask="0.3")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6300-6046-red.pdf]]
+
+#+call: manu-ratio-map("6364", "6046", "red", vmin="1.5", vmax="10", mask="0.3", diverging="yes", scale="log")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6364-6046-red.pdf]]
+
+These two look identical, as they should do!
+
++ [ ] I ought to use a divergent colormap
+
+******* [S III]/[S II]
+Using [S II] nebular line
+#+call: manu-ratio-map("6312", "6731", "red", vmin="0.05", vmax="0.6", mask="0.3", diverging="yes")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6312-6731-red.pdf]]
+
+Or using the [S II] auroral line
+#+call: manu-ratio-map-interp("6312", "4069", bandA="red", bandB="blue", vmin="0.3", vmax="3.5", method="nearest", diverging="yes") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6312-4069-red-blue-A.pdf]]
+
+#+call: manu-ratio-map-interp("6312", "4069", bandA="red", bandB="blue", vmin="0.3", vmax="3.5", method="nearest", diverging="yes", onto="B") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6312-4069-red-blue-B.pdf]]
+
+It actually makes quite a bit of difference to the results: 
++ With the nebular line, the low ionization of the Orion S region is not so apparent due to collisional deescitation of the 6731 line
+
+******* He I/H I
+#+call: manu-ratio-map("6678", "6563", "red", vmin="0.006", vmax="0.02", diverging="yes")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-6678-6563-red.pdf]]
+
+#+call: manu-ratio-map("4922", "4861", "green", vmin="0.006", vmax="0.019", diverging="yes")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4922-4861-green.pdf]]
+
+#+call: manu-ratio-map("4026", "3970", "blue", vmin="0.05", vmax="0.22", diverging="yes")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4026-3970-blue.pdf]]
+
+These all look somehwat different
+
+******* [O III]/[N II]
+#+call: manu-ratio-map-interp("4363", "5755", bandA="blue", bandB="red", vmin="0.0", vmax="3.0", diverging="yes")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4363-5755-blue-red-A.pdf]]
+
+#+call: manu-ratio-map-interp("5007", "6583", bandA="green", bandB="red", vmin="0.0", vmax="10.0", diverging="yes")  :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-5007-6583-green-red-A.pdf]]
+
+****** Reddening indicators: H lines
+#+call: manu-ratio-map-interp("6563", "4861", bandA="red", bandB="green", vmin="2.9", vmax="6.5", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6563-4861-red-green-A.pdf]]
+
+Looks like the red line hasn't been normalized properly between fields
+
+#+call: manu-ratio-map-interp("4861", "4102", bandA="green", bandB="blue", vmin="3.0", vmax="6.0", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4861-4102-green-blue-A.pdf]]
+
+#+call: manu-ratio-map-interp("4861", "4102+3970", bandA="green", bandB="blue", vmin="1.7", vmax="3.2", method="nearest", mask="0.05") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4861-4102+3970-green-blue-A.pdf]]
+
+
+#+call: manu-ratio-map-interp("4861", "3970", bandA="green", bandB="blue", vmin="5.0", vmax="10.0", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4861-3970-green-blue-A.pdf]]
+
+#+call: manu-ratio-map-interp("4861", "4340", bandA="green", bandB="blue", vmin="1.5", vmax="3.5", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-4861-4340-green-blue-A.pdf]]
+
+#+call: manu-ratio-map("4340", "4102", "blue", vmin=1.3, vmax=2.4, mask="0.01") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4340-4102-blue.pdf]]
+
+#+call: manu-ratio-map("4340", "3970", "blue", vmin=2.4, vmax=4.4, mask="0.1") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4340-3970-blue.pdf]]
+
+#+call: manu-ratio-map("4102", "3970", "blue", vmin=1.3, vmax=2.4, mask="0.1") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-4102-3970-blue.pdf]]
+
+#+call: manu-ratio-map-interp("6563", "4340", bandA="red", bandB="blue", vmin="6", vmax="14.5", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6563-4340-red-blue-A.pdf]]
+
+#+call: manu-ratio-map-interp("6563", "4340", bandA="red", bandB="blue", vmin="6", vmax="14.5", method="nearest", onto="B") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6563-4340-red-blue-B.pdf]]
+
+#+call: manu-ratio-map-interp("6563", "4102", bandA="red", bandB="blue", vmin="10", vmax="25", method="nearest") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-6563-4102-red-blue-A.pdf]]
+
++ [ ] These ratios are worrying in their randomness
+
 ***** Results of making single-line plots
-#+call: manu-make-map(ion="[O III]") :results file
-
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4959-green.pdf]]
-
-#+call: manu-make-map("W", "4959", "green", ion="[O III]", vmin="20", vmax="45") :results file
-
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/W-4959-green.pdf]]
-
-#+call: manu-make-map("V", "4959", "green", ion="[O III]", vmin="-10", vmax="30") :results file
-
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/V-4959-green.pdf]]
 
 ****** Decontaminating 4642
 :PROPERTIES:
@@ -580,6 +820,35 @@ Two red He I lines.  Velocity difference shows almost no structure, which is goo
 
 
 ****** [O III] auroral and nebular lines: 4363, 4959
+
+
+#+call: manu-make-map(ion="[O III]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4959-green.pdf]]
+
+#+call: manu-make-map("Flux", "4363", "blue", ion="[O III]", vmax="120", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4363-blue.pdf]]
+
+#+call: manu-make-map("Flux", "5007", "green", ion="[O III]", vmax="auto") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5007-green.pdf]]
+
+******* Velocity and width of [O III] lines
+#+call: manu-make-map("W", "4959", "green", ion="[O III]", vmin="20", vmax="45") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/W-4959-green.pdf]]
+
+#+call: manu-make-map("V", "4959", "green", ion="[O III]", vmin="-10", vmax="30") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/V-4959-green.pdf]]
+
+
 #+call: manu-make-map("V", "4363", "blue", ion="[O III]", vmin="0", vmax="40") :results file
 
 #+RESULTS:
@@ -590,6 +859,7 @@ Two red He I lines.  Velocity difference shows almost no structure, which is goo
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/W-4363-blue.pdf]]
 
+******* Equivalent widths of [O III] lines
 #+call: manu-make-map("EW", "4363", "blue", vmax="6.5") :results file
 
 #+RESULTS:
@@ -600,11 +870,13 @@ Two red He I lines.  Velocity difference shows almost no structure, which is goo
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/EW-4959-green.pdf]]
 
-#+call: manu-make-map("Flux", "4363", "blue", ion="[O III]", vmax="120", mask="none") :results file
+
+
+****** [Ne III] line
+#+call: manu-make-map("Flux", "3968", "blue", ion="[Ne III]", vmax="600", mask="none") :results file
 
 #+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4363-blue.pdf]]
-
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-3968-blue.pdf]]
 
 ****** O II recombination lines
 #+call: manu-make-map("Flux", "4649", "blue", ion="O II", vmax="12") :results file
@@ -639,6 +911,31 @@ Velocities of O II lines
 All are pinned to same relative wavelength
 
 
+****** C II recomb lines
+#+call: manu-make-map("Flux", "4267", "blue", ion="C II", vmax="auto") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4267-blue.pdf]]
+
+#+call: manu-make-map("Flux", "5342", "green", ion="C II", vmax="1.3", mask="0.8") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5342-green.pdf]]
+
+#+call: manu-make-map("Flux", "6578", "red", ion="C II", vmax="50", mask="5.0") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6578-red.pdf]]
+
+[ ] This looks very strange - extremely strong in HH 203.  Need to check the line fits to make sure it is OK.  Could be contaminated by an [Fe II] line
+
+#+call: manu-make-map("Flux", "6462", "red", ion="C II", vmax="4.0") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6462-red.pdf]]
+
+This one looks a lot more like 4267
+
 ****** N II recomb line
 
 Has a strange peak around th2A
@@ -651,20 +948,95 @@ Has a strange peak around th2A
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/V-4631-blue.pdf]]
 
+#+call: manu-make-map("Flux", "5680", "red", ion="N II", vmax="5") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5680-red.pdf]]
+
+#+call: manu-make-map("Flux", "5667", "red", ion="N II", vmax="3.5") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5667-red.pdf]]
+
+****** [N II] lines
+#+call: manu-make-map("Flux", "6583", "red", vmax="7500", ion="[N II]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6583-red.pdf]]
+
+#+call: manu-make-map("Flux", "6548", "red", vmax="2500", ion="[N II]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6548-red.pdf]]
+
+#+call: manu-make-map("Flux", "5755", "red", vmax="150", ion="[N II]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5755-red.pdf]]
+
 ****** [Fe III] lines
-An [Fe III] line
++ [ ] Can we work out the density from these
+
+A blue [Fe III] line
+#+call: manu-make-map("Flux", "4702", "blue", ion="[Fe III]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4702-blue.pdf]]
+
+Another blue [Fe III] line
 #+call: manu-make-map("Flux", "4658", "blue", ion="[Fe III]") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4658-blue.pdf]]
 
-And another [Fe III] line
+And another blue [Fe III] line
 #+call: manu-make-map("Flux", "4667", "blue", ion="[Fe III]") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4667-blue.pdf]]
 
+That one was weaker, and had problems around th2A
 
+A fourth blue [Fe III] line
+#+call: manu-make-map("Flux", "4755", "blue", ion="[Fe III]", vmax="16") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4755-blue.pdf]]
+
+A fifth blue [Fe III] line
+#+call: manu-make-map("Flux", "4770", "blue", ion="[Fe III]", vmax="8.5") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4770-blue.pdf]]
+
+A sixth blue [Fe III] line
+#+call: manu-make-map("Flux", "4778", "blue", ion="[Fe III]", vmax="5.8") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4778-blue.pdf]]
+
+A seventh blue [Fe III] line
+#+call: manu-make-map("Flux", "4734", "blue", ion="[Fe III]", vmax="auto") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4734-blue.pdf]]
+
+An eighth blue [Fe III] line
+#+call: manu-make-map("Flux", "4607", "blue", ion="[Fe III]", vmax="5") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4607-blue.pdf]]
+
+That one was supposedly blended with N II 4607, but it certainly doesn't look like the N II makes any contribution
+
+A green [Fe III] line
+#+call: manu-make-map("Flux", "5270", "green", ion="[Fe III]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5270-green.pdf]]
+
+
+******* Velocities of [Fe III] lines
 #+call: manu-make-map("V", "4658", "blue", ion="[Fe III]", vmin="0", vmax="50") :results file
 
 #+RESULTS:
@@ -681,22 +1053,43 @@ And another [Fe III] line
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/W-4658-blue.pdf]]
 
 ****** He I lines
-#+call: manu-make-map("Flux", "5876", "red", vmax="1350") :results file
+#+call: manu-make-map("Flux", "5876", "red", vmax="1350", ion="He I") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5876-red.pdf]]
 
-#+call: manu-make-map("Flux", "6678", "red") :results file
+#+call: manu-make-map("Flux", "6678", "red", ion="He I") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6678-red.pdf]]
 
-#+call: manu-make-map("Flux", "5048", "green") :results file
+#+call: manu-make-map("Flux", "5048", "green", ion="He I") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5048-green.pdf]]
 
-Equivalent widths
+
+#+call: manu-make-map("Flux", "5016", "green", mask="1.0", ion="He I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5016-green.pdf]]
+
+#+call: manu-make-map("Flux", "4922", "green", ion="He I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4922-green.pdf]]
+
+#+call: manu-make-map("Flux", "4026", "blue", ion="He I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4026-blue.pdf]]
+
+#+call: manu-make-map("Flux", "3965", "blue", ion="He I", mask="0.3") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-3965-blue.pdf]]
+
+******* Equivalent widths of He lines
 #+call: manu-make-map("EW", "5876", "red", vmax="170") :results file
 
 #+RESULTS:
@@ -714,7 +1107,7 @@ Equivalent width of 6678 has a problem with fibers at one end of the chip
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/EW-5048-green.pdf]]
 
 
-Velocities of He lines
+******* Velocities of He lines
 #+call: manu-make-map("V", "5876", "red", ion="He I", vmin="10", vmax="50") :results file
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/V-5876-red.pdf]]
@@ -732,7 +1125,7 @@ Velocities of He lines
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/W-6678-red.pdf]]
 
 
-****** Si II recomb lines
+****** Si II recomb+fluorescence lines
 
 The 5041 line has a very strange structure - very bright in northern part of the BB
 #+call: manu-make-map("Flux", "5041", "green", ion="Si II", vmax="14") :results file
@@ -746,22 +1139,141 @@ The 5056 line has one spot that is bright there
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5056-green.pdf]]
 
+The 5979 line - mainly fluorescence
+#+call: manu-make-map("Flux", "5979", "red", ion="Si II", vmax="16") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5979-red.pdf]]
+
 Ratio of Si II 5041/5056
-#+call: manu-ratio-map("5041", "5056", "green", vmin=0.2, vmax=1.1) :results file
+#+call: manu-ratio-map("5041", "5056", "green", vmin=0.2, vmax=1.1, diverging="yes") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-Flux-5041-5056-green.pdf]]
 
+Ratio of Si II 5056/5979
+#+call: manu-ratio-map-interp("5056", "5979", bandA="green", bandB="red", vmin=0.5, vmax=3.1, diverging="yes") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Ratio-5056-5979-green-red-A.pdf]]
+
+This is /extremely/ similar to 5007/6583
 
 
-****** Lines nearby to 4363
 
+****** [N I] lines
+#+call: manu-make-map("Flux", "5200", "green", vmax="12", mask="none", ion="[N I]") :results file
 
-[Fe II] 4359
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5200-green.pdf]]
+
+#+call: manu-make-map("Flux", "5198", "green", vmax="16", mask="none", ion="[N I]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5198-green.pdf]]
+
+****** O I fluorescent lines
+O I 5555 fluorescent
+#+call: manu-make-map("Flux", "5555", "green", ion="O I", vmax="5") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5555-green.pdf]]
+
+O I 5513 fluorescent
+#+call: manu-make-map("Flux", "5513", "green", ion="O I", vmax="4.0") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5513-green.pdf]]
+ 
+O I 6046 fluorescent
+#+call: manu-make-map("Flux", "6046", "red", ion="O I", vmax="15") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6046-red.pdf]]
+
+O I 5958 fluorescent
+#+call: manu-make-map("Flux", "5958", "red", ion="O I + Si II", vmax="14") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5958-red.pdf]]
+
+Contamination from Si II - looks to be about 50/50
+
+O I 5299 fluorescent
+#+call: manu-make-map("Flux", "5299", "green", ion="O I", vmax="auto") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5299-green.pdf]]
+
+****** [O I] collisional lines
+#+call: manu-make-map("Flux", "6300", "red", ion="[O I]", vmax="200") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6300-red.pdf]]
+
+****** [Fe II] lines
+******* [Fe II] 4359
 #+call: manu-make-map("Flux", "4359", "blue", ion="[Fe II]", vmin="4", vmax="14", mask="none") :results file
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4359-blue.pdf]]
+
+Not sure why this doesn't fall to zero.  Rather noisy
+
+******* [Fe II] 4287
+#+call: manu-make-map("Flux", "4287", "blue", ion="[Fe II]", vmin="0", vmax="14", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4287-blue.pdf]]
+
+This one is better, even though similar strength.  Probably because it is not blended
+
+******* [Fe II] 4244
+#+call: manu-make-map("Flux", "4244", "blue", ion="[Fe II]", vmax="auto", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4244-blue.pdf]]
+
+Similar to 4287 but about half as strong, and noisier
+
+******* [Fe II] 4277 and 4416, blended with O II
+#+call: manu-make-map("Flux", "4277", "blue", ion="[Fe II]", vmax="auto", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4277-blue.pdf]]
+
+This looks just like you would expect - similar to other [Fe II] lines but also showing some high ionization emission
+
+[Fe II]/O II 4416
+#+call: manu-make-map("Flux", "4416", "blue", ion="[Fe II]/O II", vmax="auto", mask="none") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4416-blue.pdf]]
+
+Very similar to 4277 but noisier
+
+****** [S III] line
+#+call: manu-make-map("Flux", "6312", "red", ion="[S III]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6312-red.pdf]]
+
+****** [S II] lines
+
+******* Auroral
+#+call: manu-make-map("Flux", "4069", "blue", ion="[S II]", vmax="300") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4069-blue.pdf]]
+
+#+call: manu-make-map("Flux", "4076", "blue", ion="[S II]", vmax="120") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4076-blue.pdf]]
+
+Very closely identical
+****** Lines nearby to 4363
+
 
 O I/O II 4368
 #+call: manu-make-map("Flux", "4368", "blue", ion="O I/O II", vmax="12", mask="none") :results file
@@ -792,6 +1304,24 @@ He I 4438
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/V-4359-blue.pdf]]
 
 
+****** [Ar IV] lines
+#+call: manu-make-map("Flux", "4711", "blue", vmax="8", ion="[Ar IV]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4711-blue.pdf]]
+
+#+call: manu-make-map("Flux", "4740", "blue", vmax="10", ion="[Ar IV]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4740-blue.pdf]]
+
+
+****** [Ar III] lines
+#+call: manu-make-map("Flux", "5192", "green", vmax="auto", ion="[Ar III]") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5192-green.pdf]]
+
 ****** [Cl III] lines
 #+call: manu-make-map("Flux", "5538", "green", vmax="auto", mask="none", ion="[Cl III]") :results file
 
@@ -803,14 +1333,55 @@ He I 4438
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5518-green.pdf]]
 
+****** H lines
+H alpha
+#+call: manu-make-map("Flux", "6563", "red", vmax="auto", mask="none", ion="H I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-6563-red.pdf]]
+
+H beta
+#+call: manu-make-map("Flux", "4861", "green", vmax="auto", mask="none", ion="H I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4861-green.pdf]]
+
+H gamma
+#+call: manu-make-map("Flux", "4340", "blue", vmax="auto", mask="none", ion="H I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4340-blue.pdf]]
+
+H delta
+#+call: manu-make-map("Flux", "4102", "blue", vmax="auto", mask="0.01", ion="H I") :results file
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4102-blue.pdf]]
+
+H epsilon
+#+call: manu-make-map("Flux", "3970", "blue", vmax="auto", mask="none", ion="H I") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-3970-blue.pdf]]
+
+
+****** N III and O III permitted
+N III 4634 Bowen resonance fluorescence
+#+call: manu-make-map("Flux", "4634", "blue", vmax="1.5") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4634-blue.pdf]]
+
+O III 5592 - very weak
+#+call: manu-make-map("Flux", "5592", "green", ion="O III", vmax="1.5", mask="2.0") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5592-green.pdf]]
+
+All we can see here are a few dots - but they do seem concentrated in particular zones.  Hopefully it will be better if we sum the fibers
+
 
 ****** Miscellany
 
-[Fe II]/O II 4416
-#+call: manu-make-map("Flux", "4416", "blue", ion="[Fe II]/O II", vmax="auto") :results file
-
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil]]
 
 O II 4676
 #+call: manu-make-map("Flux", "4676", "blue", vmax="3.5") :results file
@@ -824,23 +1395,7 @@ O II 4676
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4667-blue.pdf]]
 
-N III 4634 Bowen resonance fluorescence
-#+call: manu-make-map("Flux", "4634", "blue", vmax="1.5") :results file
 
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4634-blue.pdf]]
-
-O III 5592 - nothing there
-#+call: manu-make-map("Flux", "5592", "green", vmax="0.1") :results file
-
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5592-green.pdf]]
-
-O I 5555 fluorescent
-#+call: manu-make-map("Flux", "5555", "green", vmax="4", mask="none") :results file
-
-#+RESULTS:
-[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-5555-green.pdf]]
 
 [O I]/Sky 5577
 #+call: manu-make-map("Flux", "5577", "green", vmin="3", vmax="18") :results file
@@ -858,6 +1413,13 @@ O I 5555 fluorescent
 
 #+RESULTS:
 [[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/V-5577-green.pdf]]
+
+Unknown 4046 (probably sky)
+#+call: manu-make-map("Flux", "4046", "blue", ion="Unknown", vmax="auto") :results file
+
+#+RESULTS:
+[[file:/Users/will/Work/RubinWFC3/Tsquared/Manu-Nil/Maps/Flux-4046-blue.pdf]]
+
 ***** Deblending the O II 4642 line
 :PROPERTIES:
 :ID:       21C5981E-094F-433C-BDEC-6F9D2FC20F5F
@@ -959,14 +1521,33 @@ O I 5555 fluorescent
 time python manu-photom-fit.py --pattern blue* --only 4651 --ftol 1e-5 --xtol 1e-5
     #+END_EXAMPLE
   + Table of wav ranges we have done
-      | blue  | 4650_O_II_Fe_III | x |
-      | blue  | 4610_O_II_Fe_III | x |
-      | blue  | 4350_            | x |
-      | green | 4960_O_III       | x |
-      | green | 5550_Cl_III      | x |
-      | green | 5050_He_I_Si_II  | x |
-      | red   | 5880_He_I        | x |
-      | red   | 6680_He_I        | x |
+| blue  | 3970_H_epsilon_Ne_III  | X |
+| blue  | 4050_He_I_auroral_S_II | X |
+| blue  | 4270_Fe_II_C_II        | X |
+| blue  | 4610_O_II_Fe_III       | x |
+| blue  | 4650_O_II_Fe_III       | x |
+| blue  | 4350_                  | x |
+| blue  | 4720_Ar_IV_Fe_III      | X |
+| blue  | 4760_Fe_III            |   |
+| green | 4920_He_I              |   |
+| green | 4870_H_beta            | X |
+| green | 4960_O_III             | x |
+| green | 5000_O_III_He_I        |   |
+| green | 5050_He_I_Si_II        | x |
+| green | 5200                   | X |
+| green | 5270_Fe_III            |   |
+| green | 5300_O_I_C_II          |   |
+| green | 5550_Cl_III            | x |
+| red   | 5680_N_II              |   |
+| red   | 5750_N_II              |   |
+| red   | 5880_He_I              | x |
+| red   | 5970_Si_II_O_I         |   |
+| red   | 6300_O_I               |   |
+| red   | 6460_C_II              |   |
+| red   | 6580_C_II_N_II         |   |
+| red   | 6560_N_II_H_alpha      | X |
+| red   | 6680_He_I              | x |
+| red   | 6720_S_II              |   |
 ** The issue of underlying stellar absorption
 + This /might/ be happening for O II 4591
 + By looking at the spectrum when it is over a star, e.g. th2A, then there is a hint of an absorption feature with an absorption depth of 5% maximum.

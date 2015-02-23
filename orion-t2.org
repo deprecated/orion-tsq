@@ -4913,6 +4913,7 @@ It would be interesting to see if there is any trend with the E/W values
 | [Fe II]       |   5273.38 |
 | O I           |   5298.89 |
 | C II          |   5342.40 |
+| [Fe II]       |  5376.452 |
 | [Fe III]      |   5412.00 |
 | O II          |   5433.49 |
 | S II          |   5453.81 |
